@@ -1,0 +1,154 @@
+
+<view class="wrap">
+    <view class="base">
+        <view class="first-line">
+            <view>
+                <text class="pin-icon">聘</text>
+                <text>{{page.work_name}}</text>
+            </view>
+            <text class="salary">{{page.salary_name}}</text>
+        </view>
+        <view class="second-line">
+            <view>
+                <icon/>
+                <text>{{page.city_name}}</text>
+            </view>
+            <view>
+                <icon/>
+                <text>{{page.work_experience_name}}</text>
+            </view>
+            <view>
+                <icon/>
+                <text>{{page.education_name}}</text>
+            </view>
+        </view>
+        <text class="text-line" style="color:#707070;padding:0 40rpx;box-sizing:border-box;">职位诱惑：{{page.temptation}}</text>
+        <view style="width:100%;padding:0 40rpx;box-sizing:border-box;">
+            <view class="text-wrap">
+                <text class="text-line" style="color:#aaa;">职位发布时间：{{publishTime}}</text>
+                <button bindtap="collect" hidden="{{collect}}" plain class="collect-btn has" hove-class="collect-btn-hover">收藏职位</button>
+                <button bindtap="collect" hidden="{{!collect}}" plain class="collect-btn no" hove-class="collect-btn-hover">已收藏</button>
+            </view>
+        </view>
+        <view class="comp" bindtap="toCompany">
+            <image class="comp-left" mode="aspectFill" src="{{page.userCompany.headerImage}}"/>
+            <view class="comp-right">
+                <view class="comp-name">
+                    <text class="name">{{page.userCompany.nickname}}</text>
+                    <view class="{{page.userCompany.isApproveOffcial=='1'?'auth':''}}">
+                        <icon  wx:if="{{page.userCompany.isApproveOffcial=='1'}}"/>
+                        <icon  wx:if="{{page.userCompany.isApproveOffcial=='0'}}"/>
+                        <text>{{page.userCompany.isApproveOffcial=='1'?'已认证':'未认证'}}</text>
+                    </view>
+                </view>
+                <view class="comp-info">
+                    <view>
+                        <icon/>
+                        <text>{{page.userCompany.createCompanyYear}}</text>
+                    </view>
+                    <view>
+                        <icon/>
+                        <text>{{page.userCompany.cityName}}</text>
+                    </view>
+                    <view>
+                        <icon/>
+                        <text>{{page.userCompany.shopType}}店</text>
+                    </view>
+                </view>
+                <view class="comp-comment">
+                    <text>公司评价：</text>
+                    <icon class="full" wx:for="{{page.userCompany.appraiseNum}}" wx:key="{{index}}"/>
+                    <icon class="empty" wx:for="{{5 - page.userCompany.appraiseNum}}" wx:key="{{index}}"/>
+                </view>
+                <view class="comp-jobNum">
+                    <icon/>
+                    <text>{{page.userCompany.workNum}}个 职位在招</text>
+                </view>
+            </view>
+            <icon class="right-arrow"/>
+        </view>
+    </view>
+    <view class="block" wx:if="{{page.tagList.length!=0}}">
+        <view class="block-title">
+            <icon/>
+            <text>专业认证/技能要求</text>
+        </view>
+        <view class="block-intro">
+            <icon/>
+            <text>此职位需要拥有的专业认证/技能及相关要求</text>
+        </view>
+        <view class="tag">
+            <view bindtap="showTagIntro">
+                <view class="tag-name">专业/技能名称</view>
+                <view data-index="1" class="tag-content" style="color:{{tagIndex==1?'#40c4ff':''}}">
+                    认证要求<view wx:if="{{tagIndex==1}}" class="first tag-intro">是否必须经官方权威培训机构认证<icon/></view>
+                </view>
+                <view data-index="2" class="tag-content" style="color:{{tagIndex==2?'#40c4ff':''}}">
+                    持证要求<view wx:if="{{tagIndex==2}}" class="second tag-intro">是否必须持有认证证书才聘用<icon/></view>
+                </view>
+                <view data-index="3" class="tag-content" style="color:{{tagIndex==3?'#40c4ff':''}}">
+                    技能经验<view wx:if="{{tagIndex==3}}" class="third tag-intro">需要多久的授课经验<icon/></view>
+                </view>
+                <view data-index="4" class="tag-content" style="color:{{tagIndex==4?'#40c4ff':''}}">
+                    技能等级<view wx:if="{{tagIndex==4}}" class="fourth tag-intro">需要达到什么等级<icon/></view>
+                </view>
+            </view>
+            <view class="tag-detail" style="background-color:{{index%2==1?'#fff':'#f2f2f5'}}" wx:for="{{page.tagList}}" wx:key="{{index}}">
+                <view class="tag-name" bindtap="showNameDetail" data-wepy-params-a="{{index}}">
+                    <text>{{item.name}}</text>
+                    <view wx:if="{{item.name.length>4}}" hidden="{{nameIndex!==index}}"><icon/>{{item.name}}</view>
+                </view>
+                <text class="tag-content">{{item.isApprove=='1'?'必须':'无须'}}</text>
+                <text class="tag-content">{{item.hasCertificate=='1'?'必须':'无须'}}</text>
+                <text class="tag-content">{{item.experienceName}}</text>
+                <text class="tag-content">{{item.level_name}}</text>
+            </view>
+        </view>
+    </view>
+    <view class="block">
+        <view class="block-title">
+            <icon/>
+            <text>职位详情</text>
+        </view>
+        <view class="block-intro">
+            <icon/>
+            <text style="color:#40c4ff;">职位职责<text style="color:#bbb">（具体工作内容）</text></text>
+        </view>
+        <text class="duty-content">{{page.duties}}</text>
+        <view class="block-intro">
+            <icon/>
+            <text style="color:#40c4ff;">任职要求<text style="color:#bbb">（任职所需具备的要求）</text></text>
+        </view>
+        <text class="duty-content">{{page.require}}</text>
+    </view>
+    <view class="block">
+        <view class="block-title" style="border-bottom: 1px solid #f2f2f5;">
+            <icon/>
+            <text>工作地点</text>
+        </view>
+        <view class="shop">
+            <view class="shop-left">
+                <text class="shop-name">{{page.shop_name}}</text>
+                <text class="shop-address">{{page.address}}</text>
+            </view>
+            <view class="shop-right" bindtap="openMap">
+                <icon/>
+                <text>地图</text>
+            </view>
+        </view>
+    </view>
+    <!-- <map class="map" longitude="{{lon}}" latitude="{{lat}}" show-location></map> -->
+</view>
+<view class="footer">
+    <button plain class="sendResume" hover-class="footer-btn-hover" hover-start-time="0" hover-stay-time="150">
+        <text>投递简历</text>
+    </button>
+    <button class="chat" hover-class="footer-btn-hover" hover-start-time="0" hover-stay-time="150">
+        <text>聊一聊</text>
+    </button>
+</view>
+
+<!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
+<view class="loading"  wx:if="{{$loading$show}}">
+    <image class="loading-img" src="../image/loading.png"/>
+</view>

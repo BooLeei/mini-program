@@ -1,0 +1,17 @@
+<template>
+    chat list
+</template>
+
+<style lang="less">
+    
+</style>
+
+<script>
+import wepy from 'wepy'
+
+export default class ChatList extends wepy.page {
+    data = {
+
+    }
+}
+</script>

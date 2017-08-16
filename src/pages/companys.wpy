@@ -1,0 +1,417 @@
+<template>
+<view class="top">
+    <navigator url="search" hover-class="navigator-hover">
+        <icon class="iconfont icon-sousuo"></icon>
+    </navigator>
+    <text>推荐公司</text>
+    <view @tap="toAllRecomend"><icon class="right-arrow"></icon></view>
+</view>
+<slider :login.sync="hasLogin"></slider>
+ <view style="width:100%;height:8px;background-color:#f2f2f5;"></view>
+ <view id="fixed" class="filter-fixed {{fixed?'fixed':''}}" @touchmove.stop="stop">
+    <view class="filter-left">
+        <icon></icon>
+        <text hidden="{{fixed&&slideDown}}">海量健身公司，等你开撩！</text>
+        <text hidden="{{!(fixed&&slideDown)}}">请选择公司类型</text>
+    </view>
+    <view class="filter-right" @tap="slideToBottom">
+        <text hidden="{{fixed&&slideDown}}" style="margin-right: 10rpx;">{{companyTypeName}}</text>
+        <icon hidden="{{fixed&&slideDown}}" class="up iconfont icon-llreservenavidown"></icon>
+        <icon hidden="{{!(fixed&&slideDown)}}" class="down iconfont icon-llreservenavidown"></icon>
+    </view>
+ </view>
+ <view class="list-wrap" style="margin-top:{{fixed?'88rpx':'0'}}">
+    <repeat for="{{companys}}" item="item">
+        <comp-item :listItem="item"></comp-item>
+    </repeat>
+    <view class="pull-loading" hidden="{{hasNot}}">加载中...</view>
+ </view>
+<view class="slider-mask" hidden="{{!slideDown}}" @tap="slideToTop" @touchmove.stop="stop"></view>
+<view class="middle-slider {{slideDown?'slideBottom':''}}" @tap="slideToTop" @touchmove.stop="stop">
+    <text data-type='0'>全部公司</text>
+    <text data-type='1'>俱乐部</text>
+    <text data-type='2'>工作室</text>
+    <text data-type='3'>瑜伽馆</text>
+    <text data-type='4'>培训学院</text>
+    <text data-type='5'>器械设备</text>
+    <text data-type='6'>媒体资讯</text>
+    <text data-type='7'>会展/活动/赛事</text>
+    <text data-type='8'>互联网</text>
+    <text data-type='9'>其他</text>
+</view>
+<loading :show.sync="loading"></loading>
+</template>
+
+<script>
+import wepy from 'wepy'
+import loading from '../components/loading'
+import Request from '../utils/request'
+import SliderDelay from '../components/slider-delay'
+import CompanyItem from '../components/comp-list-item'
+import { log } from '../utils/log'
+
+export default class Companys extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '招聘公司'
+    }
+
+    data = {
+        loading: false,
+        companys: [],
+        hasLogin: true,
+        slideDown: false,
+        fixed: false,
+        companyType: 0,
+        companyTypeName: '全国公司',
+        hasNot: false
+    }
+
+    request = new Request()
+
+    getCompanyList (page = 1, pageSize = 8) {
+        return this.request.Get({
+            'cityId': this.$parent.global.choose.region_id,
+            'page': page,
+            'pageSize': pageSize,
+            'companyType': this.companyType
+        }, '/User/getUserCompanyList')
+    }
+
+    page = {
+        busy: false,
+        index: 1,
+        scrollTop: 0
+    }
+
+    swiper = {
+        first: [],
+        second: [],
+        third: []
+    }
+
+    computed = {
+        companyTypeName () {
+            switch (this.companyType) {
+            case 0:
+                return '全部公司'
+            case 1:
+                return '俱乐部'
+            case 2:
+                return '工作室'
+            case 3:
+                return '瑜伽馆'
+            case 4:
+                return '培训学院'
+            case 5:
+                return '器械设备'
+            case 6:
+                return '媒体资讯'
+            case 7:
+                return '会展/活动/赛事'
+            case 8:
+                return '互联网'
+            case 9:
+                return '其他'
+            default:
+                return ''
+            }
+        }
+    }
+
+    watch = {
+        companyType (newVal, oldVal) {
+            if (!this.fadeIn) {
+                return false
+            }
+            this.hasNot = false
+            this.index = 1
+            this.getCompanyList()
+            .then(({data}) => {
+                this.companys = data
+                wepy.pageScrollTo({
+                    scrollTop: 283
+                })
+                this.loading = false
+            })
+        }
+    }
+
+    methods = {
+        slideToBottom () {
+            if (!this.fixed) {
+                wepy.pageScrollTo({
+                    scrollTop: this.page.scrollTop
+                })
+                this.fixed = true
+            }
+            setTimeout(() => {
+                this.slideDown = !this.slideDown
+                this.$apply()
+            })
+        },
+        slideToTop (e) {
+            if (e.target.dataset.type) {
+                this.companyType = Number.parseInt(e.target.dataset.type)
+            }
+            this.slideDown = !this.slideDown
+        },
+        stop (e) {
+            return false
+        },
+        toAllRecomend () {
+            wepy.navigateTo({ url: './allRecomend' })
+        }
+    }
+
+    components = {
+        'loading': loading,
+        'slider': SliderDelay,
+        'comp-item': CompanyItem
+    }
+
+    onShareAppMessage () {
+        return {
+            title: '健身求职',
+            path: `/pages/companys`,
+            success: ret => {
+                log(ret)
+            },
+            fail: err => {
+                log(err)
+            }
+        }
+    }
+
+    onPullDownRefresh () {
+        Promise.all([
+            this.request.Get({'type': 0, 'userId': wepy.getStorageSync('userId') || 0}, '/Company/getRecommendList'),
+            this.getCompanyList()
+        ]).then(([{data}, {data: list}]) => {
+            this.companys = list
+            this.swiper.first = []
+            this.swiper.second = []
+            this.swiper.third = []
+            for (let [index, item] of data.entries()) {
+                if (index % 3 === 0) {
+                    this.swiper.first.push(item)
+                } else if (index % 3 === 1) {
+                    this.swiper.second.push(item)
+                } else if (index % 3 === 2) {
+                    this.swiper.third.push(item)
+                } else {
+                    continue
+                }
+            }
+            this.$invoke('slider', 'invokeData', {type: 1, arr: this.swiper.first})
+            this.$invoke('slider', 'invokeData', {type: 2, arr: this.swiper.second})
+            this.$invoke('slider', 'invokeData', {type: 3, arr: this.swiper.third})
+            this.$apply()
+            wepy.stopPullDownRefresh()
+        })
+    }
+
+    onPageScroll (e) {
+        if (e.scrollTop >= this.page.scrollTop) {
+            this.fixed = true
+        } else {
+            this.fixed = false
+        }
+    }
+
+    onHide () {
+        this.companyType = 0
+        this.slideDown = false
+        this.fixed = false
+        this.hasNot = false
+    }
+
+    onReachBottom () {
+        if (this.page.busy) { return false }
+        if (this.hasNot) { return false }
+        this.page.index++
+        this.page.busy = true
+        this.getCompanyList(this.page.index)
+        .then(({data}) => {
+            if (Array.isArray(data) && data.length === 0) {
+                this.hasNot = true
+            }
+            this.companys = [...this.companys, ...data]
+            this.page.busy = false
+        })
+    }
+
+    onLoad () {
+        this.loading = true
+        wx.createSelectorQuery().select('#fixed').boundingClientRect(rect => {
+            this.page.scrollTop = rect.top
+        }).exec()
+        Promise.all([
+            this.request.Get({'type': 0, 'userId': wepy.getStorageSync('userId') || 0}, '/Company/getRecommendList'),
+            this.getCompanyList()
+        ]).then(([{data}, {data: list}]) => {
+            this.companys = list
+            for (let [index, item] of data.entries()) {
+                if (index % 3 === 0) {
+                    this.swiper.first.push(item)
+                } else if (index % 3 === 1) {
+                    this.swiper.second.push(item)
+                } else if (index % 3 === 2) {
+                    this.swiper.third.push(item)
+                } else {
+                    continue
+                }
+            }
+            this.$invoke('slider', 'invokeData', {type: 1, arr: this.swiper.first})
+            this.$invoke('slider', 'invokeData', {type: 2, arr: this.swiper.second})
+            this.$invoke('slider', 'invokeData', {type: 3, arr: this.swiper.third})
+            this.loading = false
+            this.$apply()
+        })
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+@import url('../utils/iconfont');
+
+.navigator-hover {
+    background-color: #fff;
+}
+.fixed {
+    position: fixed;
+    top: 0;
+    z-index: 5;
+}
+.fade {
+    opacity: 0;
+    will-change: auto;
+    transform: translateZ(0px);
+    transition: opacity 150ms linear;
+}
+.in {
+    opacity: 1;
+}
+.top {
+    width: 100%;
+    height: 40px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30rpx;
+    border-bottom: 1px solid #f2f2f5;
+    background-color: #fff;
+    font-size: 30rpx;
+    font-weight: bold;
+    view {
+        width: 100rpx;
+        height: 100%;
+        align-items:center;
+        justify-content: flex-end;
+    }
+    text {
+        font-size: 28rpx;
+        color: #707070;
+    }
+    .right-arrow {
+        width: 20rpx;
+        height: 20rpx;
+        border-right: 2px solid #707070;
+        border-bottom: 2px solid #707070;
+        transform: rotate(-45deg);
+    }
+    navigator {
+        width: 100rpx;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        icon {
+            padding-bottom: 20rpx;
+            color: @font-color2;
+        }
+    }
+}
+
+.slider {
+    transform: translateX(0);
+}
+.filter-fixed {
+    width: 100%;
+    height: 88rpx;
+    border-bottom: 1px solid #f2f2f5;
+    padding: 0 30rpx;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fff;
+    color: #707070;
+    .filter-left {
+        height: 100%;
+        align-items: center;
+        icon {
+            width: 8rpx;
+            height: 34rpx;
+            background-color: #707070;
+            border-radius: 5rpx;
+            margin-right: 10rpx;
+        }
+    }
+    .filter-right {
+        height: 100%;
+        align-items: center;
+        icon {
+            color: #aaa;
+            padding-bottom: 20rpx;
+            box-sizing:content-box;
+        }
+        .up {
+            transform: rotate(90deg);
+        }
+        .down {
+            transform: rotate(-90deg);
+        }
+    }
+}
+.list-wrap {
+    width: 100%;
+    background-color: #fff;
+    flex-direction: column;
+}
+.slider-mask {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    position: fixed;
+    top:0;
+    z-index:3;
+}
+.middle-slider {
+    position: fixed;
+    top: 0;
+    padding-top: 88rpx;
+    z-index: 4;
+    width: 100%;
+    flex-direction: column;
+    will-change: auto;
+    transform: translateY(-100%) translateZ(0);
+    transition: all 150ms linear;
+    background-color: #fff;
+    text {
+        width: 100%;
+        height: 80rpx;
+        line-height: 80rpx;
+        padding: 0 50rpx;
+        border-bottom: 1px solid #f2f2f5;
+    }
+}
+.slideBottom {
+    transform: translateY(0);
+}
+.pull-loading {
+    width: 100%;
+    height: 50rpx;
+    line-height: 50rpx;
+    text-align: center;
+    background-color: #f2f2f5;
+}
+</style>

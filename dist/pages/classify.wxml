@@ -1,0 +1,38 @@
+
+<view class="wrap">
+    <view hidden="{{!slide}}" class="slide-mask"/>
+    <view bindtap="toDetail" class="first-level"  wx:for="{{firstLevel}}" hover-start-time="1" wx:key="{{index}}" hover-class="first-active" data-wepy-params-a="{{index}}">
+        <view>
+            <icon wx:if="{{item.id=='1'}}" class="iconfont icon-jiaolian"/>
+            <icon wx:if="{{item.id=='4'}}" class="iconfont icon-weifenxiaopcjiemianzhuanhuan"/>
+            <icon wx:if="{{item.id=='5'}}" class="iconfont icon-zaixianjiaolian"/>
+            <icon wx:if="{{item.id=='6'}}" class="iconfont icon-dengpao"/>
+            <icon wx:if="{{item.id=='7'}}" class="iconfont icon-peixun"/>
+            <icon wx:if="{{item.id=='12'}}" class="iconfont icon-tuandui"/>
+            <text>
+                <text class="name">{{item.name}}</text>
+                <text>{{item.describe}}</text>
+            </text>
+            <icon class="right-arrow"/>
+        </view>
+    </view>
+</view>
+<view class="slide-right {{slide?'slide':''}}">
+    <view bindtap="slideBack" class="slide-back"/>
+    <view class="content">
+        <view class="second-level">
+            <view bindtap="getCurrentTab"  wx:for="{{secondLevel}}" wx:key="{{index}}" class="{{secondIndex==index?'active':''}}" data-wepy-params-a="{{index}}">
+                <text>{{item.name}}</text>
+                <icon hidden="{{secondIndex!=index}}"/>
+            </view>
+        </view>
+        <view class="third-level" bindtap="select">
+            <text data-content="{{item.name}}" class="third-item"  wx:for="{{thirdLevel}}" wx:key="{{index}}">{{item.name}}</text>
+        </view>
+    </view>
+</view>
+
+<!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
+<view class="loading"  wx:if="{{$loading$show}}">
+    <image class="loading-img" src="../image/loading.png"/>
+</view>

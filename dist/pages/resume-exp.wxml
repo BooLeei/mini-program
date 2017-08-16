@@ -1,0 +1,25 @@
+
+<view class="list-item" style="margin-top: 20rpx;">
+    <text>{{page.company_name}}</text>
+    <icon/>
+</view>
+<view class="list-item">
+    <text>担任职位</text>
+    <input/>
+</view>
+<picker mode="date" start="1960-01" end="2017-12" class="base-picker" bindchange="bindExp">
+    <view class="picker-wrap">
+        <view>入职时间</view>
+        <view class="picker-text">{{page.time_start}}</view>
+    </view>
+</picker>
+<picker mode="date" start="1960-01" end="2017-12" class="base-picker" bindchange="bindExp">
+    <view class="picker-wrap">
+        <view>离职时间</view>
+        <view class="picker-text">{{page.experienceTypeName}}</view>
+    </view>
+</picker>
+<view class="footer">
+    <button bindtap="cancel" class="left" plain hover-class="btn-active">取消</button>
+    <button bindtap="sure" class="right" hover-class="btn-active">保存</button>
+</view>

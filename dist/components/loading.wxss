@@ -1,0 +1,1 @@
+.loading{width:100%;height:100vh;position:fixed;top:0;left:0;z-index:10;background-color:#fff;display:flex;justify-content:center;align-items:center}@keyframes loadingRotate{0%{transform:rotate -180deg}100%{transform:rotate 180deg}}image{width:30px;height:30px;animation:loadingRotate 5s linear infinite}

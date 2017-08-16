@@ -1,0 +1,73 @@
+<template>
+<view class="wrap">
+    <block wx:if="{{type<4}}">
+        <repeat for="{{list}}" key="{{index}}">
+            <job-item :listItem="item" type="3"></job-item>
+        </repeat>
+    </block>
+    <block wx:if="{{type==4}}">
+        <repeat for="{{list}}" key="{{index}}">
+            <job-item :listItem="item" type="3"></job-item>
+        </repeat>
+    </block>/
+    <block wx:if="{{type>4}}">
+        <repeat for="{{list}}" key="{{index}}">
+            <job-item :listItem="item" type="3"></job-item>
+        </repeat>
+    </block>
+</view>
+<loading :show.sync="loading"></loading>
+</template>
+
+<script>
+import wepy from 'wepy'
+import JobItem from '../components/job-list-item'
+import Loading from '../components/loading'
+import Request from '../utils/request'
+import {log} from '../utils/log'
+
+export default class AllShopJobs extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '该店铺下全部职位',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    request = new Request()
+
+    data = {
+        loading: false,
+        list: [],
+        type: 0
+    }
+
+    components = {
+        'job-item': JobItem,
+        'loading': Loading
+    }
+
+    onLoad ({id, shopId, type}) {
+        this.loading = true
+        this.type = Number.parseInt(type)
+        this.request.Get({
+            'userCompanyId': id,
+            'shopId': shopId
+        }, '/ShopList/getInviteListByShopId')
+        .then(({data}) => {
+            this.list = data
+            this.loading = false
+            this.$apply()
+        })
+    }
+}
+</script>
+
+<style lang="less">
+.wrap {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    flex-direction: column;
+}
+</style>

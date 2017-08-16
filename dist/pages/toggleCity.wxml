@@ -1,0 +1,32 @@
+
+<view class="location">
+    <text class="title">自动定位</text>
+    <text bindtap="selectLocalCity" class="city">{{location}}</text>
+</view>
+<view class="hot-city">
+    <text class="title">热门城市</text>
+    <view class="list">
+        <view bindtap="selectHotCity" class="item"  wx:for="{{hotCity}}" wx:key="{{index}}" data-wepy-params-a="{{item}}">
+            <text>{{item.region_name}}</text>
+        </view>
+    </view>
+</view>
+<view class="list-wrap">
+    <scroll-view class="left" scroll-y>
+        <view bindtap="selectProv"  wx:for="{{provList}}" wx:if="{{!(item.value=='2'||item.value=='2622'||item.value=='2845'||item.value=='3314')}}" wx:key="{{index}}" data-wepy-params-a="{{item}}">
+            <text>{{item.text}}</text>
+            <icon hidden="{{activeProv!=item.value}}"/>
+        </view>
+    </scroll-view>
+    <scroll-view class="right" scroll-y>
+        <view bindtap="selectCity"  wx:for-item="items" wx:for="{{cityList}}" wx:key="{{index}}" data-wepy-params-a="{{items}}">
+            <text>{{items.text}}</text>
+            <icon hidden="{{activeCity!=items.value}}"/>
+        </view>
+    </scroll-view>
+</view>
+
+<!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
+<view class="loading"  wx:if="{{$loading$show}}">
+    <image class="loading-img" src="../image/loading.png"/>
+</view>

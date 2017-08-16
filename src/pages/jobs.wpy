@@ -1,0 +1,355 @@
+<template>
+    <view class='header'>
+        <navigator url="toggleCity" hover-class="navigator-hover">
+            <icon class="iconfont icon-dingwei"></icon>
+            <text>{{cityName}}</text>
+        </navigator>
+        <image @tap="scrollToTop" class='logo' src="../image/header-logo.png"></image>
+        <navigator url="classify" hover-class="navigator-hover">
+            <icon class="iconfont icon-class"></icon>
+            <text>分类</text>
+        </navigator>
+    </view>
+    <view class="content-wrap">
+        <view class='search-wrap'>
+            <view @tap="toSearch">
+                <icon class="iconfont icon-sousuo"></icon>
+                <text>搜索职位/公司/技能</text>
+            </view>
+        </view>
+        <swiper class="slide-wrap {{fixTab?'margin':''}}" indicator-dots autoplay="{{autoplay}}" circular indicator-color="rgba(255,255,255,0.5)"
+         indicator-active-color="#fff" interval=3000>
+            <block wx:for="{{bannerImg}}" wx:key="{{index}}">
+                <swiper-item>
+                    <image src="{{item.image_url}}" mode="aspectFill"/>
+                </swiper-item>
+            </block>
+        </swiper>
+        <view id="fixed" class="tab-wrap {{fixTab?'fixedTab':''}}">
+            <view @tap="toggleTab({{index}})" wx:for="{{tabList}}" wx:key="{{index}}" class="tab-item">
+                <text class="{{tabIndex==index?'active':''}}">{{item}}</text>
+                <icon hidden="{{tabIndex!=index}}" class="tab-active"></icon>
+            </view>
+        </view>
+        <view class="list-wrap" hidden="{{tabIndex!=0}}">
+            <repeat for="{{newJobList}}" item="item">
+                <new-job-item :listItem="item" type="1"></new-job-item>
+            </repeat>
+            <view class="pull-loading" hidden="{{hasNot}}">加载中...</view>
+        </view>
+        <view class="list-wrap" hidden="{{tabIndex!=1}}">
+            <repeat for="{{hotJobList}}" item="item">
+                <hot-job-item :listItem="item" type="1"></hot-job-item>
+            </repeat>
+            <view class="pull-loading" hidden="{{hasNot}}">加载中...</view>
+        </view>
+    </view>
+<loading :show.sync="loading"></loading>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Request from '../utils/request'
+import JobItem from '../components/job-list-item'
+import Loading from '../components/loading'
+import { log } from '../utils/log'
+
+export default class Jobs extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark'
+    }
+
+    data = {
+        loading: false,
+        fixTab: false,
+        autoplay: true,
+        hasNot: false,
+        tabIndex: 0,
+        cityId: '0',
+        cityName: '全国',
+        bannerImg: [],
+        tabList: ['最新职位', '最热职位'],
+        newJobList: [],
+        hotJobList: []
+    }
+
+    page = {
+        scrollTop: 220,
+        busy: false,
+        newIndex: 1,
+        hotIndex: 1
+    }
+
+    Request = new Request()
+
+    getJobList (type = 0, page = 1, size = 5) {
+        return this.Request.Get({
+            type: type,
+            page: page,
+            pageSize: size,
+            cityId: this.cityId
+        }, '/InviteWork/getRecommendList')
+    }
+
+    components = {
+        'new-job-item': JobItem,
+        'hot-job-item': JobItem,
+        'loading': Loading
+    }
+
+    methods = {
+        toggleTab (index) {
+            this.tabIndex = index
+            this.hasNot = false
+        },
+        scrollToTop () {
+            if (wepy.pageScrollTo) {
+                wepy.pageScrollTo({
+                    scrollTop: 0
+                })
+            } else {
+                wepy.showModal({
+                    title: '提示',
+                    content: '当前微信版本过低，无法使用回到顶部功能，请升级到最新微信版本后重试'
+                })
+            }
+        },
+        toSearch () {
+            wepy.navigateTo({
+                url: 'search'
+            })
+        }
+    }
+
+    events = {
+    }
+
+    onLoad () {
+        this.loading = true
+        wx.createSelectorQuery().select('#fixed').boundingClientRect(rect => {
+            this.page.scrollTop = rect.top - 45
+        }).exec()
+        // this.cityId = this.$parent.global.choose.region_id
+        // this.cityName = this.$parent.global.choose.region_name
+        let all = Promise.all([
+            this.Request.Get({type: '100'}, '/Banner/getListByType'),
+            this.getJobList(0),
+            this.getJobList(1)
+        ])
+        all.then(([banner, newJob, hotJob]) => {
+            this.bannerImg = banner.data[100]
+            this.newJobList = newJob.data
+            this.hotJobList = hotJob.data
+            this.loading = false
+            this.$apply()
+        })
+        .catch(err => {
+            log(err)
+        })
+    }
+
+    onPageScroll (event) {
+        if (event.scrollTop >= this.page.scrollTop) {
+            this.fixTab = true
+        } else {
+            this.fixTab = false
+        }
+    }
+
+    onShareAppMessage () {
+        return {
+            title: '健身求职',
+            path: `/pages/jobs`,
+            success: ret => {
+                log(ret)
+            },
+            fail: err => {
+                log(err)
+            }
+        }
+    }
+
+    onHide () {
+        this.hasNot = false
+    }
+
+    onPullDownRefresh () {
+        Promise.all([this.getJobList(0), this.getJobList(1)])
+        .then(ret => {
+            let [newJob, hotJob] = ret
+            this.newJobList = newJob.data
+            this.hotJobList = hotJob.data
+            this.$apply()
+            wepy.stopPullDownRefresh()
+        })
+        .catch(err => {
+            log(err)
+        })
+    }
+
+    onReachBottom () {
+        if (this.page.busy) { return false }
+        if (this.tabIndex === 1) {
+            if (this.hasNot) { return false }
+            this.page.hotIndex++
+            this.page.busy = true
+            this.getJobList(1, this.page.hotIndex, 8)
+            .then(ret => {
+                if (Array.isArray(ret.data) && ret.data.length === 0) {
+                    this.hasNot = true
+                }
+                this.hotJobList = [...this.hotJobList, ...ret.data]
+                this.page.busy = false
+            })
+        } else {
+            if (this.hasNot) { return false }
+            this.page.newIndex++
+            this.page.busy = true
+            this.getJobList(0, this.page.newIndex, 8)
+            .then(ret => {
+                if (Array.isArray(ret.data) && ret.data.length === 0) {
+                    this.hasNot = true
+                }
+                this.newJobList = [...this.newJobList, ...ret.data]
+                this.page.busy = false
+            })
+        }
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+@import url('../utils/iconfont');
+
+.header {
+    position: fixed;
+    top: 0;
+    z-index: 2;
+    width: 100%;
+    height: 44px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30rpx;
+    background-color: #fff;
+    border-bottom: 1px solid @bd-color;
+    color: @font-color;
+    navigator {
+        height: 100%;
+        font-size: 28rpx;
+        display: flex;
+        align-items: center;
+        icon {
+            padding-bottom: 16rpx;
+            margin-right: 6rpx;
+        }
+    }
+    image {
+        width: 200rpx;
+        height: 56rpx;
+    }
+}
+.fade {
+    opacity: 0;
+    will-change: auto;
+    transform: translateZ(0px);
+    transition: opacity 300ms linear;
+}
+.in {
+    opacity: 1;
+}
+.list-wrap {
+    width: 100%;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+.content-wrap {
+    width: 100%;
+    position: relative;
+    top: 88rpx;
+    flex-direction: column;
+}
+::--webkit-scrollbar {
+    width: 0;
+    height: 0;
+    color: transparent;
+}
+.slide-wrap {
+    width: 100%;
+    height: 175px;
+    image {
+        width: 100%;
+        height: inherit;
+    }
+}
+.tab-wrap {
+    width: 100%;
+    height: 90rpx;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2rpx;
+    border-top: 1px solid @bd-color;
+    border-bottom: 1px solid @bd-color;
+    background-color: #fff;
+    .tab-item {
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        flex-grow: 1;
+        position: relative;
+        icon {
+            position: absolute;
+            width: 106rpx;
+            height: 3px;
+            top: 75%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: @generate-color;
+            border-radius: 3px;
+        }
+    }
+    .active {
+        color: @generate-color;
+    }
+}
+.fixedTab {
+    position: fixed;
+    top: 84rpx;
+    z-index: 1;
+}
+.margin {
+    margin-bottom: 90rpx;
+}
+.pull-loading {
+    width: 100%;
+    height: 50rpx;
+    line-height: 50rpx;
+    text-align: center;
+    background-color: #f2f2f5;
+}
+.navigator-hover {
+    background-color: #fff;
+}
+.search-wrap {
+    width: 100%;
+    height: 45px;
+    justify-content: center;
+    align-items: center;
+    view {
+        font-size: 28rpx;
+        width: 690rpx;
+        height: 66rpx;
+        justify-content: center;
+        align-items: center;
+        background-color: @bg-color;
+        border-radius: 33rpx;
+        box-sizing: border-box;
+        color:@font-color;
+        icon {
+            padding-bottom: 16rpx;
+            padding-right: 10rpx;
+        }
+    }
+}
+</style>

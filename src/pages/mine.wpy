@@ -1,0 +1,151 @@
+<template>
+<view class="top">
+    <image src="{{}}" />
+    <view>李峰<icon></icon></view>
+    <icon @tap="slide" class="top-right-arrow"></icon>
+</view>
+<view class="list-wrap">
+    <view class="list-item">
+        <icon></icon>求职进度<icon class="list-right-arrow"></icon>
+    </view>
+    <view @tap="resume" class="list-item">
+        <icon></icon>我的简历<icon class="list-right-arrow"></icon>
+    </view>
+    <view class="list-item">
+        <icon></icon>收藏职位<icon class="list-right-arrow"></icon>
+    </view>
+    <view class="list-item">
+        <icon></icon>关注公司<icon class="list-right-arrow"></icon>
+    </view>
+    <view class="list-item">
+        <icon></icon>我的设置<icon class="list-right-arrow"></icon>
+    </view>
+</view>
+<!-- <loading></loading> -->
+</template>
+
+<script>
+import wepy from 'wepy'
+import Loading from '../components/loading'
+
+export default class Mine extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '我',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    components = {
+        'loading': Loading
+    }
+
+    methods = {
+        slide () {
+            wepy.navigateTo({
+                url: 'introduction'
+            })
+        },
+        resume () {
+            // if (wepy.getStorageSync("userId")) {
+                wepy.navigateTo({
+                    url: `resume?id=${wepy.getStorageSync("userId")}`
+                })
+            // } else {
+            //     return
+            // }
+        }
+    }
+
+    onLoad () {
+        // this.$invoke('loading', 'show')
+        wepy.setNavigationBarColor({
+            frontColor: '#ffffff',
+            backgroundColor: '#40c4ff'
+        })
+        setTimeout(() => {
+            // this.$invoke('loading', 'hide')
+        }, 300)
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+.top {
+    width: 100%;
+    height: 440rpx;
+    background: #fff url('https://pic.iamking.com.cn/Public/Home/image/system/personalBg.gif') no-repeat center top;
+    background-size: 100% 300rpx;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    position: relative;
+    border-bottom: 1px solid @bd-color;
+    padding-bottom: 40rpx;
+    image {
+        width: 160rpx;
+        height: 160rpx;
+        border-radius: 16rpx;
+        border: 1px solid #f2f2f5;
+        background-color: #f00;
+    }
+    view {
+        margin-top: 30rpx;
+        font-size: 30rpx;
+        font-weight: bold;
+        color: @generate-color;
+        icon {
+            width: 30rpx;
+            height: 30rpx;
+            background-color: @generate-color;
+            margin-left: 10rpx;
+        }
+    }
+    .top-right-arrow {
+        width: 26rpx;
+        height: 26rpx;
+        background-color: transparent;
+        border-top: 3px solid #fff;
+        border-right: 3px solid #fff;
+        position: absolute;
+        top: 60rpx;
+        right: 40rpx;
+        transform: rotate(45deg);
+    }
+}
+.list-wrap {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+}
+.list-item {
+    width: 100%;
+    height: 100rpx;
+    border-bottom: 1px solid @bd-color;
+    padding: 0 40rpx;
+    position: relative;
+    align-items: center;
+    font-size: 30rpx;
+    font-weight: bold;
+    icon {
+        width: 30rpx;
+        height: 30rpx;
+        background-color: @generate-color;
+        margin-right: 44rpx;
+    }
+    .list-right-arrow {
+        margin: 0;
+        position: absolute;
+        right: 40rpx;
+        top: 35%;
+        width: 24rpx;
+        height: 24rpx;
+        border-top: 3px solid @font-color;
+        border-right: 3px solid @font-color;
+        background-color: transparent;
+        transform: rotate(45deg);
+    }
+}
+</style>

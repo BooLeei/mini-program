@@ -1,0 +1,167 @@
+
+<view class="block">
+    <view class="block-title">基本信息<text>必填</text></view>
+    <view class="block-content">
+        <view class="base-image">
+            <image src="{{page.headerImageFull}}" mode="aspectFill"/>
+            <view>
+                <text class="header-image-name">简历头像</text>
+                <text class="header-image-text">请上传求职者本人的真是、清晰图片
+                建议尺寸：360*360像素</text>
+            </view>
+        </view>
+        <view class="base-input">
+            <text class="base-label">真实姓名</text>
+            <input value="{{page.name}}" class="base-msg" max-length="10" bindinput="bindName"/>
+        </view>
+        <picker mode="selector" class="base-picker" range="{{base.sex}}" bindchange="bindSex" value="{{page.sex}}" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">性别</view>
+                <view class="picker-text">{{base.sex[page.sex].text}}</view>
+            </view>
+        </picker>
+        <picker mode="date" class="base-picker" fields="year" start="1960" end="2017" bindchange="page.bindBirth" value="{{birthYear}}">
+            <view class="picker-wrap">
+                <view class="picker-label">出生年份</view>
+                <view class="picker-text">{{page.birthYear}}</view>
+            </view>
+        </picker>
+        <picker mode="selector" class="base-picker" range="{{base.edu}}" bindchange="bindEdu" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">最高学历</view>
+                <view class="picker-text">{{page.educationTypeName}}</view>
+            </view>
+        </picker>
+        <picker mode="selector" class="base-picker" range="{{base.exp}}" bindchange="bindExp" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">健身行业从业经验</view>
+                <view class="picker-text">{{page.experienceTypeName}}</view>
+            </view>
+        </picker>
+        <view class="base-input">
+            <text class="base-label">手机号码</text>
+            <input value="{{page.tel}}" type="number" class="base-msg" max-length="11" bindinput="bindPhone"/>
+        </view>
+        <picker mode="selector" class="base-picker" range="{{base.state}}" bindchange="bindState" value="{{page.workStatus}}" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">任职状态</view>
+                <view class="picker-text">{{base.state[page.workStatus].text}}</view>
+            </view>
+        </picker>
+        <view class="base-textarea">
+            <text>自我介绍</text>
+            <textarea value="{{page.intro}}" bindinput="bindIntro" cursor-spacing="200" maxlength="60" placeholder-style="color: #aaa" placeholder="提醒：请勿输入手机号码、座机、微信号、邮箱及网址链接，否则职位将被系统自动删除，且不可恢复"/>
+            <text class="num-count">{{page.intro.length}}/60</text>
+        </view>
+    </view>
+    <view class="block-title">期望工作<text>必填</text></view>
+    <view class="block-content">
+        <picker mode="selector" range="{{base.type}}" range-key="text" class="base-picker" bindchange="bindType">
+            <view class="picker-wrap">
+                <view class="picker-label">公司类型</view>
+                <view class="picker-text">{{page.companyTypeName}}</view>
+            </view>
+        </picker>
+        <picker mode="multiSelector" range="{{job}}" range-key="name" class="base-picker" bindcolumnchange="bindJobColumn" bindchange="bindJob" value="{{jobIndex}}">
+            <view class="picker-wrap">
+                <view class="picker-label">期望职位</view>
+                <view class="picker-text">{{page.workName}}</view>
+            </view>
+        </picker>
+        <picker mode="multiSelector" range="{{city}}" range-key="text" class="base-picker" bindcolumnchange="bindCityColumn" bindchange="bindCity" value="{{cityIndex}}">
+            <view class="picker-wrap">
+                <view class="picker-label">期望城市</view>
+                <view class="picker-text">{{page.cityName}}</view>
+            </view>
+        </picker>
+        <picker mode="selector" range="{{base.salary}}" range-key="text" class="base-picker" bindchange="bindSalary">
+            <view class="picker-wrap">
+                <view class="picker-label">期望薪资</view>
+                <view class="picker-text">{{page.salaryTypeName}}</view>
+            </view>
+        </picker>
+    </view>
+    <view class="block-title">认证/技能<text>非必填</text></view>
+    <view class="block-content">
+        <view class="tag"  wx:for="{{page.tagList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
+            <image src="" mode="aspectFill"/>
+            <view class="tag-right">
+                <view class="tag-right-top">
+                    <text>{{item.name}}</text>
+                    <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" bindtap="editTag" data-wepy-params-a="{{index}}"/>
+                    <icon data-id="{{item.id?item.id:''}}" bindtap="delTag" data-wepy-params-a="{{index}}"/>
+                </view>
+                <view class="tag-right-text">
+                    <text>{{item.is_approve==1?'已认证':'未认证'}}</text>
+                    <text>{{item.has_certificate==1?'有证书':'无证书'}}</text>
+                    <text>{{item.experienceTypeName}}</text>
+                    <text>{{item.levelName}}</text>
+                </view>
+            </view>
+        </view>
+        <view  wx:if="{{addTagShow}}" class="add-btn" bindtap="addTag">
+            <icon/>
+            <text>添加认证/技能</text>
+        </view>
+    </view>
+    <view class="block-title">工作履历<text>非必填</text></view>
+    <view class="block-content">
+        <view class="exp" wx:for="{{page.workList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
+            <view class="exp-title">
+                <view>
+                    <image wx:if="{{item.school_logo!=''}}" src="{{item.school_logo}}" mode="aspectFill"/>
+                    <text>{{item.company_name}}</text>
+                </view>
+                <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" bindtap="editExp" data-wepy-params-a="{{index}}"/>
+                <icon data-id="{{item.id?item.id:''}}" bindtap="delExp" data-wepy-params-a="{{index}}"/>
+            </view>
+            <view class="exp-brief">
+                <text style="color: #40c4ff;">{{item.work_name}}</text>
+                <text>{{item.time_start}} - {{item.time_end=='-1'?'至今':item.time_end}}</text>
+            </view>
+            <view class="exp-intro">{{item.content}}</view>
+        </view>
+        <view wx:if="{{addExpShow}}" class="add-btn" bindtap="addExp">
+            <icon/>
+            <text>添加工作履历</text>
+        </view>
+    </view>
+    <view class="block-title">学习经历<text>非必填</text></view>
+    <view class="block-content">
+        <view class="school" wx:for="{{page.schoolList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
+            <view class="school-title">
+                <view>
+                    <image wx:if="{{item.school_logo!=''}}" src="{{item.school_logo}}" mode="aspectFill"/>
+                    <text>{{item.name}}</text>
+                </view>
+                <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" bindtap="editEdu" data-wepy-params-a="{{index}}"/>
+                <icon data-id="{{item.id?item.id:''}}" bindtap="delEdu" data-wepy-params-a="{{index}}"/>
+            </view>
+            <view class="school-work">{{item.work_name}}</view>
+            <view class="school-detail">
+                <text>{{item.time_start}} - {{item.time_end=='-1'?'至今':item.time_end}}</text>
+                <text>{{item.is_graduate==1?'已结业':'未结业'}}</text>
+                <text>{{item.has_certificate==1?'有证书':'无证书'}}</text>
+            </view>
+        </view>
+        <view wx:if="{{addEduShow}}" class="add-btn">
+            <icon/>
+            <text>添加学习经历</text>
+        </view>
+    </view>
+    <view class="block-title">职业形象<text>非必填</text></view>
+    <view class="block-content">
+        <view class="img-wrap">
+            <scroll-view scroll-x>
+                <view class="img-add" bindtap="addImg">
+                    <icon/>
+                    <text>添加图片</text>
+                </view>
+                <view bindtap="preview" class="img-show" wx:for="{{page.showUrl}}" wx:key="{{index}}" data-wepy-params-a="{{index}}">
+                    <image src="{{item}}" mode="aspectFill"/>
+                    <icon catchtap="delImg" data-wepy-params-a="{{index}}"/>
+                </view>
+            </scroll-view>
+        </view>
+    </view>
+</view>

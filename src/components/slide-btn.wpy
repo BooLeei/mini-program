@@ -1,0 +1,94 @@
+<template>
+<view class="slide-wrap" @tap="slides" style="background-color:{{disable?'#ddd':'#fff'}}">
+    <view class="text {{slide?'text-slide':''}}">
+        <slot name='title'></slot>
+        <slot name="text"></slot>
+    </view>
+    <view class="slide-btn slide-first {{slide?'first-slide':''}}" @tap="sure">是</view>
+    <view class="slide-btn slide-second {{slide?'second-slide':''}}" @tap="no">否</view>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class SlideBtn extends wepy.component {
+    props = {
+        eventName: String,
+        disable: {
+            type: Boolean,
+            default: false
+        }
+
+    }
+
+    data = {
+        slide: false
+    }
+
+    methods = {
+        slides () {
+            if (this.disable) {
+                return false
+            }
+            this.slide = !this.slide
+        },
+        sure () {
+            this.$emit(this.eventName, 1)
+        },
+        no () {
+            this.$emit(this.eventName, 0)
+        }
+    }
+}
+</script>
+
+<style lang="less">
+
+.slide-wrap {
+    width: 100%;
+    height: 110rpx;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid #f2f2f5;
+    .text {
+        width: 100%;
+        height: 100%;
+        will-change: auto;
+        transform: translateZ(0);
+        transition: transform 200ms linear;
+        align-items: center;
+        padding: 0 40rpx;
+        justify-content: space-between;
+    }
+    .text-slide {
+        transform: translate3d(-240rpx,0,0);
+    }
+    .slide-btn {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 120rpx;
+        height: 100%;
+        will-change: auto;
+        transform: translate3d(100%,0,0);
+        transition: transform 200ms linear;
+        color: #fff;
+        align-items: center;
+        justify-content: center;
+    }
+    .slide-first {
+        background-color: #40c4ff;
+    }
+    .slide-second {
+        background-color: #ddd;
+    }
+    .first-slide {
+        transform: translate3d(-100%,0,0);
+    }
+    .second-slide {
+        transform: translate3d(0,0,0);
+    }
+}
+</style>

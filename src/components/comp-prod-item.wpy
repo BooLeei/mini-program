@@ -1,0 +1,103 @@
+<template>
+<view class="prod-outer-wrap" @tap="emitIndex">
+    <view class="prod-inner-wrap">
+        <image mode="aspectFill" src="{{item.shop_image_url}}" />
+        <view class="prod-text-wrap">
+            <view>
+                {{item.name}}
+                <icon wx:if="{{showBtn}}" style="right: 50rpx;"></icon>
+                <icon wx:if="{{showBtn}}"></icon>
+            </view>
+            <text class="prod-text-intro">{{item.describe_intro}}</text>
+            <text class="prod-text-detail">{{item.describe_detail}}</text>
+        </view>
+    </view>
+</view>
+</template>
+
+<style lang="less">
+.prod-outer-wrap {
+    width: 100%;
+    height: 630rpx;
+    background-color: #fff;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border-bottom: 1px solid #f2f2f5;
+    .prod-inner-wrap {
+        width: 710rpx;
+        height: 600rpx;
+        flex-direction: column;
+        image {
+            width: 100%;
+            height: 400rpx;
+        }
+        .prod-text-wrap {
+            flex: 1;
+            width: 100%;
+            padding: 20rpx 40rpx;
+            box-sizing: border-box;
+            flex-direction: column;
+            justify-content: space-between;
+            view {
+                color: #40c4ff;
+                font-size: 32rpx;
+                font-weight: bold;
+                position: relative;
+                padding-right: 100rpx;
+                overflow-x: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                icon {
+                    width: 30rpx;
+                    height: 30rpx;
+                    background-color: #40c4ff;
+                    position: absolute;
+                    right: 0;
+                }
+            }
+            .prod-text-intro {
+                font-weight: bold;
+                color: #707070;
+            }
+            .prod-text-detail {
+                width: 100%;
+                line-height: 1.4;
+                display: -webkit-box;
+                word-break: break-all;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                -webkit-line-clamp: 2;
+            }
+        }
+    }
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+
+export default class CompProdItem extends wepy.component {
+    props = {
+        item: {
+            type: Object,
+            default: {}
+        },
+        showBtn: {
+            type: Boolean,
+            default: false
+        },
+        index: {
+            type: Number,
+            default: 0
+        }
+    }
+
+    methods = {
+        emitIndex () {
+            this.$emit('emitIndex', this.index)
+        }
+    }
+}
+</script>

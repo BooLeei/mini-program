@@ -1,0 +1,355 @@
+<template>
+<view class="list-item" @tap="tagSlide">
+    <text>选择认证/技能</text>
+    <text class="tag-selected" wx:if="{{page.name!=''}}">{{page.name}}</text>
+</view>
+<approve eventName="approve">
+    <text slot="title">是否经官方权威培训机构认证？</text>
+    <text class="text-result" slot="text">{{approve}}</text>
+</approve>
+<certificate eventName="certificate">
+    <text slot="title">是否持有该认证/技能资质证书？</text>
+    <text class="text-result" slot="text">{{certificate}}</text>
+</certificate>
+<picker mode="selector" range="{{exp}}" range-key="text" class="base-picker" bindchange="bindExp">
+    <view class="picker-wrap">
+        <view>该认证/技能有多久的授课经验？</view>
+        <view class="picker-text">{{page.experienceTypeName}}</view>
+    </view>
+</picker>
+<picker mode="selector" range="{{level}}" range-key="text" class="base-picker" bindchange="bindLevel">
+    <view class="picker-wrap">
+        <view>该认证/技能目前处于什么等级？</view>
+        <view class="picker-text">{{page.levelName}}</view>
+    </view>
+</picker>
+<view class="footer">
+    <button @tap="cancel" class="left" plain hover-class='btn-active'>取消</button>
+    <button @tap="sure" class="right" hover-class='btn-active'>保存</button>
+</view>
+<view class="slide-mask" hidden="{{!slide}}"></view>
+<view class="right-slide {{slide?'slide-active':''}}">
+    <view class="slide-back" @tap="tagSlide"></view>
+    <scroll-view scroll-y class="slide-content" @tap="selectTag">
+        <view class="tag-item {{item.id==page.skill_id?'tag-highlight':''}}" wx:for="{{tagList}}"
+         wx:key="{{index}}" data-index="{{index}}">{{item.name}}</view>
+    </scroll-view>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import SlideBtn from '../components/slide-btn'
+import {log} from '../utils/log'
+
+export default class ResumeTag extends wepy.page {
+
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '编辑认证/技能',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    data = {
+        slide: false,
+        page: {
+            id: '',
+            experience_type: '',
+            experienceTypeName: '',
+            has_certificate: '',
+            is_approve: '',
+            level: '',
+            levelName: '',
+            name: '',
+            skill_id: '',
+            status: '1'
+        },
+        tagList: [],
+        level: [
+            {
+                'value': 1,
+                'text': '初级'
+            }, {
+                'value': 2,
+                'text': '中级'
+            }, {
+                'value': 3,
+                'text': '高级'
+            }, {
+                'value': 4,
+                'text': '资深'
+            }, {
+                'value': 5,
+                'text': '导师级'
+            }
+        ],
+        exp: [
+            {
+                'value': 1,
+                'text': '1年以下'
+            }, {
+                'value': 2,
+                'text': '1~2年'
+            }, {
+                'value': 3,
+                'text': '3~5年'
+            }, {
+                'value': 4,
+                'text': '6~8年'
+            }, {
+                'value': 5,
+                'text': '8~10年'
+            }, {
+                'value': 6,
+                'text': '10年以上'
+            }
+        ]
+    }
+
+    computed = {
+        approve () {
+            if (this.page.is_approve == '1') {
+                return '是'
+            } else if (this.page.is_approve == '0') {
+                return '否'
+            } else {
+                return ''
+            }
+        },
+        certificate () {
+            if (this.page.has_certificate == '1') {
+                return '是'
+            } else if (this.page.has_certificate == '0') {
+                return '否'
+            } else {
+                return ''
+            }
+        }
+    }
+
+    components = {
+        'approve': SlideBtn,
+        'certificate': SlideBtn
+    }
+
+    index = -1
+
+    events = {
+        'approve': (...args) => {
+            if (args[0] == 1) {
+                this.page.is_approve = '1'
+            } else {
+                this.page.is_approve = '0'
+                this.page.has_certificate = '0'
+            }
+        },
+        'certificate': (...args) => {
+            if (this.page.is_approve == '1') {
+                if (args[0] == 1) {
+                    this.page.has_certificate = '1'
+                } else {
+                    this.page.has_certificate = '0'
+                }
+            }
+        }
+    }
+
+    methods = {
+        tagSlide () {
+            this.slide = !this.slide
+        },
+        selectTag (e) {
+            if (e.target.dataset.index != undefined) {
+                this.page.skill_id = this.tagList[e.target.dataset.index].id
+                this.page.name = this.tagList[e.target.dataset.index].name
+                this.slide = false
+            }
+        },
+        bindExp (e) {
+            this.page.experience_type = this.exp[e.detail.value].value
+            this.page.experienceTypeName = this.exp[e.detail.value].text
+        },
+        bindLevel (e) {
+            this.page.level = this.level[e.detail.value].value
+            this.page.levelName = this.level[e.detail.value].text
+        },
+        cancel () {
+            wepy.navigateBack()
+        },
+        sure () {
+            let temp = {}
+            Object.assign(temp, this.page)
+            if (this.index != -1) {
+                log(this.$parent.global.tagList)
+                this.$parent.global.tagList[this.index] = temp
+            } else {
+                this.$parent.global.tagList.unshift(temp)
+            }
+            this.$parent.global.tagUpdate = true
+            wepy.navigateBack()
+        }
+    }
+
+    onLoad ({grandId, parentId, id, index = 0, msg}) {
+        if (msg) {
+            this.page = JSON.parse(msg)
+            this.index = Number.parseInt(index)
+        }
+        let workList = wepy.getStorageSync('workList')
+        for (let [index, item] of workList.entries()) {
+            if (item.id === grandId) {
+                for (let [childIndex, childItem] of item.list.entries()) {
+                    if (childItem.id === parentId) {
+                        this.tagList = childItem.skillList
+                    }
+                }
+            }
+        }
+        log(getCurrentPages()[getCurrentPages().length - 2])
+    }
+
+    onUnload () {
+        this.index = -1
+        for (let key of Object.keys(this.page)) {
+            if (key == 'status') {
+                this.page[key] = '1'
+            } else {
+                this.page[key] = ''
+            }
+        }
+        log(this.page)
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+.text-result {
+    color: @font-color2;
+}
+.list-item {
+    width: 100%;
+    height: 110rpx;
+    border-top: 1px solid @bd-color;
+    border-bottom: 1px solid @bd-color;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40rpx;
+    .tag-selected {
+        height: 50rpx;
+        border: 1px solid @generate-color;
+        padding: 0 30rpx;
+        line-height: 50rpx;
+        color: @generate-color;
+        border-radius: 30rpx;
+    }
+}
+.base-picker {
+    width: 100%;
+    height: 110rpx;
+    padding: 0 40rpx;
+    border-bottom: 1px solid #f2f2f5;
+    box-sizing: border-box;
+    .picker-wrap {
+        width: 100%;
+        height: 108rpx;
+        align-items: center;
+        justify-content: space-between;
+        .picker-text {
+            color: @font-color2;
+        }
+    }
+}
+.slide-mask {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    z-index: 4;
+    background-color: rgba(0,0,0,0.6);
+}
+.right-slide {
+    position: fixed;
+    top: 0;
+    z-index: 5;
+    width: 100%;
+    height: 100%;
+    will-change: auto;
+    transform: translate3d(100%,0,0);
+    transition: transform 200ms linear;
+    .slide-back {
+        width: 20%;
+        height: 100%;
+        background-color: transparent;
+    }
+    .slide-content {
+        display: flex;
+        box-sizing: border-box;
+        width: 80%;
+        height: 100%;
+        background-color: #fff;
+        flex-wrap: wrap;
+        padding: 10rpx;
+    }
+    ::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        color: transparent;
+    }
+}
+.slide-active {
+    transform: translate3d(0,0,0);
+}
+.tag-item {
+    display: inline-flex;
+    padding: 0 30rpx;
+    height: 56rpx;
+    white-space: nowrap;
+    align-items: center;
+    border-radius: 30rpx;
+    border: 1px solid @bd-color;
+    color: @font-color2;
+    margin: 10rpx;
+}
+.tag-highlight {
+    color: @generate-color;
+    border-color: @generate-color;
+}
+.footer {
+    width: 100%;
+    height: 120rpx;
+    background-color: rgba(255,255,255,0.9);
+    position: fixed;
+    bottom: 0;
+    z-index: 3;
+    padding: 0 40rpx;
+    align-items: center;
+    justify-content: space-between;
+    button {
+        height: 80rpx;
+        line-height: 80rpx;
+        will-change: auto;
+        transform: translateZ(0);
+        font-size: bold;
+        font-size: 28rpx;
+        box-sizing: border-box;
+        transition: transform 150ms linear;
+        margin: 0;
+    }
+    .left {
+        width: 210rpx;
+        color: @generate-color;
+        border: 1px solid @generate-color;
+    }
+    .right {
+        width: 430rpx;
+        background-color: @generate-color;
+        color: #fff;
+    }
+    .btn-active {
+        transform: scale(0.9);
+    }
+}
+</style>

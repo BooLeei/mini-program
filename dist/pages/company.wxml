@@ -1,0 +1,330 @@
+
+<view class="logo">
+    <view class="follow">
+        <button plain>未关注</button>
+        <text>{{baseData.attentionNum}}人关注</text>
+    </view>
+    <view class="comment" bindtap="showComment">
+        <icon/>
+        <text>公司评价</text>
+        <view>
+            <icon  wx:for="{{baseData.appraiseNum}}" wx:key="{{index}}" class="full"/>
+            <icon  wx:for="{{5 - baseData.appraiseNum}}" wx:key="{{index}}" class="empty"/>
+        </view>
+    </view>
+    <image mode="aspectFill" src="{{baseData.headerImage}}"/>
+</view>
+<view class="base">
+    <view class="name" bindtap="showName">
+        <text>{{baseData.nickname}}</text>
+        <view hidden="{{nameHidden}}">{{baseData.companyName}}<icon/></view>
+    </view>
+    <view class="auth">
+        <icon/>
+        <text>{{baseData.isApproveOffcial=='1'?'已认证':'未认证'}}</text>
+    </view>
+    <view class="info">
+        <view><icon/><text>{{baseData.companyTypeName}}</text></view>
+        <view><icon/><text>{{baseData.createCompanyYear}}年成立</text></view>
+        <view><icon/><text>{{baseData.cityName}}</text></view>
+        <view><icon/><text>{{baseData.shopTypeName}}</text></view>
+    </view>
+    <view class="brief">{{baseData.brandDescribe}}</view>
+</view>
+<view class="space-elem"/>
+<view style="width:100%;height:88rpx;" hidden="{{!tabFixed}}"/>
+<view id="fixed" class="tab-wrap {{tabFixed?'tab-fixed':''}}" bindtap="toggleTab">
+    <view data-index="1" class="{{tabIndex==1?'tab-active':''}}">关于我们<icon hidden="{{tabIndex!=1}}"/></view>
+    <view data-index="2" class="{{tabIndex==2?'tab-active':''}}">管理团队<icon hidden="{{tabIndex!=2}}"/></view>
+    <view  wx:if="{{baseData.companyType<4}}" data-index="3" class="{{tabIndex==3?'tab-active':''}}">连锁店铺<icon hidden="{{tabIndex!=3}}"/></view>
+    <view  wx:if="{{baseData.companyType==4}}" data-index="3" class="{{tabIndex==3?'tab-active':''}}">连锁校区<icon hidden="{{tabIndex!=3}}"/></view>
+    <view wx:if="{{baseData.companyType>4}}" data-index="3" class="{{tabIndex==3?'tab-active':''}}">产品服务<icon hidden="{{tabIndex!=3}}"/></view>
+    <view data-index="4" class="{{tabIndex==4?'tab-active':''}}">在招职位<icon hidden="{{tabIndex!=4}}"/></view>
+</view>
+<view class="about" hidden="{{tabIndex!=1}}">
+    <swiper bindtap="preview" indicator-dots indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff" circular="circular" style="width: 100%;height:360rpx;">
+        <block  wx:for="{{about.imgListFull}}" wx:key="{{index}}">
+            <swiper-item>
+                <image src="{{item}}" data-index="{{index}}" mode="aspectFill" style="width:100%;height:360rpx;"/>
+            </swiper-item>
+        </block>
+    </swiper>
+    <view class="block">
+        <view class="block-title">
+            <view><icon/>品牌介绍</view>
+            <view bindtap="slide" hidden="{{unfold}}"><icon/>展开</view>
+        </view>
+        <view class="about-brand {{unfold?'':'slide-up'}}">
+            <text>
+                {{about.informationDetail}}{{about.informationDetail}}{{about.informationDetail}}{{about.informationDetail}}
+                {{about.informationDetail}}{{about.informationDetail}}{{about.informationDetail}}{{about.informationDetail}}
+            </text>
+            <view bindtap="slide" hidden="{{!unfold}}"><icon/>收起</view>
+        </view>
+    </view>
+    <view class="space-elem"/>
+    <view class="progress block" hidden="{{tempProgress.length==0}}">
+        <view class="block-title"><view><icon/>发展历程</view><text/></view>
+        <block  wx:for="{{tempProgress}}" wx:key="{{index}}" wx:for-item="items">
+            
+<view class="progress-item">
+    <view class="progress-left">
+        <text class="progress-left-up">{{items.month}}/{{items.day}}</text>
+        <text class="progress-left-down">{{items.year}}年</text>
+    </view>
+    <view class="progress-middle {{items.last?'no-progress-middle':''}}"/>
+    <view class="progress-right">
+        <view class="progress-title">
+            {{items.title}}
+            <icon  wx:if="{{$progress$showBtn}}"/>
+            <icon  wx:if="{{$progress$showBtn}}"/>
+        </view>
+        <text class="progress-content">{{items.describe}}</text>
+    </view>
+</view>
+
+        </block>
+        <view class="progress-all" hidden="{{about.progressList.length<4}}">
+            <navigator url="allProgress?id={{about.user_id}}">全部历程</navigator>
+        </view>
+    </view>
+    <view class="space-elem"/>
+    <view class="location-wrap block">
+        <view class="block-title" style="border-bottom: 1px solid #f2f2f5;">
+            <view><icon/>工作地点</view><text/>
+        </view>
+        <view class="location">
+            <view class="location-left">
+                <text class="location-name">{{about.cityName}}</text>
+                <text class="location-address">{{detailAddress}}</text>
+            </view>
+            <view class="location-right" bindtap="openMap">
+                <icon/>
+                <text>地图</text>
+            </view>
+        </view>
+    </view>
+</view>
+<view class="team" hidden="{{tabIndex!=2}}">
+    <view bindtap="showTeamIntro"  wx:for="{{team}}" wx:key="{{index}}" class="team-wrap {{index%2==1?'reverse':''}}" data-wepy-params-a="{{index}}">
+        <image mode="aspectFill" src="{{item.header_image}}"/>
+        <view class="team-content {{index%2==1?'team-content-reverse':''}}">
+            <text class="team-name">{{item.name}}</text>
+            <text class="team-position">{{item.work_position_name}}</text>
+            <text class="team-describe">{{item.describe}}{{item.describe}}{{item.describe}}</text>
+        </view>
+    </view>
+</view>
+<!-- 组件传值问题 -->
+<!-- <view class="shop" hidden="{{tabIndex!=3}}" wx:if="{{baseData.companyType<4}}">
+    <repeat for="{{shop}}" key="{{index}}" item="item">
+        <shop-item v-bind:item.once="item" v-bind:index.once="index"></shop-item>
+    </repeat>
+</view> -->
+<view class="shop" hidden="{{tabIndex!=3}}"  wx:if="{{baseData.companyType<4}}">
+    <view wx:for="{{shop}}" wx:key="{{index}}" class="shop-outer-wrap" hover-class="shop-item-hover" bindtap="showDetail" data-wepy-params-a="{{index}}">
+        <view class="shop-inner-wrap">
+            <image class="shop-img" mode="aspectFill" src="{{item.shop_image_url}}"/>
+            <view class="shop-content">
+                <view class="shop-name">
+                    {{item.name}}
+                    <icon wx:if="{{showBtn}}" style="right: 50rpx;"/>
+                    <icon wx:if="{{showBtn}}"/>
+                </view>
+                <view class="shop-text">
+                    <view class="shop-text-special"><icon/>{{item.city_name}}</view>
+                    <view><icon/>{{item.shop_type_name}}</view>
+                    <view class="shop-text-special"><icon/>{{item.area}}m^2</view>
+                    <view><icon/>{{item.member_num}}名会员</view>
+                </view>
+                <view class="shop-job">
+                    <icon/>
+                    <text>{{item.inviteNum}}个 再招职位</text>
+                </view>
+            </view>
+            <image class="shop-icon" src="{{item.is_business=='1'?'../image/shop-online.png':'../image/shop-booking.png'}}"/>
+        </view>
+    </view>
+</view>
+<!-- 组件传值问题 -->
+<!-- <view class="shop" hidden="{{tabIndex!=3}}" wx:if="{{baseData.companyType==4}}">
+    <repeat for="{{shop}}" key="{{index}}" item="item">
+        <school-item v-bind:item.once="item" v-bind:index.once="index"></school-item>
+    </repeat>
+</view> -->
+<view class="shop" hidden="{{tabIndex!=3}}"  wx:if="{{baseData.companyType==4}}">
+    <view class="school-outer-wrap" wx:for="{{shop}}" wx:key="{{index}}" hover-class="school-item-hover" bindtap="showDetail" data-wepy-params-a="{{index}}">
+        <view class="school-inner-wrap">
+            <image class="school-img" mode="aspectFill" src="{{item.shop_image_url}}"/>
+            <view class="school-content">
+                <view class="school-name">
+                    {{item.name}}
+                    <icon wx:if="{{showBtn}}" style="right: 50rpx;"/>
+                    <icon wx:if="{{showBtn}}"/>
+                </view>
+                <view class="school-text">
+                    <view class="shop-text-special"><icon/>{{item.city_name}}</view>
+                    <view><icon/>{{item.teach_num}}位培训师</view>
+                    <view class="shop-text-special"><icon/>{{item.area}}m^2</view>
+                    <view><icon/>{{item.member_num}}名学员</view>
+                </view>
+                <view class="school-job">
+                    <icon/>
+                    <text>{{item.inviteNum}}个 再招职位</text>
+                </view>
+            </view>
+        </view>
+    </view>
+</view>
+<!-- 组件传值问题 -->
+<!-- <view class="shop" hidden="{{tabIndex!=3}}" wx:if="{{baseData.companyType>4}}">
+    <repeat for="{{shop}}" key="{{index}}" item="item">
+        <prod-item v-bind:item.once="item" v-bind:index.once="index"></prod-item>
+    </repeat>
+</view> -->
+<view class="shop" hidden="{{tabIndex!=3}}"  wx:if="{{baseData.companyType>4}}">
+    <view class="prod-outer-wrap" wx:for="{{shop}}" wx:key="{{index}}" bindtap="showDetail" data-wepy-params-a="{{index}}">
+        <view class="prod-inner-wrap">
+            <image mode="aspectFill" src="{{item.shop_image_url}}"/>
+            <view class="prod-text-wrap">
+                <view>
+                    {{item.name}}
+                    <icon wx:if="{{showBtn}}" style="right: 50rpx;"/>
+                    <icon wx:if="{{showBtn}}"/>
+                </view>
+                <text class="prod-text-intro">{{item.describe_intro}}</text>
+                <text class="prod-text-detail">{{item.describe_detail}}</text>
+            </view>
+        </view>
+    </view>
+</view>
+<view class="job" hidden="{{tabIndex!=4}}">
+    <block wx:for="{{job}}" wx:for-index="index" wx:for-item="item" wx:key="{{index}}">
+        
+    <navigator url="jobDetail?id={{item.id}}&type={{2}}" class="listItem" hover-class="item-hover">
+        <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
+        <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
+        <view class="right-side">
+            <view class="first-line">
+                <text class="name">{{item.work_name}}</text>
+                <text class="salary">{{item.salary_name}}</text>
+            </view>
+            <view class="second-line">
+                <view>
+                    <icon class="iconfont icon-icon-test"/>
+                    <text>{{item.city_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-shijian2"/>
+                    <text>{{item.work_experience_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-xueli1"/>
+                    <text>{{item.education_name}}</text>
+                </view>
+            </view>
+            <view class="third-line">
+                <text  wx:for="{{item.tagList}}" wx:key="{{index}}">{{item.name}}</text>
+            </view>
+            <view class="describe">{{item.userCompany.brand_describe}}</view>
+        </view>
+        <icon wx:if="{{item.userCompany.is_approve_offical==1}}" class="comp-approve"/>
+    </navigator>
+
+    </block>
+</view>
+<!-- 组件通信问题 -->
+<!-- <comment v-bind:show.sync="comment" eventName="comment">
+    <view class="comment-header" slot="header">
+        <icon></icon>评价这家公司/品牌
+    </view>
+    <view class="comment-cont" catchtap="changeStar">
+        <view wx:for="{{commentStar}}" wx:key="{{index}}" wx:for-index="indexs" wx:for-item="items" class="comment-cont-item">
+            <text>{{items.text}}</text>
+            <view>
+                <icon data-id="{{indexs}}" data-index="{{index}}" wx:for="{{items.star}}"
+                 wx:key="{{index}}" class="comment-full"></icon>
+                <icon data-id="{{indexs}}" data-index="{{index + items.star}}" wx:for="{{5 - items.star}}"
+                wx:key="{{index}}" class="comment-empty"></icon>
+            </view>
+        </view>
+    </view>
+</comment> -->
+<view class="popup-mask"  wx:if="{{comment}}" bindtap="hideComment" catchtouchmove="stopPropagation">
+    <view class="popup-middle" catchtap="stopPropagation">
+        <view class="popup-header">
+            <view class="comment-header" slot="header">
+                <icon/>评价这家公司/品牌
+            </view>
+        </view>
+        <view class="comment-cont" catchtap="changeStar">
+            <view wx:for="{{commentStar}}" wx:key="{{index}}" wx:for-index="indexs" wx:for-item="items" class="comment-cont-item">
+                <text>{{items.text}}</text>
+                <view>
+                    <icon data-id="{{indexs}}" data-index="{{index}}" wx:for="{{items.star}}" wx:key="{{index}}" class="comment-full"/>
+                    <icon data-id="{{indexs}}" data-index="{{index + items.star}}" wx:for="{{5 - items.star}}" wx:key="{{index}}" class="comment-empty"/>
+                </view>
+            </view>
+        </view>
+        <view class="popup-footer">
+            <button bindtap="hideComment" plain class="popup-cancel">取消</button>
+            <button bindtap="sureComment" class="popup-sure">确定</button>
+        </view>
+    </view>
+</view>
+
+<!-- 组件传值问题 -->
+<!-- <team-modal v-bind:show.sync="teamDetail">
+    <view class="team-intro-wrap">
+        <view class="team-intro-header">
+            <text class="team-intro-name">{{team[teamIndex].name}}</text>
+            <text class="team-intro-position">{{team[teamIndex].work_position_name}}</text>
+        </view>
+        <view class="team-intro-cont">{{team[teamIndex].describe}}</view>
+    </view>
+</team-modal> -->
+<view class="team-popup-mask"  wx:if="{{teamDetail}}" bindtap="hideTeamPopup" catchtouchmove="stopPropagation">
+    <view class="team-intro-wrap" catchtap="stopPropagation">
+        <view class="team-intro-header">
+            <text class="team-intro-name">{{team[teamIndex].name}}</text>
+            <text class="team-intro-position">{{team[teamIndex].work_position_name}}</text>
+        </view>
+        <scroll-view catchtouchmove="stopPropagation" scroll-y class="team-intro-cont">{{team[teamIndex].describe}}</scroll-view>
+    </view>
+</view>
+
+<view class="shop-popup-mask"  wx:if="{{shopDetail}}" bindtap="hideShopPopup" catchtouchmove="stopPropagation">
+    <view class="shop-popup-wrap" catchtap="stopPropagation">
+        <navigator wx:if="{{baseData.companyType<=4}}" class="shop-popup-top" hover-class="navigator-hover" url="allShopJobs?id={{shop[shopIndex].user_company_id}}&shopId={{shop[shopIndex].id}}&type={{baseData.companyType}}">
+            <text>{{shop[shopIndex].name}}</text>
+            <view class="shop-text-line">
+                <view><icon/>{{shop[shopIndex].city_name}}</view>
+                <view><icon/>{{shop[shopIndex].area}}m^2</view>
+                <view wx:if="{{baseData.companyType!=4}}"><icon/>{{shop[shopIndex].shop_type_name}}</view>
+                <view wx:if="{{baseData.companyType==4}}"><icon/>{{shop[shopIndex].teach_num}}位培训师</view>
+                <view wx:if="{{baseData.companyType!=4}}"><icon/>{{shop[shopIndex].member_num}}名会员</view>
+                <view wx:if="{{baseData.companyType==4}}"><icon/>{{shop[shopIndex].member_num}}名会员</view>
+            </view>
+            <icon class="shop-right-arrow"/>
+        </navigator>
+        <view wx:if="{{baseData.companyType>4}}" class="prod-popup-top">
+            <text class="prod-popup-name">{{shop[shopIndex].name}}</text>
+            <text class="prod-popup-intro">{{shop[shopIndex].describe_intro}}</text>
+        </view>
+        <swiper indicator-dots indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff" circular="circular" style="width: 100%;height:470rpx;">
+            <block wx:for="{{shop[shopIndex].shopImageListFull}}" wx:key="{{index}}">
+                <swiper-item>
+                    <image src="{{item}}" mode="aspectFill" style="width:100%;height:470rpx;"/>
+                </swiper-item>
+            </block>
+        </swiper>
+        <scroll-view scroll-y wx:if="{{baseData.companyType>4}}" class="prod-popup-detail">
+            {{item.describe_detail}}
+        </scroll-view>
+    </view>
+</view>
+
+<!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
+<view class="loading"  wx:if="{{$loading$show}}">
+    <image class="loading-img" src="../image/loading.png"/>
+</view>

@@ -1,0 +1,943 @@
+<template>
+<view class="search-area test">
+    <view>
+        <icon class="search-icon iconfont icon-sousuo"></icon>
+        <input value="{{keyword}}" confirm-type="search" bindconfirm="search" bindinput="getKeyword" placeholder='搜索职位/公司/技能' placeholder-style="color:#ddd;font-size:30rpx;"/>
+        <icon @tap="clearKeyword" class="clear-icon iconfont icon-qingkong" hidden="{{keyword==''}}"></icon>
+    </view>
+    <text @tap="back">取消</text>
+</view>
+<scroll-view scroll-y class='search-init' hidden="{{keyword!=''}}" @tap="initSelect">
+    <view class="type-item" wx:for='{{hotData}}' wx:key='{{index}}'>
+        <view class="title">
+            <icon></icon>
+            <text>{{item.type}}</text>
+        </view>
+        <view class="content">
+            <text data-content="{{items.name}}" wx:for='{{item.children}}' wx:key='{{indexs}}'
+             wx:for-index='indexs' wx:for-item='items'>{{items.name}}</text>
+        </view>
+    </view>
+</scroll-view>
+<!-- <view class='list-content' hidden="{{keyword==''}}"> -->
+<block wx:if="{{init&&keyword!=''}}">
+    <view class='tab test'>
+        <view class="type">
+            <text @tap="searchType(1)" class="{{type==1?'tab-active':''}}">职位</text>
+            <text @tap="searchType(2)" class="{{type==2?'tab-active':''}}">公司</text>
+            <icon class="{{type==2?'icon-right':'icon-left'}}"></icon>
+        </view>
+        <view class="classify" hidden="{{type==2}}">
+            <view @tap="selectChildType(1, {{index}})" wx:for="{{jobData}}" wx:key="{{index}}">
+                <text>{{item.name}}</text>
+                <icon class="{{childType==1+''+(index+1)?'child-tab-active':''}}"></icon>
+            </view>
+        </view>
+        <view class="classify" hidden="{{type==1}}">
+            <view @tap="selectChildType(2, {{index}})" wx:for="{{companyData}}" wx:key="{{index}}">
+                <text>{{item.name}}</text>
+                <icon class="{{childType==2+''+(index+1)?'child-tab-active':''}}"></icon>
+            </view>
+        </view>
+    </view>
+    <scroll-view scroll-y style="height:{{height}}px;" class="list-scroll" bindscrolltolower="pullLoad">
+        <block wx:if="{{type==1}}">
+            <repeat for="{{listContent}}" key="{{index}}">
+                <job-item :listItem="item" type="1"></job-item>
+            </repeat>
+        </block>
+        <block wx:if="{{type==2}}">
+            <repeat for="{{listContent}}" key="{{index}}">
+                <comp-item :listItem="item"></comp-item>
+            </repeat>
+        </block>
+    </scroll-view>
+</block>
+<!-- </view> -->
+<view class="slide {{childType!=''?'slide-active':''}}" wx:if="{{init&&keyword!=''}}">
+    <view class="slide-wrap">
+        <view hidden="{{childType!='11'}}" class="slide-special-scroll">
+            <scroll-view scroll-y class="city-left" @tap="selectProv">
+                <view class="item-view {{provChecked=='-1'?'text-active':''}}" data-id="-1">
+                    <icon data-id="-1" hidden="{{provChecked!='-1'}}"></icon>热门城市
+                </view>
+                <view class="item-view {{provChecked==item.value?'text-active':''}}" data-index="{{index}}" data-id="{{item.value}}" wx:for="{{provList}}" wx:key="{{index}}">
+                    <icon data-index="{{index}}" data-id="{{item.value}}" hidden="{{provChecked!=item.value}}"></icon>
+                    {{item.text}}
+                </view>
+            </scroll-view>
+            <scroll-view scroll-y class="city-right" @tap="selectCity">
+                <view class="item-view {{cityChecked==item.value||cityChecked==item.region_id?'text-active':''}}"
+                 data-id="{{item.value?item.value:item.region_id}}" wx:for="{{cityList}}" wx:key="{{index}}">
+                    <icon data-id="{{item.value?item.value:item.region_id}}" hidden="{{cityChecked!=item.value&&cityChecked!=item.region_id}}"></icon>
+                    {{item.text?item.text:item.region_name}}
+                </view>
+            </scroll-view>
+        </view>
+        <scroll-view class="slide-scroll" scroll-y hidden="{{childType=='11'}}" @tap="select">
+            <block wx:if="{{childType=='12'||childType=='21'}}">
+                <view class="item-view {{companyTypeChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{companyType}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{companyTypeChecked!=item.id}}"></icon>
+                    {{item.name}}
+                </view>
+            </block>
+            <block wx:if="{{childType=='13'}}">
+                <view class="item-view {{salaryTypeChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{salaryType}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{salaryTypeChecked!=item.id}}"></icon>
+                    {{item.name}}
+                </view>
+            </block>
+            <block wx:if="{{childType=='14'}}">
+                <view class="item-view {{experienceTypeChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{workExperience}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{experienceTypeChecked!=item.id}}"></icon>
+                    {{item.name}}
+                </view>
+            </block>
+            <block wx:if="{{childType=='22'}}">
+                <view class="item-view {{storeCountChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{storeCount}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" data-id="{{item.id}}" hidden="{{storeCountChecked!=item.id}}"></icon>
+                    {{item.name}}
+                </view>
+            </block>
+            <block wx:if="{{childType=='23'}}">
+                <view class="item-view {{businessTypeChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{businessType}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{businessTypeChecked!=item.id}}"></icon>
+                    {{item.name}}
+                </view>
+            </block>
+            <block wx:if="{{childType=='24'}}">
+                <view class="item-view {{companyComtChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{companyComt}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{companyComtChecked!=item.id}}"></icon>
+                    {{item.name}}
+                </view>
+            </block>
+        </scroll-view>
+    </view>
+</view>
+</template>
+
+<style lang='less'>
+@import url('../utils/global');
+@import url('../utils/iconfont');
+
+.list-scroll {
+    position: relative;
+    width: 100%;
+    top: 143px;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+.tab {
+    position: fixed;
+    z-index: 6;
+    top: 44px;
+    width: 100%;
+    height: 85px;
+    border-bottom: 1px solid #f2f2f5;
+    flex-direction: column;
+    padding: 0 30rpx;
+    background-color: #fff;
+    .type {
+        width: 100%;
+        height: 35px;
+        border-radius: 35rpx;
+        background-color: #f2f2f5;
+        position: relative;
+        margin: 10rpx 0 5rpx;
+        text {
+            height: 100%;
+            line-height: 35px;
+            flex-grow: 1;
+            flex-shrink: 1;
+            text-align: center;
+            position: relative;
+            z-index: 3;
+            font-size: 30rpx;
+            font-weight: bold;
+        }
+        icon {
+            width: 332rpx;
+            height: 30px;
+            border-radius: 30rpx;
+            background-color: @generate-color;
+            position: absolute;
+            z-index: 2;
+            top: 50%;
+            left: 0;
+            will-change: auto;
+            transition: all 200ms linear;
+        }
+    }
+    .classify {
+        width: 100%;
+        height: 35px;
+        border-radius: 35rpx;
+        background-color: #f2f2f5;
+        position: relative;
+        margin: 5rpx 0 10rpx;
+        padding: 0 20rpx;
+        view {
+            width: 25%;
+            height: 100%;
+            box-sizing: border-box;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding-right: 36rpx;
+            icon {
+                position: absolute;
+                top: 34%;
+                right: 16rpx;
+                width: 15rpx;
+                height: 15rpx;
+                background-color: transparent;
+                will-change: auto;
+                transform-origin: 25% 75%;
+                transform: rotate(-45deg);
+                transition: transform 200ms linear;
+                border-left: 1px solid #707070;
+                border-bottom: 1px solid #707070;
+            }
+            .child-tab-active {
+                transform: rotate(135deg);
+            }
+        }
+    }
+}
+.tab-active {
+    color: #fff;
+}
+.icon-left {
+    transform: translate(6rpx, -50%);
+}
+.icon-right {
+    transform: translate(354rpx, -50%);
+}
+.search-init {
+    position: relative;
+    z-index: 7;
+    box-sizing: border-box;
+    padding-top: 88rpx;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 50rpx;
+    background-color: #fff;
+    .type-item {
+        width: 100%;
+        padding: 30rpx 30rpx 10rpx;
+        border-bottom: 1px solid #f2f2f5;
+        flex-direction: column;
+        .title {
+            width: 100%;
+            height: 50rpx;
+            line-height: 50rpx;
+            position: relative;
+            font-size: 30rpx;
+            padding-left: 50rpx;
+        }
+        .content {
+            width: 100%;
+            flex-direction: row;
+            flex-wrap: wrap;
+            text {
+                text-align: center;
+                height: 50rpx;
+                line-height: 50rpx;
+                border: 1px solid #ddd;
+                border-radius: 25rpx;
+                padding:0 14rpx;
+                color: #707070;
+                margin: 16rpx;
+            }
+        }
+    }
+}
+.search-area {
+    position: fixed;
+    top: 0;
+    z-index: 8;
+    width: 100%;
+    height: 44px;
+    border-bottom: 1px solid #f2f2f5;
+    box-sizing: border-box;
+    padding: 0 30rpx;
+    align-items: center;
+    background-color: #fff;
+    view {
+        position:relative;
+        height: 33px;
+        flex-grow:1;
+        flex-shrink: 1;
+        padding: 0 74rpx;
+        background-color: #f2f2f5;
+        border-radius: 33rpx;
+        input {
+            width: 100%;
+            height: 100%;
+            font-size: 30rpx;
+        }
+        .search-icon {
+            position: absolute;
+            top: 50%;
+            left: 30rpx;
+            transform: translateY(-50%);
+            font-size: 30rpx;
+            padding-bottom: 20rpx;
+            color: #ddd;
+        }
+        .clear-icon {
+            position: absolute;
+            top: 50%;
+            right: 30rpx;
+            font-size: 32rpx;
+            transform: translateY(-50%);
+            padding-bottom: 16rpx;
+            color: @font-color;
+        }
+    }
+    text {
+        width: 90rpx;
+        height: 100%;
+        line-height: 45px;
+        text-align: right;
+        font-size: 32rpx;
+        color: #707070;
+        font-weight: bold;
+    }
+}
+::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    color: transparent;
+}
+.slide {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 5;
+    width: 100%;
+    height: 100%;
+    padding: 270rpx 20rpx 60rpx;
+    background-color: #fff;
+    will-change: auto;
+    transform: translate3d(0,-100%,0);
+    transition: transform 200ms linear;
+}
+.slide-active {
+    transform: translate3d(0,0,0);
+}
+.slide-wrap {
+    width: 100%;
+    height: 100%;
+    border-radius: 28rpx;
+    background-color: @bg-color;
+    .slide-scroll {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        flex-direction: column;
+        align-items: center;
+    }
+    .item-view {
+        width: 100%;
+        height: 80rpx;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        color: @font-color;
+        font-size: 26rpx;
+        icon {
+            position: absolute;
+            width: 80%;
+            height: 2px;
+            background-color: @generate-color;
+            border-radius: 2px;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+        }
+    }
+    .text-active {
+        color: @generate-color;
+    }
+    .slide-special-scroll {
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        scroll-view {
+            height: 100%;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+        .city-left {
+            flex: 5;
+        }
+        .city-right {
+            flex: 6;
+            background-color: #f6f6f9;
+            border-top-right-radius: 28rpx;
+            border-bottom-right-radius: 28rpx;
+        }
+    }
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+import Request from '../utils/request'
+import JobItem from '../components/job-list-item'
+import CompItem from '../components/comp-list-item'
+import { log } from '../utils/log'
+
+export default class Search extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '搜索',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    components = {
+        'job-item': JobItem,
+        'comp-item': CompItem
+    }
+
+    data = {
+        keyword: '',
+        height: 300,
+        init: false,
+        listContent: [],
+        hotData: [
+            {
+                type: '热门职位',
+                children: [
+                    {'name': '私人教练'},
+                    {'name': '私教主管'},
+                    {'name': '私教经理'},
+                    {'name': '私教总监'},
+                    {'name': '团课教练'},
+                    {'name': '团课主管'},
+                    {'name': '团课总监'},
+                    {'name': '会籍销售'},
+                    {'name': '会籍主管'},
+                    {'name': '销售经理'},
+                    {'name': '销售总监'},
+                    {'name': '客服收银'},
+                    {'name': '运营经理'},
+                    {'name': '门店店长'},
+                    {'name': '区域总监'}
+                ]
+            }, {
+                type: '热门技能',
+                children: [
+                    {'name': 'TRX'},
+                    {'name': 'NTC'},
+                    {'name': 'EXOS'},
+                    {'name': 'CrossFit'},
+                    {'name': 'MFT'},
+                    {'name': 'CPR'},
+                    {'name': 'Lesmills'},
+                    {'name': 'SPINNING'},
+                    {'name': 'Zumba'},
+                    {'name': 'Salsation'},
+                    {'name': 'PILOXING'},
+                    {'name': 'POP DANCE'}
+                ]
+            }, {
+                type: '热门公司',
+                children: [
+                    {'name': '威尔士健身'},
+                    {'name': '一兆韦德健身'},
+                    {'name': '舒适堡健身'},
+                    {'name': '浩沙健身'},
+                    {'name': '乐体健身'},
+                    {'name': '梦氏健身'},
+                    {'name': '美日健身'},
+                    {'name': '奇迹健身'},
+                    {'name': '超级猩猩'},
+                    {'name': '乐刻健身'},
+                    {'name': '星健身'},
+                    {'name': 'OneFit'},
+                    {'name': 'RAW FITNESS'},
+                    {'name': 'ReviveGYM'},
+                    {'name': 'RUNNINGCAT'},
+                    {'name': 'DP健身工作室'}
+                ]
+            }
+        ],
+        type: 1,
+        childType: '',
+        companyTypeChecked: 0,
+        salaryTypeChecked: 0,
+        experienceTypeChecked: 0,
+        storeCountChecked: 0,
+        businessTypeChecked: 0,
+        companyComtChecked: 0,
+        provChecked: '-1',
+        cityChecked: '0',
+        hotCity: [],
+        provList: [],
+        cityList: [],
+        jobData: [
+            {
+                'index': '11',
+                'name': '工作城市'
+            }, {
+                'index': '12',
+                'name': '公司类型'
+            }, {
+                'index': '13',
+                'name': '薪资待遇'
+            }, {
+                'index': '14',
+                'name': '从业经验'
+            }
+        ],
+        companyData: [
+            {
+                'index': '21',
+                'name': '公司类型'
+            }, {
+                'index': '22',
+                'name': '店铺数量'
+            }, {
+                'index': '23',
+                'name': '直营加盟'
+            }, {
+                'index': '24',
+                'name': '公司评价'
+            }
+        ],
+        companyType: [
+            {
+                'id': 0,
+                'name': '不限'
+            }, {
+                'id': 1,
+                'name': '俱乐部'
+            }, {
+                'id': 2,
+                'name': '工作室'
+            }, {
+                'id': 3,
+                'name': '瑜伽馆'
+            }, {
+                'id': 4,
+                'name': '教育培训'
+            }, {
+                'id': 5,
+                'name': '器械设备'
+            }, {
+                'id': 6,
+                'name': '媒体资讯'
+            }, {
+                'id': 7,
+                'name': '会展/活动/赛事'
+            }, {
+                'id': 8,
+                'name': '互联网'
+            }, {
+                'id': 9,
+                'name': '其他'
+            }
+        ],
+        salaryType: [
+            {
+                'id': 0,
+                'name': '不限'
+            }, {
+                'id': 1,
+                'name': '3~5K'
+            }, {
+                'id': 2,
+                'name': '6~8K'
+            }, {
+                'id': 3,
+                'name': '9~12K'
+            }, {
+                'id': 4,
+                'name': '13~18K'
+            }, {
+                'id': 5,
+                'name': '19~25K'
+            }, {
+                'id': 6,
+                'name': '26~30K'
+            }, {
+                'id': 7,
+                'name': '31~40K'
+            }, {
+                'id': 8,
+                'name': '41-50K'
+            }
+        ],
+        workExperience: [
+            {
+                'id': 0,
+                'name': '不限'
+            }, {
+                'id': 1,
+                'name': '一年以下'
+            }, {
+                'id': 2,
+                'name': '1~2年'
+            }, {
+                'id': 3,
+                'name': '3~5年'
+            }, {
+                'id': 4,
+                'name': '6~8年'
+            }, {
+                'id': 5,
+                'name': '8~10年'
+            }, {
+                'id': 6,
+                'name': '10年以上'
+            }
+        ],
+        storeCount: [
+            {
+                'id': 0,
+                'name': '不限'
+            }, {
+                'id': 1,
+                'name': '1家'
+            }, {
+                'id': 2,
+                'name': '2~5家'
+            }, {
+                'id': 3,
+                'name': '6~10家'
+            }, {
+                'id': 4,
+                'name': '11~20家'
+            }, {
+                'id': 5,
+                'name': '36~50家'
+            }, {
+                'id': 6,
+                'name': '51~80家'
+            }
+        ],
+        businessType: [
+            {
+                'id': 0,
+                'name': '不限'
+            }, {
+                'id': 1,
+                'name': '直营'
+            }, {
+                'id': 2,
+                'name': '加盟'
+            }, {
+                'id': 3,
+                'name': '直营+加盟'
+            }
+        ],
+        companyComt: [
+            {
+                'id': 0,
+                'name': '不限'
+            }, {
+                'id': 1,
+                'name': '很棒'
+            }, {
+                'id': 2,
+                'name': '较好'
+            }, {
+                'id': 3,
+                'name': '一般'
+            }, {
+                'id': 4,
+                'name': '较差'
+            }, {
+                'id': 5,
+                'name': '很差'
+            }
+        ]
+    }
+
+    request = new Request()
+
+    searchJob (page = 1, pageSize = 8) {
+        return this.request.Get({
+            str: this.keyword,
+            cityId: this.cityChecked,
+            companyType: this.companyTypeChecked,
+            salaryType: this.salaryTypeChecked,
+            workExperienceType: this.experienceTypeChecked,
+            page: page,
+            pageSize: pageSize
+        }, '/InviteWork/searchByWorkName')
+    }
+
+    searchCompany (page = 1, pageSize = 8) {
+        return this.request.Get({
+            str: this.keyword,
+            cityId: '0',
+            companyType: this.companyTypeChecked,
+            shopType: this.storeCountChecked,
+            businessType: this.businessTypeChecked,
+            appraiseLevel: this.companyComtChecked,
+            page: page,
+            pageSize: pageSize
+        }, '/User/searchByName')
+    }
+
+    page = {
+        index: 1,
+        hasNot: false,
+        busy: false
+    }
+
+    initPage () {
+        this.page.index = 1
+        this.page.hasNot = false
+        this.page.busy = false
+    }
+
+    methods = {
+        pullLoad () {
+            if (this.page.busy) {
+                return false
+            }
+            if (this.page.hasNot) {
+                return false
+            }
+            this.page.index++
+            this.page.busy = true
+            if (Number.parseInt(this.type) === 1) {
+                this.searchJob(this.page.index).then(({data}) => {
+                    if (data.length === 0) {
+                        this.page.hasNot = true
+                    }
+                    this.listContent = [...this.listContent, ...data]
+                    this.$apply()
+                    this.page.busy = false
+                })
+            } else {
+                this.searchCompany(this.page.index).then(({data}) => {
+                    if (data.length === 0) {
+                        this.page.hasNot = true
+                    }
+                    this.listContent = [...this.listContent, ...data]
+                    this.$apply()
+                    this.page.busy = false
+                })
+            }
+        },
+        back () {
+            wepy.navigateBack({delta: 1})
+        },
+        clearKeyword () {
+            this.keyword = ''
+        },
+        getKeyword (e) {
+            this.keyword = e.detail.value
+        },
+        search () {
+            if (Number.parseInt(this.type) === 1) {
+                this.searchJob().then(({data}) => {
+                    log(data)
+                    this.listContent = data
+                    this.initPage()
+                    this.$apply()
+                })
+            } else {
+                this.searchCompany().then(({data}) => {
+                    log(data)
+                    this.listContent = data
+                    this.initPage()
+                    this.$apply()
+                })
+            }
+        },
+        searchType (type) {
+            this.childType = ''
+            if (Number.parseInt(this.type) === Number.parseInt(type)) {
+                return false
+            } else {
+                this.type = type
+            }
+            this.listContent = []
+            this.companyTypeChecked = 0
+            if (Number.parseInt(type) === 2) {
+                this.salaryTypeChecked = 0
+                this.experienceTypeChecked = 0
+                this.searchCompany().then(({data}) => {
+                    log(data)
+                    this.listContent = data
+                    this.initPage()
+                    this.$apply()
+                })
+            } else {
+                this.storeCountChecked = 0
+                this.businessTypeChecked = 0
+                this.companyComtChecked = 0
+                this.searchJob().then(({data}) => {
+                    log(data)
+                    this.listContent = data
+                    this.initPage()
+                    this.$apply()
+                })
+            }
+        },
+        selectChildType (type, index) {
+            if (this.childType !== '') {
+                this.childType = ''
+                return false
+            }
+            if (Number.parseInt(type) === 1) {
+                this.childType = type + '' + (index + 1)
+            }
+            if (Number.parseInt(type) === 2) {
+                this.childType = type + '' + (index + 1)
+            }
+        },
+        initSelect (e) {
+            if (e.target.dataset.content) {
+                this.keyword = e.target.dataset.content
+                if (Number.parseInt(this.type) === 1) {
+                    this.searchJob().then(({data}) => {
+                        log(data)
+                        this.listContent = data
+                        this.initPage()
+                        this.$apply()
+                    })
+                } else {
+                    this.searchCompany().then(({data}) => {
+                        log(data)
+                        this.listContent = data
+                        this.initPage()
+                        this.$apply()
+                    })
+                }
+            }
+        },
+        selectProv (e) {
+            if (e.target.dataset.id != undefined) {
+                if (e.target.dataset.id == '-1') {
+                    this.provChecked = '-1'
+                    this.cityList = this.hotCity
+                } else {
+                    this.provChecked = e.target.dataset.id
+                    this.cityList = this.provList[e.target.dataset.index].children
+                }
+            }
+        },
+        selectCity (e) {
+            if (e.target.dataset.id != undefined) {
+                this.cityChecked = e.target.dataset.id
+                this.childType = ''
+                this.searchJob().then(({data}) => {
+                    log(data)
+                    this.listContent = data
+                    this.initPage()
+                    this.$apply()
+                })
+            }
+        },
+        select (e) {
+            if (e.target.dataset.id !== undefined) {
+                switch (this.childType) {
+                case '12':
+                case '21':
+                    this.companyTypeChecked = e.target.dataset.id
+                    this.childType = ''
+                    break
+                case '13':
+                    this.salaryTypeChecked = e.target.dataset.id
+                    this.childType = ''
+                    break
+                case '14':
+                    this.experienceTypeChecked = e.target.dataset.id
+                    this.childType = ''
+                    break
+                case '22':
+                    this.storeCountChecked = e.target.dataset.id
+                    this.childType = ''
+                    break
+                case '23':
+                    this.businessTypeChecked = e.target.dataset.id
+                    this.childType = ''
+                    break
+                case '24':
+                    this.companyComtChecked = e.target.dataset.id
+                    this.childType = ''
+                    break
+                default:
+                    this.childType = ''
+                }
+                if (Number.parseInt(this.type) === 1) {
+                    this.searchJob().then(({data}) => {
+                        log(data)
+                        this.listContent = data
+                        this.initPage()
+                        this.$apply()
+                    })
+                } else {
+                    this.searchCompany().then(({data}) => {
+                        log(data)
+                        this.listContent = data
+                        this.initPage()
+                        this.$apply()
+                    })
+                }
+            }
+        }
+    }
+
+    onLoad (params) {
+        if (params.keyword) {
+            this.keyword = params.keyword
+            this.searchJob().then(({data}) => {
+                this.listContent = data
+                this.initPage()
+                this.$apply()
+            })
+        }
+        wepy.getSystemInfo({
+            success: res => {
+                this.height = res.windowHeight - 143
+                this.$apply()
+            }
+        })
+        let region = wepy.getStorageSync('region')
+        let hotCity = wepy.getStorageSync('hotCity')
+        if (region && hotCity) {
+            region = Promise.resolve(region)
+            hotCity = Promise.resolve({data: hotCity})
+        } else {
+            hotCity = this.request.Get({provinceId: -1}, '/Region/getCityList')
+            region = this.request.special({}, '/region/getAllList')
+        }
+        Promise.all([hotCity, region])
+        .then(([{data}, region]) => {
+            this.hotCity = data
+            this.cityList = data
+            this.provList = region
+            this.$apply()
+        })
+        this.init = true
+    }
+
+    // 清除页面逻辑数据
+    onUnload () {
+        this.keyword = ''
+        this.type = 1
+        this.childType = ''
+        this.listContent = []
+        this.companyTypeChecked = 0
+        this.salaryTypeChecked = 0
+        this.experienceTypeChecked = 0
+        this.storeCountChecked = 0
+        this.businessTypeChecked = 0
+        this.companyComtChecked = 0
+        this.provChecked = '-1'
+        this.cityChecked = '0'
+        this.init = false
+    }
+}
+</script>

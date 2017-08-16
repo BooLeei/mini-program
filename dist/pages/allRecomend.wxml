@@ -1,0 +1,19 @@
+
+<view class="top-slider">
+    <view  wx:for="{{recomend}}" wx:key="{{index}}" class="slide-wrap">
+        <view class="img">
+            <image src="{{item.header_image}}" mode="aspectFill"/>
+            <icon class="normal"/>
+            <icon class="follow"/>
+        </view>
+        <view class="text">
+            <text class="text-name">{{item.nickname}}</text>
+            <text class="text-describe">{{item.brand_describe}}</text>
+        </view>
+    </view>
+</view>
+
+<!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
+<view class="loading"  wx:if="{{$loading$show}}">
+    <image class="loading-img" src="../image/loading.png"/>
+</view>

@@ -1,0 +1,178 @@
+
+<view class="search-area test">
+    <view>
+        <icon class="search-icon iconfont icon-sousuo"/>
+        <input value="{{keyword}}" confirm-type="search" bindconfirm="search" bindinput="getKeyword" placeholder="搜索职位/公司/技能" placeholder-style="color:#ddd;font-size:30rpx;"/>
+        <icon bindtap="clearKeyword" class="clear-icon iconfont icon-qingkong" hidden="{{keyword==''}}"/>
+    </view>
+    <text bindtap="back">取消</text>
+</view>
+<scroll-view scroll-y class="search-init" hidden="{{keyword!=''}}" bindtap="initSelect">
+    <view class="type-item"  wx:for="{{hotData}}" wx:key="{{index}}">
+        <view class="title">
+            <icon/>
+            <text>{{item.type}}</text>
+        </view>
+        <view class="content">
+            <text data-content="{{items.name}}" wx:for="{{item.children}}" wx:key="{{indexs}}" wx:for-index="indexs" wx:for-item="items">{{items.name}}</text>
+        </view>
+    </view>
+</scroll-view>
+<!-- <view class='list-content' hidden="{{keyword==''}}"> -->
+<block  wx:if="{{init&&keyword!=''}}">
+    <view class="tab test">
+        <view class="type">
+            <text bindtap="searchType" class="{{type==1?'tab-active':''}}" data-wepy-params-a="1">职位</text>
+            <text bindtap="searchType" class="{{type==2?'tab-active':''}}" data-wepy-params-a="2">公司</text>
+            <icon class="{{type==2?'icon-right':'icon-left'}}"/>
+        </view>
+        <view class="classify" hidden="{{type==2}}">
+            <view bindtap="selectChildType" wx:for="{{jobData}}" wx:key="{{index}}" data-wepy-params-a="1" data-wepy-params-b="{{index}}">
+                <text>{{item.name}}</text>
+                <icon class="{{childType==1+''+(index+1)?'child-tab-active':''}}"/>
+            </view>
+        </view>
+        <view class="classify" hidden="{{type==1}}">
+            <view bindtap="selectChildType" wx:for="{{companyData}}" wx:key="{{index}}" data-wepy-params-a="2" data-wepy-params-b="{{index}}">
+                <text>{{item.name}}</text>
+                <icon class="{{childType==2+''+(index+1)?'child-tab-active':''}}"/>
+            </view>
+        </view>
+    </view>
+    <scroll-view scroll-y style="height:{{height}}px;" class="list-scroll" bindscrolltolower="pullLoad">
+        <block wx:if="{{type==1}}">
+            <block wx:for="{{listContent}}" wx:for-index="index" wx:for-item="item" wx:key="{{index}}">
+                
+    <navigator url="jobDetail?id={{item.id}}&type={{1}}" class="listItem" hover-class="item-hover">
+        <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
+        <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
+        <view class="right-side">
+            <view class="first-line">
+                <text class="name">{{item.work_name}}</text>
+                <text class="salary">{{item.salary_name}}</text>
+            </view>
+            <view class="second-line">
+                <view>
+                    <icon class="iconfont icon-icon-test"/>
+                    <text>{{item.city_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-shijian2"/>
+                    <text>{{item.work_experience_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-xueli1"/>
+                    <text>{{item.education_name}}</text>
+                </view>
+            </view>
+            <view class="third-line">
+                <text  wx:for="{{item.tagList}}" wx:key="{{index}}">{{item.name}}</text>
+            </view>
+            <view class="describe">{{item.userCompany.brand_describe}}</view>
+        </view>
+        <icon wx:if="{{item.userCompany.is_approve_offical==1}}" class="comp-approve"/>
+    </navigator>
+
+            </block>
+        </block>
+        <block  wx:if="{{type==2}}">
+            <block wx:for="{{listContent}}" wx:for-index="index" wx:for-item="item" wx:key="{{index}}">
+                
+<navigator url="company?id={{item.id}}" class="listItem" hover-class="item-hover">
+    <image  wx:if="{{item.isApproveOffcial==1}}" class="auth" mode="aspectFill" src="../image/authentic.png"/>
+    <image class="logo" mode="aspectFill" src="{{item.headerImage}}"/>
+    <view class="right-side">
+        <view class="first-line">
+            <text class="name">{{item.nickname}}</text>
+            <view class="salary">
+                <icon  wx:for="{{item.avgNum}}" wx:key="{{index}}" class="iconfont icon-wujiaoxing"/>
+                <icon wx:for="{{5 - item.avgNum}}" wx:key="{{index}}" class="iconfont icon-wujiaoxing1"/>
+            </view>
+        </view>
+        <view class="second-line">
+            <view>
+                <icon class="iconfont icon-shijian2"/>
+                <text>{{item.createCompanyYear}}</text>
+            </view>
+            <view>
+                <icon class="iconfont icon-icon-test"/>
+                <text>{{item.cityName}}</text>
+            </view>
+            <view>
+                <icon class="iconfont icon-shop"/>
+                <text>{{item.shopName}}店</text>
+            </view>
+        </view>
+        <view class="describe">{{item.brandDescribe}}</view>
+        <view class="jobNum">
+            <icon class="iconfont icon-zhiwei2"/>
+            <text>{{item.inviteWorkNum}}个 职位在招</text>
+        </view>
+    </view>
+    <icon wx:if="{{item.isApproveOffcial==1}}" class="comp-approve"/>
+</navigator>
+
+            </block>
+        </block>
+    </scroll-view>
+</block>
+<!-- </view> -->
+<view class="slide {{childType!=''?'slide-active':''}}"  wx:if="{{init&&keyword!=''}}">
+    <view class="slide-wrap">
+        <view hidden="{{childType!='11'}}" class="slide-special-scroll">
+            <scroll-view scroll-y class="city-left" bindtap="selectProv">
+                <view class="item-view {{provChecked=='-1'?'text-active':''}}" data-id="-1">
+                    <icon data-id="-1" hidden="{{provChecked!='-1'}}"/>热门城市
+                </view>
+                <view class="item-view {{provChecked==item.value?'text-active':''}}" data-index="{{index}}" data-id="{{item.value}}" wx:for="{{provList}}" wx:key="{{index}}">
+                    <icon data-index="{{index}}" data-id="{{item.value}}" hidden="{{provChecked!=item.value}}"/>
+                    {{item.text}}
+                </view>
+            </scroll-view>
+            <scroll-view scroll-y class="city-right" bindtap="selectCity">
+                <view class="item-view {{cityChecked==item.value||cityChecked==item.region_id?'text-active':''}}" data-id="{{item.value?item.value:item.region_id}}" wx:for="{{cityList}}" wx:key="{{index}}">
+                    <icon data-id="{{item.value?item.value:item.region_id}}" hidden="{{cityChecked!=item.value&&cityChecked!=item.region_id}}"/>
+                    {{item.text?item.text:item.region_name}}
+                </view>
+            </scroll-view>
+        </view>
+        <scroll-view class="slide-scroll" scroll-y hidden="{{childType=='11'}}" bindtap="select">
+            <block wx:if="{{childType=='12'||childType=='21'}}">
+                <view class="item-view {{companyTypeChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{companyType}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{companyTypeChecked!=item.id}}"/>
+                    {{item.name}}
+                </view>
+            </block>
+            <block wx:if="{{childType=='13'}}">
+                <view class="item-view {{salaryTypeChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{salaryType}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{salaryTypeChecked!=item.id}}"/>
+                    {{item.name}}
+                </view>
+            </block>
+            <block wx:if="{{childType=='14'}}">
+                <view class="item-view {{experienceTypeChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{workExperience}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{experienceTypeChecked!=item.id}}"/>
+                    {{item.name}}
+                </view>
+            </block>
+            <block wx:if="{{childType=='22'}}">
+                <view class="item-view {{storeCountChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{storeCount}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{storeCountChecked!=item.id}}"/>
+                    {{item.name}}
+                </view>
+            </block>
+            <block wx:if="{{childType=='23'}}">
+                <view class="item-view {{businessTypeChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{businessType}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{businessTypeChecked!=item.id}}"/>
+                    {{item.name}}
+                </view>
+            </block>
+            <block wx:if="{{childType=='24'}}">
+                <view class="item-view {{companyComtChecked==item.id?'text-active':''}}" data-id="{{item.id}}" wx:for="{{companyComt}}" wx:key="{{index}}">
+                    <icon data-id="{{item.id}}" hidden="{{companyComtChecked!=item.id}}"/>
+                    {{item.name}}
+                </view>
+            </block>
+        </scroll-view>
+    </view>
+</view>

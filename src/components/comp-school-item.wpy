@@ -1,0 +1,124 @@
+<template>
+<view class="school-outer-wrap" hover-class="school-item-hover" @tap="emitIndex">
+    <view class="school-inner-wrap">
+        <image class="school-img" mode="aspectFill" src="{{item.shop_image_url}}" />
+        <view class="school-content">
+            <view class="school-name">
+                {{item.name}}
+                <icon wx:if="{{showBtn}}" style="right: 50rpx;"></icon>
+                <icon wx:if="{{showBtn}}"></icon>
+            </view>
+            <view class="school-text">
+                <view><icon></icon>{{item.city_name}}</view>
+                <view><icon></icon>{{item.teach_num}}位培训师</view>
+                <view><icon></icon>{{item.area}}m^2</view>
+                <view><icon></icon>{{item.member_num}}名学员</view>
+            </view>
+            <view class="school-job">
+                <icon></icon>
+                <text>{{item.inviteNum}}个 再招职位</text>
+            </view>
+        </view>
+    </view>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class CompSchoolItem extends wepy.component {
+    props = {
+        item: {
+            type: Object,
+            default: {}
+        },
+        showBtn: {
+            type: Boolean,
+            default: false
+        },
+        index: {
+            type: Number,
+            default: 0
+        }
+    }
+
+    methods = {
+        emitIndex () {
+            this.$emit('emitIndex', this.index)
+        }
+    }
+}
+</script>
+
+<style lang="less">
+.school-outer-wrap {
+    width: 100%;
+    padding: 14rpx 20rpx;
+    background-color: #fff;
+    border-bottom: 1px solid #f2f2f5;
+}
+.school-item-hover {
+    background-color: #f0f0f0;
+}
+.school-inner-wrap {
+    width: 100%;
+    height: 240rpx;
+    position: relative;
+    .school-img {
+        width: 340rpx;
+        height: 100%;
+        border-radius: 12rpx;
+    }
+    .school-content {
+        flex: 1;
+        padding: 20rpx;
+        justify-content: space-between;
+        flex-direction: column;
+        justify-content: space-between;
+        .school-name {
+            position: relative;
+            color: #707070;
+            font-size: 30rpx;
+            font-weight: bold;
+            icon {
+                position: absolute;
+                right: 0;
+                width: 30rpx;
+                height: 30rpx;
+                background-color: #40c4ff;
+            }
+        }
+        .school-text {
+            flex-wrap: wrap;
+            view {
+                width: 50%;
+                height: 40rpx;
+                align-items: center;
+                icon {
+                    width: 30rpx;
+                    height: 30rpx;
+                    background-color: #40c4ff;
+                    margin-right: 4rpx;
+                }
+            }
+        }
+        .school-job {
+            color: #40c4ff;
+            font-size: 30rpx;
+            font-weight: bold;
+            icon {
+                width: 32rpx;
+                height: 32rpx;
+                background-color: #40c4ff;
+                margin-right: 6rpx;
+            }
+        }
+    }
+    .school-icon {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 2;
+    }
+}
+</style>

@@ -1,0 +1,57 @@
+<template>
+<view class="all-wrap">
+    <repeat wx:for="{{progress}}" wx:key="{{index}}">
+        <progress :item="item"></progress>
+    </repeat>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Progress from '../components/comp-progress'
+import Request from '../utils/request'
+
+export default class AllProgress extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '全部历程',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+    data = {
+        progress: null
+    }
+
+    request = new Request()
+
+    components = {
+        'progress': Progress
+    }
+
+    onLoad (params) {
+        this.request.Get({
+            'userCompanyId': params.id
+        }, '/CompanyProgress/getList')
+        .then(({data}) => {
+            for (let item of data) {
+                item.year = item.time.slice(0, 4)
+                item.month = item.time.slice(4, 6)
+                item.day = item.time.slice(6, 8)
+            }
+            data[data.length - 1].last = true
+            this.progress = data
+            this.$apply()
+        })
+    }
+}
+</script>
+
+<style lang="less">
+.all-wrap {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    padding: 0 40rpx;
+    flex-direction: column;
+}
+</style>

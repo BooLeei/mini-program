@@ -1,0 +1,109 @@
+
+    <view class="header">
+        <navigator url="toggleCity" hover-class="navigator-hover">
+            <icon class="iconfont icon-dingwei"/>
+            <text>{{cityName}}</text>
+        </navigator>
+        <image bindtap="scrollToTop" class="logo" src="../image/header-logo.png"/>
+        <navigator url="classify" hover-class="navigator-hover">
+            <icon class="iconfont icon-class"/>
+            <text>分类</text>
+        </navigator>
+    </view>
+    <view class="content-wrap">
+        <view class="search-wrap">
+            <view bindtap="toSearch">
+                <icon class="iconfont icon-sousuo"/>
+                <text>搜索职位/公司/技能</text>
+            </view>
+        </view>
+        <swiper class="slide-wrap {{fixTab?'margin':''}}" indicator-dots autoplay="{{autoplay}}" circular="circular" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff" interval="3000">
+            <block  wx:for="{{bannerImg}}" wx:key="{{index}}">
+                <swiper-item>
+                    <image src="{{item.image_url}}" mode="aspectFill"/>
+                </swiper-item>
+            </block>
+        </swiper>
+        <view id="fixed" class="tab-wrap {{fixTab?'fixedTab':''}}">
+            <view bindtap="toggleTab"  wx:for="{{tabList}}" wx:key="{{index}}" class="tab-item" data-wepy-params-a="{{index}}">
+                <text class="{{tabIndex==index?'active':''}}">{{item}}</text>
+                <icon hidden="{{tabIndex!=index}}" class="tab-active"/>
+            </view>
+        </view>
+        <view class="list-wrap" hidden="{{tabIndex!=0}}">
+            <block wx:for="{{newJobList}}" wx:for-index="index" wx:for-item="item" wx:key="key">
+                
+    <navigator url="jobDetail?id={{item.id}}&type={{1}}" class="listItem" hover-class="item-hover">
+        <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
+        <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
+        <view class="right-side">
+            <view class="first-line">
+                <text class="name">{{item.work_name}}</text>
+                <text class="salary">{{item.salary_name}}</text>
+            </view>
+            <view class="second-line">
+                <view>
+                    <icon class="iconfont icon-icon-test"/>
+                    <text>{{item.city_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-shijian2"/>
+                    <text>{{item.work_experience_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-xueli1"/>
+                    <text>{{item.education_name}}</text>
+                </view>
+            </view>
+            <view class="third-line">
+                <text  wx:for="{{item.tagList}}" wx:key="{{index}}">{{item.name}}</text>
+            </view>
+            <view class="describe">{{item.userCompany.brand_describe}}</view>
+        </view>
+        <icon wx:if="{{item.userCompany.is_approve_offical==1}}" class="comp-approve"/>
+    </navigator>
+
+            </block>
+            <view class="pull-loading" hidden="{{hasNot}}">加载中...</view>
+        </view>
+        <view class="list-wrap" hidden="{{tabIndex!=1}}">
+            <block wx:for="{{hotJobList}}" wx:for-index="index" wx:for-item="item" wx:key="key">
+                
+    <navigator url="jobDetail?id={{item.id}}&type={{1}}" class="listItem" hover-class="item-hover">
+        <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
+        <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
+        <view class="right-side">
+            <view class="first-line">
+                <text class="name">{{item.work_name}}</text>
+                <text class="salary">{{item.salary_name}}</text>
+            </view>
+            <view class="second-line">
+                <view>
+                    <icon class="iconfont icon-icon-test"/>
+                    <text>{{item.city_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-shijian2"/>
+                    <text>{{item.work_experience_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-xueli1"/>
+                    <text>{{item.education_name}}</text>
+                </view>
+            </view>
+            <view class="third-line">
+                <text  wx:for="{{item.tagList}}" wx:key="{{index}}">{{item.name}}</text>
+            </view>
+            <view class="describe">{{item.userCompany.brand_describe}}</view>
+        </view>
+        <icon wx:if="{{item.userCompany.is_approve_offical==1}}" class="comp-approve"/>
+    </navigator>
+
+            </block>
+            <view class="pull-loading" hidden="{{hasNot}}">加载中...</view>
+        </view>
+    </view>
+
+<view class="loading" hidden="{{$loading$hidden}}" style="opacity:{{$loading$init}}" animation="{{$loading$fade}}">
+    <image class="loading-img" src="../image/loading.png"/>
+</view>

@@ -1,0 +1,94 @@
+<template>
+<image src="https://pic.iamking.com.cn/Public/Home/image/system/king-logo.png" mode="scaleToFill" />
+<scroll-view scroll-y>
+    <text>
+        国王招聘-健身招聘求职神器，隶属于国王KING旗下专注于健身行业的垂直招聘求职平台。国王招聘帮助正处于高速发展的中国健身行业，在企业招人、从业者找工作上提供专业、高效、精准、便捷的需求匹配服务。
+    </text>
+    <text>
+        国王招聘基于行业人才大数据，通过智能匹配与算法技术，实现让健身企业更快更精准更有保障地搜索匹配到适合的专业人才；让健身从业者可以前所未有地在全国范围内，高效、便捷、精准地搜索挑选适合自身的工作及职业发展平台。
+    </text>
+    <text>
+        作为中国首家专注健身行业的专业招聘求职平台，国王招聘致力于通过互联网的技术与思维，结合健身行业的特点与痛点，加上持续优化的产品设计与用户体验，以及不断丰富与创新的产品功能，使健身行业人力资源得到高效匹配与优化配置，改善行业从业规则与职业道德，推动引领中国健身行业更好更快发展。
+    </text>
+    <text>
+        我们深知，优秀人才对于企业发展的重要性!!!
+    </text>
+</scroll-view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class Introduction extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '国王招聘',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    methods = {
+        back () {
+            wepy.navigateBack({
+                delta: 1
+            })
+        }
+    }
+
+    onShareAppMessage () {
+        return {
+            title: '国王招聘',
+            path: '/pages/introduction',
+            success: ret => {
+                log(ret)
+            },
+            fail: err => {
+                log(err)
+            }
+        }
+    }
+
+    onLoad () {
+        wepy.setNavigationBarColor({
+            frontColor: '#ffffff',
+            backgroundColor: '#40c4ff'
+        })
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+page {
+    height: 100%;
+    background: transparent url('https://pic.iamking.com.cn/Public/Home/image/system/kingBg.jpg') no-repeat center;
+    background-size: 100% 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    padding: 30rpx 30rpx 60rpx;
+    box-sizing: border-box;
+}
+image {
+    width: 400rpx;
+    height: 176rpx;
+}
+scroll-view {
+    width: 100%;
+    height: 900rpx;
+    background-color: rgba(0,0,0,0.6);
+    padding: 30rpx 40rpx;
+    color: #fff;
+    box-sizing: border-box;
+    border-radius: 30rpx;
+    line-height: 1.5;
+    font-weight: bold;
+}
+::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    color: transparent;
+}
+</style>

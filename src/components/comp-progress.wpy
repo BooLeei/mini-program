@@ -1,0 +1,112 @@
+<template>
+<view class="progress-item">
+    <view class="progress-left">
+        <text class="progress-left-up">{{item.month}}/{{item.day}}</text>
+        <text class="progress-left-down">{{item.year}}年</text>
+    </view>
+    <view class="progress-middle {{item.last?'no-progress-middle':''}}"></view>
+    <view class="progress-right">
+        <view class="progress-title">
+            {{item.title}}
+            <icon wx:if="{{showBtn}}"></icon>
+            <icon wx:if="{{showBtn}}"></icon>
+        </view>
+        <text class="progress-content">{{item.describe}}</text>
+    </view>
+</view>
+</template>
+
+<style lang="less">
+.progress-item {
+    width: 100%;
+    position: relative;
+    .progress-left {
+        width: 130rpx;
+        padding-top: 24rpx;
+        flex-direction: column;
+        font-weight: bold;
+        .progress-left-up {
+            font-size: 36rpx;
+            margin-bottom: 4rpx;
+        }
+        .progress-left-down {
+            text-align: right;
+            padding-right: 34rpx;
+        }
+    }
+    .progress-middle {
+        width: 2px;
+        height: 100%;
+        background-color: #f2f2f5;
+        position: absolute;
+        top: 30rpx;
+        left: 130rpx;
+    }
+    .progress-middle::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -14rpx;
+        z-index: 2;
+        width: 32rpx;
+        height: 32rpx;
+        border-radius: 50%;
+        background-color: #c5efff;
+    }
+    .progress-middle::after {
+        content: '';
+        position: absolute;
+        z-index: 3;
+        top: 6rpx;
+        left: -8rpx;
+        width: 20rpx;
+        height: 20rpx;
+        border-radius: 50%;
+        background-color: #40c4ff;
+    }
+    .progress-right {
+        flex: 1;
+        margin-left: 40rpx;
+        padding: 28rpx 20rpx 30rpx 0;
+        flex-direction: column;
+        border-bottom: 1px solid #f2f2f5;
+        .progress-title {
+            font-size: 30rpx;
+            font-weight: bold;
+            margin-bottom: 12rpx;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+        }
+        .progress-content {
+            display: -webkit-box;
+            word-break: break-all;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            -webkit-line-clamp: 3;
+        }
+    }
+    .no-progress-middle {
+        background-color: #fff;
+    }
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+
+export default class Progress extends wepy.component {
+    props = {
+        item: {
+            type: Object,
+            default: null
+        },
+        showBtn: {
+            type: Boolean,
+            default: false
+        }
+    }
+}
+</script>

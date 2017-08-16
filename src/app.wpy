@@ -1,0 +1,162 @@
+<style lang="less">
+@import url('./utils/global');
+
+.container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+page {
+    font-size: 26rpx;
+}
+view {
+    box-sizing: border-box;
+    display: flex;
+    color: @font-color;
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+import Request from './utils/request'
+import { QQMAPKEY } from './utils/constants'
+
+export default class extends wepy.app {
+    config = {
+        pages: [
+            'pages/jobs',
+            'pages/mine',
+            'pages/resume',
+            'pages/companys',
+            'pages/allRecomend',
+            'pages/chatList',
+            'pages/toggleCity',
+            'pages/classify',
+            'pages/search',
+            'pages/jobDetail',
+            'pages/company',
+            'pages/allProgress',
+            'pages/allShopJobs',
+            'pages/introduction',
+            'pages/followCompany',
+            'pages/resume-tag',
+            'pages/resume-exp'
+        ],
+        window: {
+            backgroundTextStyle: 'light',
+            navigationBarBackgroundColor: '#fff',
+            navigationBarTitleText: '健身求职',
+            navigationBarTextStyle: 'black',
+            backgroundColor: '#f2f2f5',
+            enablePullDownRefresh: true
+        },
+        tabBar: {
+            color: '#aaa',
+            selectedColor: '#40c4ff',
+            borderStyle: 'black',
+            backgroundColor: '#fff',
+            list: [
+                {
+                    pagePath: 'pages/jobs',
+                    text: '职位',
+                    iconPath: './image/jobs-tab.png',
+                    selectedIconPath: './image/jobs-tab-hl.png'
+                }, {
+                    pagePath: 'pages/companys',
+                    text: '公司',
+                    iconPath: './image/companys-tab.png',
+                    selectedIconPath: './image/companys-tab-hl.png'
+                }, {
+                    pagePath: 'pages/chatList',
+                    text: '消息',
+                    iconPath: './image/msg-tab.png',
+                    selectedIconPath: './image/msg-tab-hl.png'
+                }, {
+                    pagePath: 'pages/mine',
+                    text: '我',
+                    iconPath: './image/mine-tab.png',
+                    selectedIconPath: './image/mine-tab-hl.png'
+                }
+            ]
+        }
+    }
+
+    global = {
+        userInfo: null,
+        location: {
+            'has': false,
+            'region_id': '0',
+            'region_name': '全国'
+        },
+        choose: {
+            'selectProv': '0',
+            'region_id': '0',
+            'region_name': '全国'
+        }
+    }
+
+    Request = new Request()
+
+    constructor () {
+        super()
+        this.use('requestfix')
+    }
+
+    onLaunch() {
+        console.log(QQMAPKEY)
+        wepy.getLocation({
+            success: ret => {
+                wepy.request({
+                    url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${ret.latitude},${ret.longitude}&key=${QQMAPKEY}`,
+                    success: ret => {
+                        this.Request.Get({
+                            cityName: ret.data.result.address_component.city.substr(0, ret.data.result.address_component.city.length - 1)
+                        }, '/Region/getCityIdByCityName')
+                        .then(ret => {
+                            Object.assign(this.global.location, ret.data)
+                            // Object.assign(this.global.choose, ret.data)
+                            this.global.location.has = true
+                        })
+                    }
+                })
+            }
+        })
+
+        if (!wepy.getStorageSync('hotCity')) {
+            setTimeout(() => {
+                this.Request.Get({provinceId: -1}, '/Region/getCityList')
+                .then(ret => wepy.setStorageSync('hotCity', ret.data))
+            }, 3000)
+        }
+
+        if (!wepy.getStorageSync('workList')) {
+            setTimeout(() => {
+                this.Request.Get({}, '/Work/getWorkList')
+                .then(ret => wepy.setStorageSync('workList', ret.data))
+            }, 3500)
+        }
+        if (!wepy.getStorageSync('region')) {
+            setTimeout(() => {
+                this.Request.special({}, '/region/getAllList')
+                .then(ret => wepy.setStorageSync('region', ret))
+            }, 4000)
+        }
+    }
+
+    getUserInfo(cb) {
+        const that = this
+        if (this.global.userInfo) {
+            return this.global.userInfo
+        }
+        wepy.getUserInfo({
+            success (res) {
+                that.global.userInfo = res.userInfo
+                cb && cb(res.userInfo)
+            }
+        })
+    }
+}
+</script>

@@ -1,0 +1,48 @@
+
+<view class="list-item" bindtap="tagSlide">
+    <text>选择认证/技能</text>
+    <text class="tag-selected"  wx:if="{{page.name!=''}}">{{page.name}}</text>
+</view>
+
+<view class="slide-wrap" bindtap="$approve$slides" style="background-color:{{$approve$disable?'#ddd':'#fff'}}">
+    <view class="text {{$approve$slide?'text-slide':''}}">
+        <text>是否经官方权威培训机构认证？</text>
+        <text class="text-result">{{approve}}</text>
+    </view>
+    <view class="slide-btn slide-first {{$approve$slide?'first-slide':''}}" bindtap="$approve$sure">是</view>
+    <view class="slide-btn slide-second {{$approve$slide?'second-slide':''}}" bindtap="$approve$no">否</view>
+</view>
+
+
+<view class="slide-wrap" bindtap="$certificate$slides" style="background-color:{{$certificate$disable?'#ddd':'#fff'}}">
+    <view class="text {{$certificate$slide?'text-slide':''}}">
+        <text>是否持有该认证/技能资质证书？</text>
+        <text class="text-result">{{certificate}}</text>
+    </view>
+    <view class="slide-btn slide-first {{$certificate$slide?'first-slide':''}}" bindtap="$certificate$sure">是</view>
+    <view class="slide-btn slide-second {{$certificate$slide?'second-slide':''}}" bindtap="$certificate$no">否</view>
+</view>
+
+<picker mode="selector" range="{{exp}}" range-key="text" class="base-picker" bindchange="bindExp">
+    <view class="picker-wrap">
+        <view>该认证/技能有多久的授课经验？</view>
+        <view class="picker-text">{{page.experienceTypeName}}</view>
+    </view>
+</picker>
+<picker mode="selector" range="{{level}}" range-key="text" class="base-picker" bindchange="bindLevel">
+    <view class="picker-wrap">
+        <view>该认证/技能目前处于什么等级？</view>
+        <view class="picker-text">{{page.levelName}}</view>
+    </view>
+</picker>
+<view class="footer">
+    <button bindtap="cancel" class="left" plain hover-class="btn-active">取消</button>
+    <button bindtap="sure" class="right" hover-class="btn-active">保存</button>
+</view>
+<view class="slide-mask" hidden="{{!slide}}"/>
+<view class="right-slide {{slide?'slide-active':''}}">
+    <view class="slide-back" bindtap="tagSlide"/>
+    <scroll-view scroll-y class="slide-content" bindtap="selectTag">
+        <view class="tag-item {{item.id==page.skill_id?'tag-highlight':''}}"  wx:for="{{tagList}}" wx:key="{{index}}" data-index="{{index}}">{{item.name}}</view>
+    </scroll-view>
+</view>

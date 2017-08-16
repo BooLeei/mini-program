@@ -1,0 +1,22 @@
+
+<view class="all-wrap">
+    <block  wx:for="{{progress}}" wx:key="{{index}}">
+        
+<view class="progress-item">
+    <view class="progress-left">
+        <text class="progress-left-up">{{item.month}}/{{item.day}}</text>
+        <text class="progress-left-down">{{item.year}}年</text>
+    </view>
+    <view class="progress-middle {{item.last?'no-progress-middle':''}}"/>
+    <view class="progress-right">
+        <view class="progress-title">
+            {{item.title}}
+            <icon  wx:if="{{$progress$showBtn}}"/>
+            <icon  wx:if="{{$progress$showBtn}}"/>
+        </view>
+        <text class="progress-content">{{item.describe}}</text>
+    </view>
+</view>
+
+    </block>
+</view>

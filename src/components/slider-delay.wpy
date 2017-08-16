@@ -1,0 +1,303 @@
+<template>
+<view class="slider-wrap">
+    <view class="slider-content">
+        <view class="slider-item">
+            <swiper @tap="test" class="slider-img" circular vertical current="{{firstIndex}}" duration="{{firstDuration}}" bindchange="firstchange">
+                <swiper-item @touchmove.stop="stop">
+                    <image src="{{first[first.length-1].header_image}}" />
+                    <icon class="normal"></icon>
+                    <icon class="follow"></icon>
+                </swiper-item>
+                <block wx:for="{{first}}" wx:key="{{index}}">
+                    <swiper-item @touchmove.stop="stop">
+                        <image src="{{item.header_image}}" />
+                        <icon class="normal"></icon>
+                        <icon class="follow"></icon>
+                    </swiper-item>
+                </block>
+            </swiper>
+            <swiper class="slider-text" circular vertical current="{{firstIndex}}" duration="{{firstDuration}}" bindchange="firstchange">
+                <swiper-item @touchmove.stop="stop">
+                    <text class="name">{{first[first.length-1].nickname}}</text>
+                    <text class="describe">{{first[first.length-1].brand_describe}}</text>
+                </swiper-item>
+                <block wx:for="{{first}}" wx:key="{{index}}">
+                    <swiper-item @touchmove.stop="stop">
+                        <text class="name">{{item.nickname}}</text>
+                        <text class="describe">{{item.brand_describe}}</text>
+                    </swiper-item>
+                </block>
+            </swiper>
+        </view>
+        <view class="slider-item">
+            <swiper class="slider-img" circular vertical current="{{secondIndex}}" duration="{{secondDuration}}" bindchange="secondchange">
+                <swiper-item @touchmove.stop="stop">
+                    <image src="{{second[second.length-1].header_image}}" />
+                    <icon class="normal"></icon>
+                    <icon class="follow"></icon>
+                </swiper-item>
+                <block wx:for="{{second}}" wx:key="{{index}}">
+                    <swiper-item @touchmove.stop="stop">
+                        <image src="{{item.header_image}}" />
+                        <icon class="normal"></icon>
+                        <icon class="follow"></icon>
+                    </swiper-item>
+                </block>
+            </swiper>
+            <swiper class="slider-text" circular vertical current="{{secondIndex}}" duration="{{secondDuration}}" bindchange="secondchange">
+                <swiper-item @touchmove.stop="stop">
+                    <text class="name">{{second[second.length-1].nickname}}</text>
+                    <text class="describe">{{second[second.length-1].brand_describe}}</text>
+                </swiper-item>
+                <block wx:for="{{second}}" wx:key="{{index}}">
+                    <swiper-item @touchmove.stop="stop">
+                        <text class="name">{{item.nickname}}</text>
+                        <text class="describe">{{item.brand_describe}}</text>
+                    </swiper-item>
+                </block>
+            </swiper>
+        </view>
+        <view class="slider-item">
+            <swiper class="slider-img" circular vertical current="{{thirdIndex}}" duration="{{thirdDuration}}" bindchange="thirdchange">
+                <swiper-item @touchmove.stop="stop">
+                    <image src="{{third[third.length-1].header_image}}" />
+                    <icon class="normal"></icon>
+                    <icon class="follow"></icon>
+                </swiper-item>
+                <block wx:for="{{third}}" wx:key="{{index}}">
+                    <swiper-item @touchmove.stop="stop">
+                        <image src="{{item.header_image}}" />
+                        <icon class="normal"></icon>
+                        <icon class="follow"></icon>
+                    </swiper-item>
+                </block>
+            </swiper>
+            <swiper class="slider-text" circular vertical current="{{thirdIndex}}" duration="{{thirdDuration}}" bindchange="thirdchange">
+                <swiper-item @touchmove.stop="stop">
+                    <text class="name">{{third[third.length-1].nickname}}</text>
+                    <text class="describe">{{third[third.length-1].brand_describe}}</text>
+                </swiper-item>
+                <block wx:for="{{third}}" wx:key="{{index}}">
+                    <swiper-item @touchmove.stop="stop">
+                        <text class="name">{{item.nickname}}</text>
+                        <text class="describe">{{item.brand_describe}}</text>
+                    </swiper-item>
+                </block>
+            </swiper>
+        </view>
+    </view>
+    <view class="slider-button">
+        <button disabled="{{disabled}}" hover-class="btn-active" hover-start-time=0 hover-stay-time="150" @tap="change">
+            <icon class="iconfont icon-shuaxin"></icon>
+            <text>换一换</text>
+        </button>
+    </view>
+</view>
+</template>
+
+<style lang="less">
+@import url('../utils/global');
+
+.btn-active {
+    transform: scale(0.9);
+}
+.slider-wrap {
+    width: 100%;
+    height: 235px;
+    padding: 0 30rpx;
+    flex-direction: column;
+    background-color: #fff;
+    .slider-content {
+        width: 100%;
+        height: 360rpx;
+        background-color: #fff;
+        justify-content: space-between;
+        align-items: center;
+        .slider-item {
+            width: 220rpx;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            .slider-img {
+                width: 100%;
+                height: 220rpx;
+                position: relative;
+                border: 1px solid #eee;
+                box-sizing: border-box;
+                border-radius: 10rpx;
+                image {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 10rpx;
+                }
+                icon {
+                    position: absolute;
+                }
+            }
+            .slider-text {
+                width: 100%;
+                height: 70rpx;
+                swiper-item {
+                    display: flex;
+                    box-sizing: border-box;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    padding: 0 10rpx;
+                }
+                text {
+                    display: block;
+                }
+                .name {
+                    width: 100%;
+                    height: 30rpx;
+                    font-size: 28rpx;
+                    font-weight: bold;
+                    color: #707070;
+                    text-align: center;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    box-sizing: border-box;
+                    padding: 0 20rpx;
+                }
+                .describe {
+                    width: 100%;
+                    height: 30rpx;
+                    line-height: 30rpx;
+                    text-align: center;
+                    font-size: 26rpx;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+            }
+        }
+    }
+    .slider-button {
+        width: 100%;
+        flex-grow: 1;
+        flex-shrink: 1;
+        align-items: center;
+        justify-content: center;
+        button {
+            width: 442rpx;
+            height: 74rpx;
+            line-height: 74rpx;
+            border: 1px solid #707070;
+            border-radius: 37rpx;
+            font-size: 30rpx;
+            background-color: #fff;
+            color: #707070;
+            transition: transform 200ms linear;
+            position: relative;
+            icon {
+                position: absolute;
+                top: 50%;
+                left: 30%;
+                transform: translateY(-50%);
+                font-size: 32rpx;
+            }
+        }
+        button[disabled] {
+            background-color: #fff;
+            color: #707070;
+        }
+    }
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+
+export default class SliderDelay extends wepy.component {
+    props = {
+        login: {
+            type: Boolean,
+            default: false
+        }
+    }
+
+    data = {
+        firstDuration: 500,
+        secondDuration: 500,
+        thirdDuration: 500,
+        disabled: false,
+        first: [],
+        second: [],
+        third: [],
+        firstIndex: 0,
+        secondIndex: 0,
+        thirdIndex: 0
+    }
+
+    methods = {
+        change () {
+            this.disabled = true
+            setTimeout(() => {
+                this.disabled = false
+                this.$apply()
+            }, 800)
+            this.firstIndex--
+            setTimeout(() => {
+                this.secondIndex--
+                this.$apply()
+            }, 100)
+            setTimeout(() => {
+                this.thirdIndex--
+                this.$apply()
+            }, 200)
+        },
+        stop () {
+            return false
+        },
+        firstchange (e) {
+            if (e.detail.current === 0) {
+                this.firstDuration = 0
+                setTimeout(() => {
+                    this.firstIndex = this.first.length
+                    this.$apply()
+                }, 510)
+            } else {
+                this.firstDuration = 500
+            }
+        },
+        secondchange (e) {
+            if (e.detail.current === 0) {
+                this.secondDuration = 0
+                setTimeout(() => {
+                    this.secondIndex = this.second.length
+                    this.$apply()
+                }, 510)
+            } else {
+                this.secondDuration = 500
+            }
+        },
+        thirdchange (e) {
+            if (e.detail.current === 0) {
+                this.thirdDuration = 0
+                setTimeout(() => {
+                    this.thirdIndex = this.third.length
+                    this.$apply()
+                }, 510)
+            } else {
+                this.thirdDuration = 500
+            }
+        },
+        invokeData ({type, arr}) {
+            if (type === 1) {
+                this.first = arr
+                this.firstIndex = arr.length
+            } else if (type === 2) {
+                this.second = arr
+                this.secondIndex = arr.length
+            } else if (type === 3) {
+                this.third = arr
+                this.thirdIndex = arr.length
+            } else {
+                return
+            }
+        }
+    }
+}
+</script>

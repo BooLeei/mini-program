@@ -1,0 +1,915 @@
+<template>
+<view class="block">
+    <view class="block-title">基本信息<text>必填</text></view>
+    <view class="block-content">
+        <view class="base-image">
+            <image src="{{page.headerImageFull}}" mode="aspectFill" />
+            <view>
+                <text class="header-image-name">简历头像</text>
+                <text class="header-image-text">请上传求职者本人的真是、清晰图片
+                建议尺寸：360*360像素</text>
+            </view>
+        </view>
+        <view class="base-input">
+            <text class="base-label">真实姓名</text>
+            <input value="{{page.name}}" class="base-msg" max-length="10" bindinput="bindName" />
+        </view>
+        <picker mode="selector" class="base-picker" range="{{base.sex}}" bindchange="bindSex" value="{{page.sex}}" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">性别</view>
+                <view class="picker-text">{{base.sex[page.sex].text}}</view>
+            </view>
+        </picker>
+        <picker mode="date" class="base-picker" fields="year" start="1960" end="2017" bindchange="page.bindBirth" value="{{birthYear}}">
+            <view class="picker-wrap">
+                <view class="picker-label">出生年份</view>
+                <view class="picker-text">{{page.birthYear}}</view>
+            </view>
+        </picker>
+        <picker mode="selector" class="base-picker" range="{{base.edu}}" bindchange="bindEdu" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">最高学历</view>
+                <view class="picker-text">{{page.educationTypeName}}</view>
+            </view>
+        </picker>
+        <picker mode="selector" class="base-picker" range="{{base.exp}}" bindchange="bindExp" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">健身行业从业经验</view>
+                <view class="picker-text">{{page.experienceTypeName}}</view>
+            </view>
+        </picker>
+        <view class="base-input">
+            <text class="base-label">手机号码</text>
+            <input value="{{page.tel}}" type="number" class="base-msg" max-length="11" bindinput="bindPhone" />
+        </view>
+        <picker mode="selector" class="base-picker" range="{{base.state}}" bindchange="bindState" value="{{page.workStatus}}" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">任职状态</view>
+                <view class="picker-text">{{base.state[page.workStatus].text}}</view>
+            </view>
+        </picker>
+        <view class="base-textarea">
+            <text>自我介绍</text>
+            <textarea value="{{page.intro}}" bindinput="bindIntro" cursor-spacing="200" maxlength="60" placeholder-style="color: #aaa"
+            placeholder="提醒：请勿输入手机号码、座机、微信号、邮箱及网址链接，否则职位将被系统自动删除，且不可恢复"></textarea>
+            <text class="num-count">{{page.intro.length}}/60</text>
+        </view>
+    </view>
+    <view class="block-title">期望工作<text>必填</text></view>
+    <view class="block-content">
+        <picker mode="selector" range="{{base.type}}" range-key="text" class="base-picker" bindchange="bindType">
+            <view class="picker-wrap">
+                <view class="picker-label">公司类型</view>
+                <view class="picker-text">{{page.companyTypeName}}</view>
+            </view>
+        </picker>
+        <picker mode="multiSelector" range="{{job}}" range-key="name" class="base-picker" bindcolumnchange="bindJobColumn" bindchange="bindJob" value="{{jobIndex}}">
+            <view class="picker-wrap">
+                <view class="picker-label">期望职位</view>
+                <view class="picker-text">{{page.workName}}</view>
+            </view>
+        </picker>
+        <picker mode="multiSelector" range="{{city}}" range-key="text" class="base-picker" bindcolumnchange="bindCityColumn" bindchange="bindCity" value="{{cityIndex}}">
+            <view class="picker-wrap">
+                <view class="picker-label">期望城市</view>
+                <view class="picker-text">{{page.cityName}}</view>
+            </view>
+        </picker>
+        <picker mode="selector" range="{{base.salary}}" range-key="text" class="base-picker" bindchange="bindSalary">
+            <view class="picker-wrap">
+                <view class="picker-label">期望薪资</view>
+                <view class="picker-text">{{page.salaryTypeName}}</view>
+            </view>
+        </picker>
+    </view>
+    <view class="block-title">认证/技能<text>非必填</text></view>
+    <view class="block-content">
+        <view class="tag" wx:for="{{page.tagList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
+            <image src="" mode="aspectFill"/>
+            <view class="tag-right">
+                <view class="tag-right-top">
+                    <text>{{item.name}}</text>
+                    <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" @tap="editTag({{index}})"></icon>
+                    <icon data-id="{{item.id?item.id:''}}" @tap="delTag({{index}})"></icon>
+                </view>
+                <view class="tag-right-text">
+                    <text>{{item.is_approve==1?'已认证':'未认证'}}</text>
+                    <text>{{item.has_certificate==1?'有证书':'无证书'}}</text>
+                    <text>{{item.experienceTypeName}}</text>
+                    <text>{{item.levelName}}</text>
+                </view>
+            </view>
+        </view>
+        <view wx:if="{{addTagShow}}" class="add-btn" @tap="addTag">
+            <icon></icon>
+            <text>添加认证/技能</text>
+        </view>
+    </view>
+    <view class="block-title">工作履历<text>非必填</text></view>
+    <view class="block-content">
+        <view class="exp" wx:for="{{page.workList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
+            <view class="exp-title">
+                <view>
+                    <image wx:if="{{item.school_logo!=''}}" src="{{item.school_logo}}" mode="aspectFill" />
+                    <text>{{item.company_name}}</text>
+                </view>
+                <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" @tap="editExp({{index}})"></icon>
+                <icon data-id="{{item.id?item.id:''}}" @tap="delExp({{index}})"></icon>
+            </view>
+            <view class="exp-brief">
+                <text style="color: #40c4ff;">{{item.work_name}}</text>
+                <text>{{item.time_start}} - {{item.time_end=='-1'?'至今':item.time_end}}</text>
+            </view>
+            <view class="exp-intro">{{item.content}}</view>
+        </view>
+        <view wx:if="{{addExpShow}}" class="add-btn" @tap="addExp">
+            <icon></icon>
+            <text>添加工作履历</text>
+        </view>
+    </view>
+    <view class="block-title">学习经历<text>非必填</text></view>
+    <view class="block-content">
+        <view class="school" wx:for="{{page.schoolList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
+            <view class="school-title">
+                <view>
+                    <image wx:if="{{item.school_logo!=''}}" src="{{item.school_logo}}" mode="aspectFill" />
+                    <text>{{item.name}}</text>
+                </view>
+                <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" @tap="editEdu({{index}})"></icon>
+                <icon data-id="{{item.id?item.id:''}}" @tap="delEdu({{index}})"></icon>
+            </view>
+            <view class="school-work">{{item.work_name}}</view>
+            <view class="school-detail">
+                <text>{{item.time_start}} - {{item.time_end=='-1'?'至今':item.time_end}}</text>
+                <text>{{item.is_graduate==1?'已结业':'未结业'}}</text>
+                <text>{{item.has_certificate==1?'有证书':'无证书'}}</text>
+            </view>
+        </view>
+        <view wx:if="{{addEduShow}}" class="add-btn">
+            <icon></icon>
+            <text>添加学习经历</text>
+        </view>
+    </view>
+    <view class="block-title">职业形象<text>非必填</text></view>
+    <view class="block-content">
+        <view class="img-wrap">
+            <scroll-view scroll-x>
+                <view class="img-add" @tap="addImg">
+                    <icon></icon>
+                    <text>添加图片</text>
+                </view>
+                <view @tap="preview({{index}})" class="img-show" wx:for="{{page.showUrl}}" wx:key="{{index}}">
+                    <image src="{{item}}" mode="aspectFill"/>
+                    <icon @tap.stop="delImg({{index}})"></icon>
+                </view>
+            </scroll-view>
+        </view>
+    </view>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Request from '../utils/request'
+import { Preview, Choose, Upload } from '../utils/imageUtils'
+import {log} from '../utils/log'
+
+export default class Resume extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '简历'
+    }
+
+    request = new Request()
+
+    storage = {
+        city: wepy.getStorageSync('region'),
+        job: wepy.getStorageSync('workList')
+    }
+
+    showModal ({title = '提示', content = '是否删除该选项'}) {
+        return new Promise((resolve, reject) => {
+            wepy.showModal({
+                title: title,
+                content: content,
+                cancelColor: '#ddd',
+                confirmColor: '#40c4ff',
+                success: ret => {
+                    if (ret.confirm) {
+                        resolve('点击确定')
+                    }
+                    if (ret.cancel) {
+                        reject('用户取消')
+                    }
+                },
+                fail: err => {
+                    reject(err)
+                }
+            })
+        })
+    }
+
+    data = {
+        initCity: true,
+        initJob: true,
+        page: {
+            resumeId: '',
+            headerImage: '',
+            headerImageFull: '',
+            name: '',
+            sex: '',
+            cityId: '',
+            birthYear: '',
+            educationType: '',
+            educationTypeName: '',
+            experienceType: '',
+            experienceTypeName: '',
+            tel: '',
+            workStatus: '',
+            intro: '',
+            companyType: '',
+            companyTypeName: '',
+            salaryType: '',
+            salaryTypeName: '',
+            parentWorkClassId: '',
+            workClassId: '',
+            workId: '',
+            tagList: [],
+            workList: [],
+            schoolList: [],
+            oldShowUrl: [],
+            showUrl: []
+        },
+        jobIndex: [0, 0, 0],
+        cityIndex: [0, 0],
+        base: {
+            sex: [
+                {
+                    'value': 0,
+                    'text': '男'
+                }, {
+                    'value': 1,
+                    'text': '女'
+                }
+            ],
+            edu: [
+                {
+                    'value': 2,
+                    'text': '大专'
+                }, {
+                    'value': 3,
+                    'text': '本科'
+                }, {
+                    'value': 4,
+                    'text': '硕士'
+                }, {
+                    'value': 5,
+                    'text': '博士'
+                }, {
+                    'value': 1,
+                    'text': '其他'
+                }
+            ],
+            exp: [
+                {
+                    'value': 1,
+                    'text': '1年以下'
+                }, {
+                    'value': 2,
+                    'text': '1~2年'
+                }, {
+                    'value': 3,
+                    'text': '3~5年'
+                }, {
+                    'value': 4,
+                    'text': '6~8年'
+                }, {
+                    'value': 5,
+                    'text': '8~10年'
+                }, {
+                    'value': 6,
+                    'text': '10年以上'
+                }
+            ],
+            level: [
+                {
+                    'value': 1,
+                    'text': '初级'
+                }, {
+                    'value': 2,
+                    'text': '中级'
+                }, {
+                    'value': 3,
+                    'text': '高级'
+                }, {
+                    'value': 4,
+                    'text': '资深'
+                }, {
+                    'value': 5,
+                    'text': '导师级'
+                }
+            ],
+            state: [
+                {
+                    'value': 0,
+                    'text': '离职'
+                }, {
+                    'value': 1,
+                    'text': '在职'
+                }
+            ],
+            type: [
+                {
+                    value: 1,
+                    text: '俱乐部'
+                }, {
+                    value: 2,
+                    text: '工作室'
+                }, {
+                    value: 3,
+                    text: '瑜伽馆'
+                }, {
+                    value: 4,
+                    text: '教育培训'
+                }, {
+                    value: 5,
+                    text: '器械设备'
+                }, {
+                    value: 6,
+                    text: '媒体资讯'
+                }, {
+                    value: 7,
+                    text: '会展／活动／赛事'
+                }, {
+                    value: 8,
+                    text: '互联网'
+                }, {
+                    value: 9,
+                    text: '其他'
+                }
+            ],
+            salary: [
+                {
+                    value: 1,
+                    text: '3~5K'
+                }, {
+                    value: 2,
+                    text: '6~8K'
+                }, {
+                    value: 3,
+                    text: '9~12K'
+                }, {
+                    value: 4,
+                    text: '13~18K'
+                }, {
+                    value: 5,
+                    text: '19~25K'
+                }, {
+                    value: 6,
+                    text: '26~30K'
+                }, {
+                    value: 7,
+                    text: '31~40K'
+                }, {
+                    value: 8,
+                    text: '41~50K'
+                }, {
+                    value: 9,
+                    text: '50K以上'
+                }
+            ],
+        },
+        city: [this.storage.city, this.storage.city[0].children],
+        job: [this.storage.job, this.storage.job[0].list, this.storage.job[0].list[0].workList],
+    }
+
+    arrayWatch (arr) {
+        let count = 0
+        for (let [index, item] of arr.entries()) {
+            if (item.status == 1) {
+                count++
+            }
+        }
+        if (count < 3) {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    computed = {
+        addTagShow () {
+            return this.arrayWatch(this.page.tagList)
+        },
+        addExpShow () {
+            return this.arrayWatch(this.page.workList)
+        },
+        addEduShow () {
+            return this.arrayWatch(this.page.schoolList)
+        }
+    }
+
+    methods = {
+        bindName (e) {
+            this.page.name = e.detail.value
+        },
+        bindSex (e) {
+            this.page.sex = e.detail.value
+        },
+        bindBirth (e) {
+            this.page.birthYear = e.detail.value
+        },
+        bindEdu (e) {
+            this.page.educationType = this.base.edu[e.detail.value].value
+            this.page.educationTypeName = this.base.edu[e.detail.value].text
+        },
+        bindExp (e) {
+            this.page.experienceType = this.base.exp[e.detail.value].value
+            this.page.experienceTypeName = this.base.exp[e.detail.value].text
+        },
+        bindPhone (e) {
+            this.page.tel = e.detail.value
+        },
+        bindState (e) {
+            this.page.workStatus = e.detail.value
+        },
+        bindIntro (e) {
+            this.page.intro = e.detail.value
+        },
+        bindType (e) {
+            this.page.companyType = this.base.type[e.detail.value].value
+            this.page.companyTypeName = this.base.type[e.detail.value].text
+        },
+        bindCityColumn (e) {
+            if (e.detail.column === 0) {
+                this.city[1] = this.city[0][e.detail.value].children
+            }
+        },
+        bindCity (e) {
+            this.cityIndex = e.detail.value
+            this.page.cityName = this.city[1][this.cityIndex[1]].text
+            this.page.cityId = this.city[1][this.cityIndex[1]].value
+        },
+        bindJobColumn (e) {
+            if (e.detail.column === 0) {
+                this.job[1] = this.job[0][e.detail.value].list
+                this.job[2] = this.job[0][e.detail.value].list[0].workList
+            }
+            if (e.detail.column === 1) {
+                this.job[2] = this.job[1][e.detail.value].workList
+            }
+        },
+        bindJob (e) {
+            this.jobIndex = e.detail.value
+            this.page.workName = this.job[2][this.jobIndex[2]].name
+            this.page.parentWorkClassId = this.job[0][this.jobIndex[0]].id
+            this.page.workClassId = this.job[1][this.jobIndex[1]].id
+            this.page.workId = this.job[2][this.jobIndex[2]].id
+        },
+        bindSalary (e) {
+            this.page.salaryType = this.base.salary[e.detail.value].value
+            this.page.salaryTypeName = this.base.salary[e.detail.value].text
+        },
+        preview (index) {
+            Preview(index, this.page.showUrl)
+        },
+        delImg (index) {
+            this.page.showUrl.splice(index, 1)
+            this.page.oldShowUrl.splice(index, 1)
+        },
+        addImg () {
+            Choose().then(ret => {
+                if (ret.tempFiles[0].size > 1024*1024) {
+                    log('图片过大')
+                    return
+                }
+                this.page.showUrl.unshift(ret.tempFilePaths[0])
+                this.$apply()
+                Upload(ret.tempFilePaths[0], 5)
+                .then(ret => {
+                    this.page.oldShowUrl.push(ret.data.imageName)
+                })
+            })
+        },
+        delTag (index, e) {
+            this.showModal({content: '是否删除该认证/技能'})
+            .then(ret => {
+                if (e.target.dataset.id != '') {
+                    this.page.tagList[index].status = '0'
+                } else {
+                    this.page.tagList.splice(index, 1)
+                }
+                this.$apply()
+            })
+        },
+        delExp (index, e) {
+            this.showModal({content: '是否删除该工作履历'})
+            .then(ret => {
+                if (e.target.dataset.id != '') {
+                    this.page.workList[index].status = '0'
+                } else {
+                    this.page.workList.splice(index, 1)
+                }
+                this.$apply()
+            })
+        },
+        delEdu (index, e) {
+            this.showModal({content: '是否删除该学历经历'})
+            .then(ret => {
+                if (e.target.dataset.id != '') {
+                    this.page.schoolList[index].status = '0'
+                } else {
+                    this.page.schoolList.splice(index, 1)
+                }
+                this.$apply()
+            })
+        },
+        editTag (index) {
+            this.$parent.global.tagList = this.page.tagList
+            this.$parent.global.tagUpdate = false
+            wepy.navigateTo({
+                url: 'resume-tag?grandId=' + this.page.parentWorkClassId
+                + '&parentId='+ this.page.workClassId + '&id=' + this.page.workId
+                + '&index=' + index + '&msg=' + JSON.stringify(this.page.tagList[index])
+            })
+        },
+        editExp (index) {
+            this.$parent.global.workList = this.page.workList
+            this.$parent.global.workUpdate = false
+            wepy.navigateTo({
+                url: 'resume-exp?index=' + index + '&msg=' + JSON.stringify(this.page.tagList[index])
+            })
+        },
+        addTag () {
+            if (this.page.workId == '') {
+                log('请先选择期望职位')
+                return false
+            }
+            this.$parent.global.tagList = this.page.tagList
+            this.$parent.global.tagUpdate = false
+            wepy.navigateTo({
+                url: 'resume-tag?grandId='+ this.page.parentWorkClassId
+                +'&parentId='+ this.page.workClassId +'&id='+ this.page.workId
+            })
+        },
+        addExp () {
+            this.$parent.global.workList = this.page.workList
+            this.$parent.global.workUpdate = false
+            wepy.navigateTo({
+                url: 'resume-exp'
+            })
+        }
+    }
+
+    onShow () {
+        if (this.$parent.global.tagUpdate) {
+            this.page.tagList = [...this.$parent.global.tagList]
+        }
+        if (this.$parent.global.workUpdate) {
+            this.page.workList = [...this.$parent.global.workList]
+        }
+    }
+
+    onLoad (params) {
+        this.request.Get({'userId': 294}, '/Resume/getInfoSelf')
+        .then(({data}) => {
+            log(data)
+            this.page = data
+            this.$apply()
+        })
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+page {
+    background-color: @bg-color;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+.block {
+    width: 100%;
+    flex-direction: column;
+    .block-title {
+        width: 100%;
+        height: 100rpx;
+        align-items: center;
+        color: @font-color2;
+        font-size: 28rpx;
+        padding: 0 30rpx;
+        text {
+            margin-left: 10rpx;
+            font-size: 22rpx;
+            padding: 0 10rpx;
+            height: 24rpx;
+            line-height: 24rpx;
+            border-radius: 14rpx;
+            border: 1px solid @red-color;
+            color: @red-color;
+        }
+    }
+    .block-content {
+        width: 100%;
+        flex-direction: column;
+        background-color: #fff;
+    }
+}
+.base-image {
+    wwidth: 100%;
+    height: 154rpx;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40rpx;
+    border-bottom: 1px solid @bd-color;
+    image {
+        width: 120rpx;
+        height: 120rpx;
+        border: 1px solid @bd-color;
+        border-radius: 12rpx;
+    }
+    view {
+        flex: 1;
+        padding: 0 30rpx;
+        flex-direction: column;
+        justify-content: space-between;
+        .header-image-name {
+            width: 100%;
+            height: 30rpx;
+            font-size: 30rpx;
+            margin-bottom: 20rpx;
+        }
+        .header-image-text {
+            width: 100%;
+            line-height: 1.1;
+            font-size: 26rpx;
+        }
+    }
+}
+.base-input {
+    width: 100%;
+    height: 100rpx;
+    align-items: center;
+    padding: 0 40rpx;
+    border-bottom: 1px solid @bd-color;
+    justify-content: space-between;
+    .base-label {
+        width: 268rpx;
+        font-size: 26rpx;
+        color: @font-color2;
+    }
+    .base-msg {
+        flex: 1;
+        font-size: 26rpx;
+        color: @generate-color;
+    }
+}
+.base-picker {
+    width: 100%;
+    height: 100rpx;
+    font-size: 26rpx;
+    padding: 0 40rpx;
+    border-bottom: 1px solid @bd-color;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    .picker-wrap {
+        width: 100%;
+        height: 100%;
+        line-height: 100rpx;
+        .picker-label {
+            width: 268rpx;
+            height: 100%;
+            color: @font-color2;
+        }
+        .picker-text {
+            width: 410rpx;
+            height: 100%;
+            color: @generate-color;
+        }
+    }
+}
+.base-textarea {
+    width: 100%;
+    padding: 30rpx 40rpx 40rpx;
+    flex-direction: column;
+    justify-content: space-around;
+    position: relative;
+    text {
+        font-size: 26rpx;
+        color: @font-color2;
+        padding-bottom: 30rpx;
+    }
+    textarea {
+        width: 100%;
+        height: 320rpx;
+        box-sizing: border-box;
+        color: #707070;
+        line-height: 1.4;
+        padding: 12rpx;
+        padding-bottom: 30rpx;
+        border-radius: 12rpx;
+        background-color: @bg-color;
+    }
+    .num-count {
+        position: absolute;
+        bottom: 30rpx;
+        right: 70rpx;
+    }
+}
+.tag {
+    width: 100%;
+    padding: 20rpx 40rpx;
+    height: 190rpx;
+    border-bottom: 1px solid @bd-color;
+    align-items: center;
+    image {
+        width: 108rpx;
+        height: 116rpx;
+        margin-right: 40rpx;
+    }
+    .tag-right {
+        flex: 1;
+        padding-left: 40rpx;
+        height: 100%;
+        flex-direction: column;
+        border-left: 1px solid @bd-color;
+        justify-content: space-around;
+        .tag-right-top {
+            width: 100%;
+            position: relative;
+            align-items: center;
+            text {
+                height: 50rpx;
+                border: 1px solid @generate-color;
+                color: @generate-color;
+                border-radius: 26rpx;
+                padding: 0 26rpx;
+                line-height: 50rpx;
+            }
+            icon {
+                position: absolute;
+                width: 40rpx;
+                height: 40rpx;
+                background-color: @generate-color;
+                right: 0;
+            }
+        }
+        .tag-right-text {
+            width: 100%;
+            text {
+                margin-right: 24rpx;
+            }
+        }
+    }
+}
+.add-btn {
+    width: 100%;
+    height: 100rpx;
+    align-items: center;
+    justify-content: center;
+    font-size: 28rpx;
+    icon {
+        width: 40rpx;
+        height: 40rpx;
+        background-color: @generate-color;
+        margin-right: 10rpx;
+    }
+}
+.exp {
+    width: 100%;
+    padding: 30rpx 40rpx;
+    border-bottom: 1px solid @bd-color;
+    flex-direction: column;
+    justify-content: space-between;
+    .exp-title {
+        width: 100%;
+        height: 60rpx;
+        align-items: center;
+        position: relative;
+        font-size: 26rpx;
+        view {
+            align-items: center;
+            image {
+                width: 36rpx;
+                height: 36rpx;
+                margin-right: 6rpx;
+                border-radius: 12rpx;
+                border: 1px solid @bd-color;
+            }
+        }
+        icon {
+            position: absolute;
+            width: 40rpx;
+            height: 40rpx;
+            background-color: @generate-color;
+            right: 0;
+        }
+    }
+    .exp-brief {
+        width: 100%;
+        justify-content: space-between;
+        margin: 20rpx 0;
+    }
+    .exp-intro {
+        width: 100%;
+        line-height: 1.4;
+    }
+}
+.school{
+    width: 100%;
+    padding: 30rpx 40rpx;
+    flex-direction: column;
+    justify-content: space-between;
+    border-bottom: 1px solid @bd-color;
+    .school-title {
+        width: 100%;
+        height: 60rpx;
+        align-items: center;
+        position: relative;
+        view {
+            align-items: center;
+            image {
+                width: 36rpx;
+                height: 36rpx;
+                margin-right: 6rpx;
+                border-radius: 12rpx;
+                border: 1px solid @bd-color;
+            }
+        }
+        icon {
+            position: absolute;
+            width: 40rpx;
+            height: 40rpx;
+            background-color: @generate-color;
+            right: 0;
+        }
+    }
+    .school-work {
+        width: 100%;
+        color: @generate-color;
+        margin: 20rpx 0;
+    }
+    .school-detail {
+        width: 100%;
+        text {
+            margin-right: 30rpx;
+        }
+    }
+}
+.img-wrap {
+    width: 100%;
+    padding: 40rpx 0;
+    scroll-view {
+        width: 100%;
+        height: 320rpx;
+        padding-left: 40rpx;
+        white-space:nowrap;
+        box-sizing: border-box;
+        .img-add {
+            width: 260rpx;
+            height: 100%;
+            background-color: #ddd;
+            margin-right: 20rpx;
+            display: inline-flex;
+            border: 1px solid #ddd;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            top: -166rpx;
+            flex-direction: column;
+            icon {
+                width: 30rpx;
+                height: 30rpx;
+                background-color: @generate-color;
+                margin-bottom: 10rpx;
+            }
+        }
+        .img-show {
+            width: 260rpx;
+            height: 100%;
+            margin-right: 20rpx;
+            display: inline-block;
+            position: relative;
+            image {
+                width: 100%;
+                height: 100%;
+            }
+            icon {
+                width: 40rpx;
+                height: 40rpx;
+                background-color: @generate-color;
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+        }
+    }
+    ::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        color: transparent;
+    }
+}
+</style>

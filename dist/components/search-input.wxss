@@ -1,0 +1,1 @@
+.search-wrap{width:100%;height:45px;justify-content:center;align-items:center}.search-wrap view{font-size:28rpx;width:690rpx;height:66rpx;justify-content:center;align-items:center;background-color:#f2f2f5;border-radius:33rpx;box-sizing:border-box;color:#aaa}.search-wrap view icon{padding-bottom:16rpx;padding-right:10rpx}

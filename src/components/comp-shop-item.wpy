@@ -1,0 +1,125 @@
+<template>
+<view class="shop-outer-wrap" hover-class="shop-item-hover">
+    <view class="shop-inner-wrap">
+        <image class="shop-img" mode="aspectFill" src="{{item.shop_image_url}}" />
+        <view class="shop-content">
+            <view class="shop-name">
+                {{item.name}}
+                <icon wx:if="{{showBtn}}" style="right: 50rpx;"></icon>
+                <icon wx:if="{{showBtn}}"></icon>
+            </view>
+            <view class="shop-text">
+                <view><icon></icon>{{item.city_name}}</view>
+                <view><icon></icon>{{item.shop_type_name}}</view>
+                <view><icon></icon>{{item.area}}m^2</view>
+                <view><icon></icon>{{item.member_num}}名会员</view>
+            </view>
+            <view class="shop-job">
+                <icon></icon>
+                <text>{{item.inviteNum}}个 再招职位</text>
+            </view>
+        </view>
+        <image class="shop-icon" src="{{item.is_business=='1'?'../image/shop-online.png':'../image/shop-booking.png'}}" />
+    </view>
+</view>
+</template>
+
+<style lang="less">
+.shop-outer-wrap {
+    width: 100%;
+    padding: 14rpx 20rpx;
+    background-color: #fff;
+    border-bottom: 1px solid #f2f2f5;
+}
+.shop-item-hover {
+    background-color: #f0f0f0;
+}
+.shop-inner-wrap {
+    width: 100%;
+    height: 240rpx;
+    position: relative;
+    .shop-img {
+        width: 340rpx;
+        height: 100%;
+        border-radius: 12rpx;
+    }
+    .shop-content {
+        flex: 1;
+        padding: 20rpx;
+        justify-content: space-between;
+        flex-direction: column;
+        justify-content: space-between;
+        .shop-name {
+            position: relative;
+            color: #707070;
+            font-size: 30rpx;
+            font-weight: bold;
+            icon {
+                position: absolute;
+                right: 0;
+                width: 30rpx;
+                height: 30rpx;
+                background-color: #40c4ff;
+            }
+        }
+        .shop-text {
+            flex-wrap: wrap;
+            view {
+                width: 50%;
+                height: 40rpx;
+                align-items: center;
+                icon {
+                    width: 30rpx;
+                    height: 30rpx;
+                    background-color: #40c4ff;
+                    margin-right: 4rpx;
+                }
+            }
+        }
+        .shop-job {
+            color: #40c4ff;
+            font-size: 30rpx;
+            font-weight: bold;
+            icon {
+                width: 32rpx;
+                height: 32rpx;
+                background-color: #40c4ff;
+                margin-right: 6rpx;
+            }
+        }
+    }
+    .shop-icon {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 2;
+    }
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+
+export default class ShopItem extends wepy.component {
+    props = {
+        item: {
+            type: Array,
+            default: []
+        },
+        showBtn: {
+            type: Boolean,
+            default: false
+        },
+        index: {
+            type: Number,
+            default: 0
+        }
+    }
+
+    methods = {
+        emitIndex () {
+            this.$emit('emitIndex', this.index)
+        }
+    }
+}
+</script>

@@ -1,0 +1,75 @@
+<template>
+<!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
+<view class="loading" wx:if="{{show}}">
+    <image class="loading-img" src="../image/loading.png" />
+</view>
+</template>
+<style lang="less">
+.loading {
+    width: 100%;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+@keyframes loadingRotate
+{
+    0% {
+        transform: rotate (-180deg);
+    }
+    100% {
+        transform: rotate (180deg);
+    }
+}
+image {
+    width: 30px;
+    height: 30px;
+    animation: loadingRotate 5s linear infinite;
+}
+</style>
+<script>
+import wepy from 'wepy'
+
+export default class Loading extends wepy.component {
+
+    props = {
+        show: {
+            type: Boolean,
+            default: false,
+            twoWay: true
+        }
+    }
+
+    animate = wepy.createAnimation({
+        duration: 500
+    })
+
+    data = {
+        fade: {},
+        init: 0,
+        hidden: true
+    }
+
+    // watch = {
+    //     show (newVal, oldVal) {
+    //         if (newVal) {
+    //             this.fade = {}
+    //             this.hidden = false
+    //             this.init = 1
+    //         } else {
+    //             this.fade = this.animate.opacity(0).step().export()
+    //             setTimeout(() => {
+    //                 this.hidden = true
+    //                 this.$apply()
+    //             }, 510)
+    //         }
+    //         this.$apply()
+    //     }
+    // }
+}
+</script>

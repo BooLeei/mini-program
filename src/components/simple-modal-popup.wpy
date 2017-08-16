@@ -1,0 +1,41 @@
+<template>
+<view wx:if="{{show}}" class="simple-popup-mask" @tap="hide" @touchmove.stop="stopPropagation">
+    <slot></slot>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class SimpleModalPopup extends wepy.component {
+    props = {
+        show: {
+            type: Boolean,
+            default: false,
+            twoWay: true
+        }
+    }
+
+    methods = {
+        hide () {
+            this.show = !this.show
+        },
+        stopPropagation () {
+            return false
+        }
+    }
+}
+</script>
+
+<style lang="less">
+.simple-popup-mask {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    z-index: 10;
+    background-color: rgba(0,0,0,0.6);
+    align-items: center;
+    justify-content: center;
+}
+</style>

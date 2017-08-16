@@ -1,0 +1,127 @@
+<template>
+<view class="top-slider">
+    <view wx:for="{{recomend}}" wx:key="{{index}}" class="slide-wrap">
+        <view class="img">
+            <image src="{{item.header_image}}" mode="aspectFill" />
+            <icon class="normal"></icon>
+            <icon class="follow"></icon>
+        </view>
+        <view class="text">
+            <text class="text-name">{{item.nickname}}</text>
+            <text class="text-describe">{{item.brand_describe}}</text>
+        </view>
+    </view>
+</view>
+<loading :show.sync="loading"></loading>
+</template>
+
+<script>
+import wepy from 'wepy'
+import loading from '../components/loading'
+import Request from '../utils/request'
+
+export default class AllRecomend extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '推荐公司',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    components = {
+        'loading': loading
+    }
+
+    data = {
+        loading: false,
+        hasLogin: false,
+        recomend: []
+    }
+
+    request = new Request()
+
+    onLoad() {
+        this.loading = true
+        this.request.Get({'type': 0, 'userId': wepy.getStorageSync('userId') || 0}, '/Company/getRecommendList')
+            .then(({data}) => {
+                this.recomend = data
+                this.loading = false
+                this.$apply()
+            })
+    }
+}
+</script>
+
+<style lang="less">
+@import url( '../utils/global');
+@import url( '../utils/iconfont');
+
+.fade {
+    opacity: 0;
+    will-change: auto;
+    transform: translateZ(0px);
+    transition: all 150ms linear;
+}
+.in {
+    opacity: 1;
+}
+.top-slider {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    padding: 20rpx 30rpx;
+    box-sizing: border-box;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    .slide-wrap {
+        width: 220rpx;
+        height: 320rpx;
+        display: inline-flex;
+        flex-direction: column;
+        margin-top: 20rpx;
+        .img {
+            width: 100%;
+            height: 220rpx;
+            position: relative;
+            image {
+                width: 100%;
+                height: 220rpx;
+                border: 1px solid #f2f2f5;
+                border-radius: 10rpx;
+            }
+            icon {
+                position: absolute;
+            }
+        }
+        .text {
+            flex-direction: column;
+            width: 100%;
+            flex: 1;
+            justify-content: center;
+            padding: 0 20rpx;
+            box-sizing: border-box;
+            padding-top: 14rpx;
+            text {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                box-sizing: border-box;
+            }
+            .text-name {
+                width: 100%;
+                font-size: 26rpx;
+                font-weight: bold;
+                text-align: center;
+                padding: 0 20rpx;
+                color: #707070;
+            }
+            .text-describe {
+                width: 100%;
+                font-size: 24rpx;
+                text-align: center;
+                margin-top: 8rpx;
+            }
+        }
+    }
+}
+</style>

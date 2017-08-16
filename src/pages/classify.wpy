@@ -1,0 +1,246 @@
+<template>
+<view class="wrap">
+    <view hidden="{{!slide}}" class="slide-mask"></view>
+    <view @tap="toDetail({{index}})" class="first-level" wx:for="{{firstLevel}}" hover-start-time=1 wx:key="{{index}}" hover-class="first-active">
+        <view>
+            <icon wx:if="{{item.id=='1'}}" class="iconfont icon-jiaolian"></icon>
+            <icon wx:if="{{item.id=='4'}}" class="iconfont icon-weifenxiaopcjiemianzhuanhuan"></icon>
+            <icon wx:if="{{item.id=='5'}}" class="iconfont icon-zaixianjiaolian"></icon>
+            <icon wx:if="{{item.id=='6'}}" class="iconfont icon-dengpao"></icon>
+            <icon wx:if="{{item.id=='7'}}" class="iconfont icon-peixun"></icon>
+            <icon wx:if="{{item.id=='12'}}" class="iconfont icon-tuandui"></icon>
+            <text>
+                <text class="name">{{item.name}}</text>
+                <text>{{item.describe}}</text>
+            </text>
+            <icon class="right-arrow"></icon>
+        </view>
+    </view>
+</view>
+<view class="slide-right {{slide?'slide':''}}">
+    <view @tap="slideBack" class="slide-back"></view>
+    <view class="content">
+        <view class="second-level">
+            <view @tap="getCurrentTab({{index}})" wx:for="{{secondLevel}}" wx:key="{{index}}" class="{{secondIndex==index?'active':''}}">
+                <text>{{item.name}}</text>
+                <icon hidden="{{secondIndex!=index}}"></icon>
+            </view>
+        </view>
+        <view class="third-level" @tap="select">
+            <text data-content="{{item.name}}" class="third-item" wx:for="{{thirdLevel}}" wx:key="{{index}}">{{item.name}}</text>
+        </view>
+    </view>
+</view>
+<loading :show.sync="loading"></loading>
+</template>
+
+<style lang="less">
+@import url('../utils/global');
+@import url('../utils/iconfont');
+
+.active {
+    color: @generate-color;
+}
+.first-active {
+    background-color: #f0f0f0;
+}
+.slide-mask {
+    position: fixed;
+    left: 0;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: rgba(0,0,0,0.3);
+}
+.slide-right {
+    position: fixed;
+    top: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    will-change: auto;
+    transform: translateX(100%) translateZ(0);
+    transition: transform 150ms ease-out;
+    .content {
+        width: 80%;
+        height: 100vh;
+        box-sizing: border-box;
+        background-color: #fff;
+        flex-direction: column;
+        .second-level {
+            width: 100%;
+            height: 88rpx;
+            background-color: #f2f2f5;
+            align-items: center;
+            justify-content: center;
+            view {
+                height: 88rpx;;
+                position: relative;
+                align-items: center;
+                justify-content: center;
+                flex-grow: 1;
+                flex-shrink: 1;
+                font-size: 28rpx;
+                font-weight: bold;
+                icon {
+                    position: absolute;
+                    width: 110rpx;
+                    height: 3px;
+                    top: 75%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: @generate-color;
+                    border-radius: 3px;
+                }
+            }
+        }
+        .third-level {
+            width: 100%;
+            flex-wrap: wrap;
+            padding-top: 10rpx;
+            .third-item {
+                height: 50rpx;
+                line-height: 50rpx;
+                padding: 0 25rpx;
+                border: 1px solid #ddd;
+                border-radius: 25rpx;
+                margin: 10rpx 20rpx;
+            }
+        }
+    }
+    .slide-back {
+        width: 20%;
+        hegiht: 100vh;
+        box-sizing: border-box;
+        background-color: rgba(0,0,0,0)
+    }
+}
+.slide {
+    transform: translateX(0);
+}
+.wrap {
+    width: 100%;
+    height: 100vh;
+    flex-direction: column;
+    .first-level {
+        view {
+            width: 100%;
+            height: 150rpx;
+            margin: 0 30rpx;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #f2f2f5;
+            icon {
+                width: 80rpx;
+                text-align: center;
+                color: #aaa;
+                font-size: 38rpx;
+                padding-bottom: 20rpx;
+            }
+            .right-arrow {
+                width: 50rpx;
+            }
+            text {
+                flex-grow: 1;
+                flex-shrink: 1;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                algin-items:center;
+                justify-content: center;
+                .name {
+                    font-size: 32rpx;
+                    font-weight: bold;
+                    color: #707070;
+                    margin-bottom: 10rpx;
+                }
+                text {
+                    text-align: left;
+                }
+            }
+        }
+    }
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+import Request from '../utils/request'
+import loading from '../components/loading'
+import { log } from '../utils/log'
+
+export default class Classify extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '职位分类',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+    data = {
+        loading: false,
+        fadeIn: false,
+        slide: false,
+        firstLevel: [],
+        secondLevel: [],
+        secondIndex: 0,
+        thirdLevel: []
+    }
+
+    methods = {
+        slideBack () {
+            this.slide = false
+            this.thirdLevel = []
+        },
+        toDetail (index) {
+            this.secondLevel = this.firstLevel[index].list
+            this.thirdLevel = this.secondLevel[0].skillList
+            this.secondIndex = 0
+            this.slide = true
+        },
+        getCurrentTab (index) {
+            if (!this.secondLevel[index].skillList) {
+                this.thirdLevel = []
+            } else {
+                this.thirdLevel = this.secondLevel[index].skillList
+            }
+            this.secondIndex = index
+        },
+        select (e) {
+            if (e.target.dataset.content) {
+                wepy.redirectTo({
+                    url: `search?keyword=${e.target.dataset.content}`
+                })
+            }
+        }
+    }
+
+    components = {
+        'loading': loading
+    }
+
+    request = new Request()
+
+    onLoad (params, data) {
+        let workList = wepy.getStorageSync('workList')
+        if (workList) {
+            workList = Promise.resolve({data: workList})
+        } else {
+            this.loading = true
+            workList = this.request.Get({}, '/Work/getWorkList')
+        }
+        // workList = workList ? Promise.resolve(workList) : this.request.Get({}, '/Work/getWorkList')
+        workList.then(({data}) => {
+            this.firstLevel = data
+            this.loading = false
+            this.$apply()
+        })
+    }
+
+    onUnload () {
+        this.slide = false
+        this.secondIndex = 0
+    }
+}
+</script>
