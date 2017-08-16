@@ -206,7 +206,6 @@ export default class ResumeTag extends wepy.page {
                 }
             }
         }
-        log(getCurrentPages()[getCurrentPages().length - 2])
     }
 
     onUnload () {
@@ -218,7 +217,6 @@ export default class ResumeTag extends wepy.page {
                 this.page[key] = ''
             }
         }
-        log(this.page)
     }
 }
 </script>
