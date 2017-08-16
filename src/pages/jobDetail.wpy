@@ -339,8 +339,20 @@
             width: 100%;
             height: 40rpx;
             align-items: center;
-            icon {
-                color: @red-color;
+            .full {
+                width: 30rpx;
+                height: 30rpx;
+                background-color: @generate-color;
+                border-radius: 50%;
+                margin: 0 6rpx;
+            }
+            .empty {
+                width: 30rpx;
+                height: 30rpx;
+                border: 1px solid @generate-color;
+                box-sizing: border-box;
+                border-radius: 50%;
+                margin: 0 6rpx;
             }
         }
         .comp-jobNum {

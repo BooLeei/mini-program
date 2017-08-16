@@ -5,28 +5,26 @@
     <icon @tap="slide" class="top-right-arrow"></icon>
 </view>
 <view class="list-wrap">
-    <view class="list-item">
+    <view @tap="progess" class="list-item">
         <icon></icon>求职进度<icon class="list-right-arrow"></icon>
     </view>
     <view @tap="resume" class="list-item">
         <icon></icon>我的简历<icon class="list-right-arrow"></icon>
     </view>
-    <view class="list-item">
+    <view @tap="collect" class="list-item">
         <icon></icon>收藏职位<icon class="list-right-arrow"></icon>
     </view>
-    <view class="list-item">
+    <view @tap="follow" class="list-item">
         <icon></icon>关注公司<icon class="list-right-arrow"></icon>
     </view>
     <view class="list-item">
         <icon></icon>我的设置<icon class="list-right-arrow"></icon>
     </view>
 </view>
-<!-- <loading></loading> -->
 </template>
 
 <script>
 import wepy from 'wepy'
-import Loading from '../components/loading'
 
 export default class Mine extends wepy.page {
     config = {
@@ -36,9 +34,7 @@ export default class Mine extends wepy.page {
         disableScroll: false
     }
 
-    components = {
-        'loading': Loading
-    }
+    userId = wepy.getStorageSync('userId') || '294'
 
     methods = {
         slide () {
@@ -46,10 +42,37 @@ export default class Mine extends wepy.page {
                 url: 'introduction'
             })
         },
+        progess () {
+            // if (wepy.getStorageSync("userId")) {
+                wepy.navigateTo({
+                    url: `progress?id=${this.userId}`
+                })
+            // } else {
+            //     return
+            // }
+        },
         resume () {
             // if (wepy.getStorageSync("userId")) {
                 wepy.navigateTo({
-                    url: `resume?id=${wepy.getStorageSync("userId")}`
+                    url: `resume?id=${this.userId}`
+                })
+            // } else {
+            //     return
+            // }
+        },
+        collect () {
+            // if (wepy.getStorageSync("userId")) {
+                wepy.navigateTo({
+                    url: `collect?id=${this.userId}`
+                })
+            // } else {
+            //     return
+            // }
+        },
+        follow () {
+            // if (wepy.getStorageSync("userId")) {
+                wepy.navigateTo({
+                    url: `follow?id=${this.userId}`
                 })
             // } else {
             //     return
@@ -58,14 +81,10 @@ export default class Mine extends wepy.page {
     }
 
     onLoad () {
-        // this.$invoke('loading', 'show')
         wepy.setNavigationBarColor({
             frontColor: '#ffffff',
             backgroundColor: '#40c4ff'
         })
-        setTimeout(() => {
-            // this.$invoke('loading', 'hide')
-        }, 300)
     }
 }
 </script>

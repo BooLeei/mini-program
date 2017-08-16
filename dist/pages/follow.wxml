@@ -1,0 +1,45 @@
+
+<view class="wrap" bindtap="cancelFollow">
+    <view class="item-wrap"  wx:for="{{follow}}" wx:key="{{index}}" wx:for-index="indexs">
+        <view class="comp" bindtap="toCompany" data-wepy-params-a="{{item.id}}">
+            <image class="comp-left" mode="aspectFill" src="{{item.headerImage}}"/>
+            <view class="comp-right">
+                <view class="comp-name">
+                    <text class="name">{{item.nickname}}</text>
+                    <view class="{{item.isApproveOffcial=='1'?'auth':''}}">
+                        <icon wx:if="{{item.isApproveOffcial=='1'}}"/>
+                        <icon wx:if="{{item.isApproveOffcial=='0'}}"/>
+                        <text>{{item.isApproveOffcial=='1'?'已认证':'未认证'}}</text>
+                    </view>
+                </view>
+                <view class="comp-info">
+                    <view>
+                        <icon/>
+                        <text>{{item.createCompanyYear}}</text>
+                    </view>
+                    <view>
+                        <icon/>
+                        <text>{{item.cityName}}</text>
+                    </view>
+                    <view>
+                        <icon/>
+                        <text>{{item.shopType}}店</text>
+                    </view>
+                </view>
+                <view class="comp-comment">
+                    <text>公司评价：</text>
+                    <icon class="full" wx:for="{{item.appraiseNum}}" wx:key="{{index}}"/>
+                    <icon class="empty" wx:for="{{5 - item.appraiseNum}}" wx:key="{{index}}"/>
+                </view>
+                <view class="comp-jobNum">
+                    <icon/>
+                    <text>{{item.workNum}}个 职位在招</text>
+                </view>
+            </view>
+            <icon class="right-arrow"/>
+        </view>
+        <view class="btn-wrap">
+            <button hover-class="btn-active" data-id="{{item.id}}" data-btnindex="{{indexs}}">取消收藏</button>
+        </view>
+    </view>
+</view>

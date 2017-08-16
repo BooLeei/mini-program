@@ -1,0 +1,70 @@
+
+<view class="wrap">
+    <view class="comment-star" bindtap="commentStar">
+        <view class="list-item">
+            <text>面试官</text>
+            <view>
+                <icon class="full"  wx:for="{{page.interviewer_num}}" wx:key="{{index}}" data-type="1" data-index="{{index}}"/>
+                <icon class="empty"  wx:for="{{5 - page.interviewer_num}}" wx:key="{{index}}" data-type="1" data-index="{{index + page.interviewer_num}}"/>
+            </view>
+        </view>
+        <view class="list-item">
+            <text>工作相符</text>
+            <view>
+                <icon class="full" wx:for="{{page.conform_num}}" wx:key="{{index}}" data-type="2" data-index="{{index}}"/>
+                <icon class="empty" wx:for="{{5 - page.conform_num}}" wx:key="{{index}}" data-type="2" data-index="{{index + page.conform_num}}"/>
+            </view>
+        </view>
+        <view class="list-item">
+            <text>工作环境</text>
+            <view>
+                <icon class="full" wx:for="{{page.env_num}}" wx:key="{{index}}" data-type="3" data-index="{{index}}"/>
+                <icon class="empty" wx:for="{{5 - page.env_num}}" wx:key="{{index}}" data-type="3" data-index="{{index + page.env_num}}"/>
+            </view>
+        </view>
+        <view class="list-item">
+            <text>薪资相符</text>
+            <view>
+                <icon class="full" wx:for="{{page.salary_num}}" wx:key="{{index}}" data-type="4" data-index="{{index}}"/>
+                <icon class="empty" wx:for="{{5 - page.salary_num}}" wx:key="{{index}}" data-type="4" data-index="{{index + page.salary_num}}"/>
+            </view>
+        </view>
+    </view>
+    <view class="comment-tag">
+        <view class="tag-write" wx:if="{{type=='1'}}">
+            <view class="tag-title">贴标签<text>（最多可贴3个标签）</text></view>
+            <view class="tag-cont">
+                <view wx:for="{{tagArr}}" wx:key="{{index}}">{{item}}</view>
+            </view>
+            <view class="tag-input">
+                <input value="{{tempTag}}" bindinput="bindTag" maxlength="6" bindconfirm="stickTag"/>
+                <button bindtap="stickTag" hover-class="btn-active">贴上</button>
+                <text/>
+            </view>
+        </view>
+        <view class="tag-read" wx:if="{{type!='1'}}">
+            <view class="tag-title">面试标签</view>
+            <view class="tag-cont">
+                <view wx:for="{{tagArr}}" wx:key="{{index}}">{{item}}</view>
+            </view>
+        </view>
+    </view>
+    <view class="comment-content">
+        <view class="content-wrap" wx:if="{{type==1}}">
+            <text class="content-title">说点什么</text>
+            <textarea value="{{page.content}}" maxlength="100" bindinput="bindContent"/>
+            <text class="count-num">{{page.content.length}}/100</text>
+        </view>
+        <view class="content-wrap" wx:if="{{type!=1}}">
+            <text class="content-title">评价内容</text>
+            <view>{{page.content}}</view>
+        </view>
+    </view>
+</view>
+<view class="footer">
+    <button  wx:if="{{type!=1}}" bindtap="del" class="single-btn" hover-class="btn-active">删 除</button>
+    <block  wx:if="{{type==1}}">
+        <button bindtap="cancel" class="left" plain hover-class="btn-active">取消</button>
+        <button bindtap="sure" class="right" hover-class="btn-active">确定</button>
+    </block>
+</view>

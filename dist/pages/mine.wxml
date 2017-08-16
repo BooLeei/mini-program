@@ -5,20 +5,19 @@
     <icon bindtap="slide" class="top-right-arrow"/>
 </view>
 <view class="list-wrap">
-    <view class="list-item">
+    <view bindtap="progess" class="list-item">
         <icon/>求职进度<icon class="list-right-arrow"/>
     </view>
     <view bindtap="resume" class="list-item">
         <icon/>我的简历<icon class="list-right-arrow"/>
     </view>
-    <view class="list-item">
+    <view bindtap="collect" class="list-item">
         <icon/>收藏职位<icon class="list-right-arrow"/>
     </view>
-    <view class="list-item">
+    <view bindtap="follow" class="list-item">
         <icon/>关注公司<icon class="list-right-arrow"/>
     </view>
     <view class="list-item">
         <icon/>我的设置<icon class="list-right-arrow"/>
     </view>
 </view>
-<!-- <loading></loading> -->

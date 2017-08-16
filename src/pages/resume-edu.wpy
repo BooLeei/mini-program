@@ -55,6 +55,12 @@ import SlideBtn from '../components/slide-btn'
 import Request from '../utils/request'
 
 export default class ResumeEdu extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '编辑学习经历',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
 
     data = {
         init: true,

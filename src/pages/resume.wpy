@@ -393,6 +393,8 @@ export default class Resume extends wepy.page {
         'loading': Loading
     }
 
+    userId = ''
+
     arrayWatch (arr) {
         let count = 0
         for (let [index, item] of arr.entries()) {
@@ -614,9 +616,19 @@ export default class Resume extends wepy.page {
         }
     }
 
+    onPullDownRefresh () {
+        this.request.Get({'userId': this.userId}, '/Resume/getInfoSelf')
+        .then(({data}) => {
+            this.page = data
+            wepy.stopPullDownRefresh()
+            this.$apply()
+        })
+    }
+
     onLoad (params) {
         this.loading = true
-        this.request.Get({'userId': 294}, '/Resume/getInfoSelf')
+        this.userId = params.id
+        this.request.Get({'userId': params.id}, '/Resume/getInfoSelf')
         .then(({data}) => {
             this.page = data
             this.loading = false

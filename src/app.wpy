@@ -44,7 +44,11 @@ export default class extends wepy.app {
             'pages/followCompany',
             'pages/resume-tag',
             'pages/resume-exp',
-            'pages/resume-edu'
+            'pages/resume-edu',
+            'pages/collect',
+            'pages/follow',
+            'pages/progress',
+            'pages/comment'
         ],
         window: {
             backgroundTextStyle: 'light',

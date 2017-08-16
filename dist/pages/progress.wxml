@@ -1,0 +1,65 @@
+
+<view class="wrap">
+    <view class="item-wrap"  wx:for="{{progress}}" wx:key="{{index}}" wx:for-index="indexs">
+        <view class="time">{{item.sendTime}}</view>
+        <view class="state">
+            <view class="state-clasify">
+                <text>投递职位</text>
+                <text class="content" style="color: #ff4d4d;" wx:if="{{item.inviteStatus!=1}}">职位已下架</text>
+                <text class="content" wx:if="{{item.inviteStatus==1}}">{{item.workName}}</text>
+            </view>
+            <view class="state-clasify">
+                <text>当前进度</text>
+                <text class="content" wx:if="{{item.companyStatus==0 && item.userStatus==0}}">已投递简历</text>
+                <text class="content" wx:if="{{item.companyStatus==1 && item.userStatus==0}}">收到面试邀请</text>
+                <text class="content" wx:if="{{item.companyStatus==1 && item.userStatus==1}}">应约前往面试</text>
+                <text class="content" wx:if="{{item.userStatus==2}}">面试结束但未评价</text>
+                <text class="content" wx:if="{{item.userStatus==3}}">面试结束并已评价</text>
+            </view>
+        </view>
+        <view class="comp" bindtap="toCompany" data-wepy-params-a="{{item.userCompanyId}}">
+            <image class="comp-left" mode="aspectFill" src="{{item.header_image}}"/>
+            <view class="comp-right">
+                <view class="comp-name">
+                    <text class="name">{{item.nickname}}</text>
+                    <view class="{{item.isApproveOffcial=='1'?'auth':''}}">
+                        <icon wx:if="{{item.isApproveOffcial=='1'}}"/>
+                        <icon wx:if="{{item.isApproveOffcial=='0'}}"/>
+                        <text>{{item.isApproveOffcial=='1'?'已认证':'未认证'}}</text>
+                    </view>
+                </view>
+                <view class="comp-info">
+                    <view>
+                        <icon/>
+                        <text>{{item.createCompanyYear}}</text>
+                    </view>
+                    <view>
+                        <icon/>
+                        <text>{{item.cityName}}</text>
+                    </view>
+                    <view>
+                        <icon/>
+                        <text>{{item.shopType}}店</text>
+                    </view>
+                </view>
+                <view class="comp-comment">
+                    <text>公司评价：</text>
+                    <icon class="full" wx:for="{{item.avgNum}}" wx:key="{{index}}"/>
+                    <icon class="empty" wx:for="{{5 - item.avgNum}}" wx:key="{{index}}"/>
+                </view>
+                <view class="comp-jobNum">
+                    <icon/>
+                    <text>{{item.workNum}}个 职位在招</text>
+                </view>
+            </view>
+            <icon class="right-arrow"/>
+        </view>
+        <view class="btn-wrap">
+            <button wx:if="{{item.companyStatus==1 && item.userStatus==0}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看面试邀请</button>
+            <button wx:if="{{item.companyStatus==1 && item.userStatus==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">面试结束并进行评价</button>
+            <button wx:if="{{item.userStatus==2}}" hover-class="btn-active" disabled="{{item.inviteStatus!=1}}">进行面试评价</button>
+            <button bindtap="test" wx:if="{{item.userStatus==3 && item.hasFeedback==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看评价</button>
+        </view>
+    </view>
+    <navigator url="comment?type=1">测试写评论</navigator>
+</view>
