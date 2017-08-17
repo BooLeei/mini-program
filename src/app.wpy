@@ -28,6 +28,7 @@ export default class extends wepy.app {
     config = {
         pages: [
             'pages/jobs',
+            'pages/login',
             'pages/mine',
             'pages/resume',
             'pages/companys',
@@ -48,7 +49,8 @@ export default class extends wepy.app {
             'pages/collect',
             'pages/follow',
             'pages/progress',
-            'pages/comment'
+            'pages/comment',
+            'pages/simpleResume'
         ],
         window: {
             backgroundTextStyle: 'light',
@@ -117,6 +119,9 @@ export default class extends wepy.app {
                 wepy.request({
                     url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${ret.latitude},${ret.longitude}&key=${QQMAPKEY}`,
                     success: ret => {
+                        if (!ret.data.result.address_component.city) {
+                            return false
+                        }
                         this.Request.Get({
                             cityName: ret.data.result.address_component.city.substr(0, ret.data.result.address_component.city.length - 1)
                         }, '/Region/getCityIdByCityName')

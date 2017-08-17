@@ -3,7 +3,7 @@
     <view class="block-title">基本信息<text>必填</text></view>
     <view class="block-content">
         <view class="base-image">
-            <image src="{{page.headerImageFull}}" mode="aspectFill"/>
+            <image src="{{page.headerImageFull==''?'../image/uploadHeaderPic.png':page.headerImageFull}}" mode="aspectFill"/>
             <view>
                 <text class="header-image-name">简历头像</text>
                 <text class="header-image-text">请上传求职者本人的真是、清晰图片
@@ -81,96 +81,8 @@
             </view>
         </picker>
     </view>
-    <view class="block-title">认证/技能<text>非必填</text></view>
-    <view class="block-content">
-        <view class="tag"  wx:for="{{page.tagList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
-            <image src="" mode="aspectFill"/>
-            <view class="tag-right">
-                <view class="tag-right-top">
-                    <text>{{item.name}}</text>
-                    <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" bindtap="editTag" data-wepy-params-a="{{index}}"/>
-                    <icon data-id="{{item.id?item.id:''}}" bindtap="delTag" data-wepy-params-a="{{index}}"/>
-                </view>
-                <view class="tag-right-text">
-                    <text>{{item.is_approve==1?'已认证':'未认证'}}</text>
-                    <text>{{item.has_certificate==1?'有证书':'无证书'}}</text>
-                    <text>{{item.experienceTypeName}}</text>
-                    <text>{{item.levelName}}</text>
-                </view>
-            </view>
-        </view>
-        <view  wx:if="{{addTagShow}}" class="add-btn" bindtap="addTag">
-            <icon/>
-            <text>添加认证/技能</text>
-        </view>
-    </view>
-    <view class="block-title">工作履历<text>非必填</text></view>
-    <view class="block-content">
-        <view class="exp" wx:for="{{page.workList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
-            <view class="exp-title">
-                <view>
-                    <image wx:if="{{item.school_logo!=''}}" src="{{item.school_logo}}" mode="aspectFill"/>
-                    <text>{{item.company_name}}</text>
-                </view>
-                <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" bindtap="editExp" data-wepy-params-a="{{index}}"/>
-                <icon data-id="{{item.id?item.id:''}}" bindtap="delExp" data-wepy-params-a="{{index}}"/>
-            </view>
-            <view class="exp-brief">
-                <text style="color: #40c4ff;">{{item.work_name}}</text>
-                <text>{{item.time_start}} - {{item.time_end=='-1'?'至今':item.time_end}}</text>
-            </view>
-            <view class="exp-intro">{{item.content}}</view>
-        </view>
-        <view wx:if="{{addExpShow}}" class="add-btn" bindtap="addExp">
-            <icon/>
-            <text>添加工作履历</text>
-        </view>
-    </view>
-    <view class="block-title">学习经历<text>非必填</text></view>
-    <view class="block-content">
-        <view class="school" wx:for="{{page.schoolList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
-            <view class="school-title">
-                <view>
-                    <image wx:if="{{item.school_logo!=''}}" src="{{item.school_logo}}" mode="aspectFill"/>
-                    <text>{{item.name}}</text>
-                </view>
-                <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" bindtap="editEdu" data-wepy-params-a="{{index}}"/>
-                <icon data-id="{{item.id?item.id:''}}" bindtap="delEdu" data-wepy-params-a="{{index}}"/>
-            </view>
-            <view class="school-work">{{item.work_name}}</view>
-            <view class="school-detail">
-                <text>{{item.time_start}} - {{item.time_end=='-1'?'至今':item.time_end}}</text>
-                <text>{{item.is_graduate==1?'已结业':'未结业'}}</text>
-                <text>{{item.has_certificate==1?'有证书':'无证书'}}</text>
-            </view>
-        </view>
-        <view wx:if="{{addEduShow}}" class="add-btn" bindtap="addEdu">
-            <icon/>
-            <text>添加学习经历</text>
-        </view>
-    </view>
-    <view class="block-title">职业形象<text>非必填</text></view>
-    <view class="block-content">
-        <view class="img-wrap">
-            <scroll-view scroll-x>
-                <view class="img-add" bindtap="addImg">
-                    <icon/>
-                    <text>添加图片</text>
-                </view>
-                <view bindtap="preview" class="img-show" wx:for="{{page.showUrl}}" wx:key="{{index}}" data-wepy-params-a="{{index}}">
-                    <image src="{{item}}" mode="aspectFill"/>
-                    <icon catchtap="delImg" data-wepy-params-a="{{index}}"/>
-                </view>
-            </scroll-view>
-        </view>
-    </view>
     <view class="footer">
         <button bindtap="cancel" class="left" plain hover-class="btn-active">取消</button>
         <button bindtap="sure" class="right" hover-class="btn-active">保存</button>
     </view>
-</view>
-
-<!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
-<view class="loading"  wx:if="{{$loading$show}}">
-    <image class="loading-img" src="../image/loading.png"/>
 </view>

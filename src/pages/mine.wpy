@@ -1,7 +1,7 @@
 <template>
 <view class="top">
-    <image src="{{}}" />
-    <view>李峰<icon></icon></view>
+    <image @tap="toLogin" src="{{hasLogin?'':'../image/uploadHeaderPic.png'}}" />
+    <view @tap="toLogin">{{hasLogin?'李峰':'登录/注册'}}<icon wx:if="{{hasLogin}}"></icon></view>
     <icon @tap="slide" class="top-right-arrow"></icon>
 </view>
 <view class="list-wrap">
@@ -20,11 +20,15 @@
     <view class="list-item">
         <icon></icon>我的设置<icon class="list-right-arrow"></icon>
     </view>
+    <view @tap="simpleResume" class="list-item">
+        <icon></icon>简版简历测试入口<icon class="list-right-arrow"></icon>
+    </view>
 </view>
 </template>
 
 <script>
 import wepy from 'wepy'
+import {Get} from '../utils/storage'
 
 export default class Mine extends wepy.page {
     config = {
@@ -34,9 +38,22 @@ export default class Mine extends wepy.page {
         disableScroll: false
     }
 
+    data = {
+        hasLogin: false
+    }
+
     userId = wepy.getStorageSync('userId') || '294'
 
     methods = {
+        toLogin () {
+            if (this.hasLogin) {
+                return false
+            } else {
+                wepy.navigateTo({
+                    url: 'login'
+                })
+            }
+        },
         slide () {
             wepy.navigateTo({
                 url: 'introduction'
@@ -77,6 +94,11 @@ export default class Mine extends wepy.page {
             // } else {
             //     return
             // }
+        },
+        simpleResume () {
+            wepy.navigateTo({
+                url: 'simpleResume?id=294'
+            })
         }
     }
 
@@ -84,6 +106,13 @@ export default class Mine extends wepy.page {
         wepy.setNavigationBarColor({
             frontColor: '#ffffff',
             backgroundColor: '#40c4ff'
+        })
+        Get('userId').then(res => {
+            this.hasLogin = true
+            this.$apply()
+        }).catch(err => {
+            this.hasLogin = false
+            this.$apply()
         })
     }
 }
@@ -108,7 +137,6 @@ export default class Mine extends wepy.page {
         height: 160rpx;
         border-radius: 16rpx;
         border: 1px solid #f2f2f5;
-        background-color: #f00;
     }
     view {
         margin-top: 30rpx;

@@ -3,7 +3,7 @@
     <view class="block-title">基本信息<text>必填</text></view>
     <view class="block-content">
         <view class="base-image">
-            <image src="{{page.headerImageFull}}" mode="aspectFill" />
+            <image src="{{page.headerImageFull==''?'../image/uploadHeaderPic.png':page.headerImageFull}}" mode="aspectFill" />
             <view>
                 <text class="header-image-name">简历头像</text>
                 <text class="header-image-text">请上传求职者本人的真是、清晰图片
@@ -82,115 +82,23 @@
             </view>
         </picker>
     </view>
-    <view class="block-title">认证/技能<text>非必填</text></view>
-    <view class="block-content">
-        <view class="tag" wx:for="{{page.tagList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
-            <image src="" mode="aspectFill"/>
-            <view class="tag-right">
-                <view class="tag-right-top">
-                    <text>{{item.name}}</text>
-                    <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" @tap="editTag({{index}})"></icon>
-                    <icon data-id="{{item.id?item.id:''}}" @tap="delTag({{index}})"></icon>
-                </view>
-                <view class="tag-right-text">
-                    <text>{{item.is_approve==1?'已认证':'未认证'}}</text>
-                    <text>{{item.has_certificate==1?'有证书':'无证书'}}</text>
-                    <text>{{item.experienceTypeName}}</text>
-                    <text>{{item.levelName}}</text>
-                </view>
-            </view>
-        </view>
-        <view wx:if="{{addTagShow}}" class="add-btn" @tap="addTag">
-            <icon></icon>
-            <text>添加认证/技能</text>
-        </view>
-    </view>
-    <view class="block-title">工作履历<text>非必填</text></view>
-    <view class="block-content">
-        <view class="exp" wx:for="{{page.workList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
-            <view class="exp-title">
-                <view>
-                    <image wx:if="{{item.school_logo!=''}}" src="{{item.school_logo}}" mode="aspectFill" />
-                    <text>{{item.company_name}}</text>
-                </view>
-                <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" @tap="editExp({{index}})"></icon>
-                <icon data-id="{{item.id?item.id:''}}" @tap="delExp({{index}})"></icon>
-            </view>
-            <view class="exp-brief">
-                <text style="color: #40c4ff;">{{item.work_name}}</text>
-                <text>{{item.time_start}} - {{item.time_end=='-1'?'至今':item.time_end}}</text>
-            </view>
-            <view class="exp-intro">{{item.content}}</view>
-        </view>
-        <view wx:if="{{addExpShow}}" class="add-btn" @tap="addExp">
-            <icon></icon>
-            <text>添加工作履历</text>
-        </view>
-    </view>
-    <view class="block-title">学习经历<text>非必填</text></view>
-    <view class="block-content">
-        <view class="school" wx:for="{{page.schoolList}}" wx:key="{{index}}" wx:if="{{item.status==1}}">
-            <view class="school-title">
-                <view>
-                    <image wx:if="{{item.school_logo!=''}}" src="{{item.school_logo}}" mode="aspectFill" />
-                    <text>{{item.name}}</text>
-                </view>
-                <icon data-id="{{item.id?item.id:''}}" style="right: 100rpx;" @tap="editEdu({{index}})"></icon>
-                <icon data-id="{{item.id?item.id:''}}" @tap="delEdu({{index}})"></icon>
-            </view>
-            <view class="school-work">{{item.work_name}}</view>
-            <view class="school-detail">
-                <text>{{item.time_start}} - {{item.time_end=='-1'?'至今':item.time_end}}</text>
-                <text>{{item.is_graduate==1?'已结业':'未结业'}}</text>
-                <text>{{item.has_certificate==1?'有证书':'无证书'}}</text>
-            </view>
-        </view>
-        <view wx:if="{{addEduShow}}" class="add-btn" @tap="addEdu">
-            <icon></icon>
-            <text>添加学习经历</text>
-        </view>
-    </view>
-    <view class="block-title">职业形象<text>非必填</text></view>
-    <view class="block-content">
-        <view class="img-wrap">
-            <scroll-view scroll-x>
-                <view class="img-add" @tap="addImg">
-                    <icon></icon>
-                    <text>添加图片</text>
-                </view>
-                <view @tap="preview({{index}})" class="img-show" wx:for="{{page.showUrl}}" wx:key="{{index}}">
-                    <image src="{{item}}" mode="aspectFill"/>
-                    <icon @tap.stop="delImg({{index}})"></icon>
-                </view>
-            </scroll-view>
-        </view>
-    </view>
     <view class="footer">
         <button @tap="cancel" class="left" plain hover-class='btn-active'>取消</button>
         <button @tap="sure" class="right" hover-class='btn-active'>保存</button>
     </view>
 </view>
-<loading :show.sync="loading"></loading>
 </template>
 
 <script>
 import wepy from 'wepy'
-import Loading from '../components/loading'
 import Request from '../utils/request'
-import { Preview, Choose, Upload } from '../utils/imageUtils'
-import {log} from '../utils/log'
 
-export default class Resume extends wepy.page {
+export default class SimpleResume extends wepy.page {
     config = {
         backgroundTextStyle: 'dark',
-        navigationBarTitleText: '简历'
-    }
-
-    request = new Request()
-
-    storage = {
-        city: wepy.getStorageSync('region'),
-        job: wepy.getStorageSync('workList')
+        navigationBarTitleText: '简历',
+        enablePullDownRefresh: false,
+        disableScroll: false
     }
 
     showModal ({title = '提示', content = '是否删除该选项'}) {
@@ -215,8 +123,14 @@ export default class Resume extends wepy.page {
         })
     }
 
+    request = new Request()
+
+    storage = {
+        city: wepy.getStorageSync('region'),
+        job: wepy.getStorageSync('workList')
+    }
+
     data = {
-        loading: false,
         page: {
             // userId: wepy.getStorageSync('userId'),
             resumeId: '',
@@ -389,38 +303,6 @@ export default class Resume extends wepy.page {
         job: [this.storage.job, this.storage.job[0].list, this.storage.job[0].list[0].workList]
     }
 
-    components = {
-        'loading': Loading
-    }
-
-    userId = ''
-
-    arrayWatch (arr) {
-        let count = 0
-        for (let [index, item] of arr.entries()) {
-            if (item.status == 1) {
-                count++
-            }
-        }
-        if (count < 3) {
-            return true
-        } else {
-            return false
-        }
-    }
-
-    computed = {
-        addTagShow () {
-            return this.arrayWatch(this.page.tagList)
-        },
-        addExpShow () {
-            return this.arrayWatch(this.page.workList)
-        },
-        addEduShow () {
-            return this.arrayWatch(this.page.schoolList)
-        }
-    }
-
     methods = {
         bindName (e) {
             this.page.name = e.detail.value
@@ -482,113 +364,10 @@ export default class Resume extends wepy.page {
             this.page.salaryType = this.base.salary[e.detail.value].value
             this.page.salaryTypeName = this.base.salary[e.detail.value].text
         },
-        preview (index) {
-            Preview(index, this.page.showUrl)
-        },
-        delImg (index) {
-            this.page.showUrl.splice(index, 1)
-            this.page.oldShowUrl.splice(index, 1)
-        },
-        addImg () {
-            Choose().then(ret => {
-                if (ret.tempFiles[0].size > 1024*1024) {
-                    log('图片过大')
-                    return
-                }
-                this.page.showUrl.unshift(ret.tempFilePaths[0])
-                this.$apply()
-                Upload(ret.tempFilePaths[0], 5)
-                .then(ret => {
-                    this.page.oldShowUrl.push(ret.data.imageName)
-                })
-            })
-        },
-        delTag (index, e) {
-            this.showModal({content: '是否删除该认证/技能'})
-            .then(ret => {
-                if (e.target.dataset.id != '') {
-                    this.page.tagList[index].status = '0'
-                } else {
-                    this.page.tagList.splice(index, 1)
-                }
-                this.$apply()
-            })
-        },
-        delExp (index, e) {
-            this.showModal({content: '是否删除该工作履历'})
-            .then(ret => {
-                if (e.target.dataset.id != '') {
-                    this.page.workList[index].status = '0'
-                } else {
-                    this.page.workList.splice(index, 1)
-                }
-                this.$apply()
-            })
-        },
-        delEdu (index, e) {
-            this.showModal({content: '是否删除该学历经历'})
-            .then(ret => {
-                if (e.target.dataset.id != '') {
-                    this.page.schoolList[index].status = '0'
-                } else {
-                    this.page.schoolList.splice(index, 1)
-                }
-                this.$apply()
-            })
-        },
-        editTag (index) {
-            this.$parent.global.tagList = this.page.tagList
-            this.$parent.global.tagUpdate = false
-            wepy.navigateTo({
-                url: 'resume-tag?grandId=' + this.page.parentWorkClassId +
-                '&parentId=' + this.page.workClassId + '&id=' + this.page.workId +
-                '&index=' + index + '&msg=' + JSON.stringify(this.page.tagList[index])
-            })
-        },
-        editExp (index) {
-            this.$parent.global.workList = this.page.workList
-            this.$parent.global.workUpdate = false
-            wepy.navigateTo({
-                url: 'resume-exp?index=' + index + '&msg=' + JSON.stringify(this.page.workList[index])
-            })
-        },
-        editEdu (index) {
-            this.$parent.global.schoolList = this.page.schoolList
-            this.$parent.global.schoolUpdate = false
-            wepy.navigateTo({
-                url: 'resume-edu?index=' + index + '&msg=' + JSON.stringify(this.page.schoolList[index])
-            })
-        },
-        addTag () {
-            if (this.page.workId == '') {
-                log('请先选择期望职位')
-                return false
-            }
-            this.$parent.global.tagList = this.page.tagList
-            this.$parent.global.tagUpdate = false
-            wepy.navigateTo({
-                url: 'resume-tag?grandId='+ this.page.parentWorkClassId +
-                '&parentId=' + this.page.workClassId + '&id=' + this.page.workId
-            })
-        },
-        addExp () {
-            this.$parent.global.workList = this.page.workList
-            this.$parent.global.workUpdate = false
-            wepy.navigateTo({
-                url: 'resume-exp'
-            })
-        },
-        addEdu () {
-            this.$parent.global.schoolList = this.page.schoolList
-            this.$parent.global.schoolUpdate = false
-            wepy.navigateTo({
-                url: 'resume-edu'
-            })
-        },
         cancel () {
             this.showModal({content: '确定放弃编辑简历吗？'})
             .then(ret => {
-                wepy.navigateBack()
+                wepy.reLaunch({url: './jobs'})
             })
         },
         sure () {
@@ -604,37 +383,10 @@ export default class Resume extends wepy.page {
         }
     }
 
-    onShow () {
-        if (this.$parent.global.tagUpdate) {
-            this.page.tagList = [...this.$parent.global.tagList]
-        }
-        if (this.$parent.global.workUpdate) {
-            this.page.workList = [...this.$parent.global.workList]
-        }
-        if (this.$parent.global.schoolUpdate) {
-            this.page.schoolList = [...this.$parent.global.schoolList]
-        }
-    }
-
-    onPullDownRefresh () {
-        this.request.Get({'userId': this.userId}, '/Resume/getInfoSelf')
-        .then(({data}) => {
-            this.page = data
-            wepy.stopPullDownRefresh()
-            this.$apply()
-        })
-    }
-
     onLoad (params) {
-        this.loading = true
         this.userId = params.id
-        this.request.Get({'userId': params.id}, '/Resume/getInfoSelf')
-        .then(({data}) => {
-            this.page = data
-            this.loading = false
-            this.$apply()
-        })
     }
+
 }
 </script>
 
@@ -773,200 +525,6 @@ page {
         position: absolute;
         bottom: 30rpx;
         right: 70rpx;
-    }
-}
-.tag {
-    width: 100%;
-    padding: 20rpx 40rpx;
-    height: 190rpx;
-    border-bottom: 1px solid @bd-color;
-    align-items: center;
-    image {
-        width: 108rpx;
-        height: 116rpx;
-        margin-right: 40rpx;
-    }
-    .tag-right {
-        flex: 1;
-        padding-left: 40rpx;
-        height: 100%;
-        flex-direction: column;
-        border-left: 1px solid @bd-color;
-        justify-content: space-around;
-        .tag-right-top {
-            width: 100%;
-            position: relative;
-            align-items: center;
-            text {
-                height: 50rpx;
-                border: 1px solid @generate-color;
-                color: @generate-color;
-                border-radius: 26rpx;
-                padding: 0 26rpx;
-                line-height: 50rpx;
-            }
-            icon {
-                position: absolute;
-                width: 40rpx;
-                height: 40rpx;
-                background-color: @generate-color;
-                right: 0;
-            }
-        }
-        .tag-right-text {
-            width: 100%;
-            text {
-                margin-right: 24rpx;
-            }
-        }
-    }
-}
-.add-btn {
-    width: 100%;
-    height: 100rpx;
-    align-items: center;
-    justify-content: center;
-    font-size: 28rpx;
-    icon {
-        width: 40rpx;
-        height: 40rpx;
-        background-color: @generate-color;
-        margin-right: 10rpx;
-    }
-}
-.exp {
-    width: 100%;
-    padding: 30rpx 40rpx;
-    border-bottom: 1px solid @bd-color;
-    flex-direction: column;
-    justify-content: space-between;
-    .exp-title {
-        width: 100%;
-        height: 60rpx;
-        align-items: center;
-        position: relative;
-        font-size: 26rpx;
-        view {
-            align-items: center;
-            image {
-                width: 36rpx;
-                height: 36rpx;
-                margin-right: 6rpx;
-                border-radius: 12rpx;
-                border: 1px solid @bd-color;
-            }
-        }
-        icon {
-            position: absolute;
-            width: 40rpx;
-            height: 40rpx;
-            background-color: @generate-color;
-            right: 0;
-        }
-    }
-    .exp-brief {
-        width: 100%;
-        justify-content: space-between;
-        margin: 20rpx 0;
-    }
-    .exp-intro {
-        width: 100%;
-        line-height: 1.4;
-    }
-}
-.school{
-    width: 100%;
-    padding: 30rpx 40rpx;
-    flex-direction: column;
-    justify-content: space-between;
-    border-bottom: 1px solid @bd-color;
-    .school-title {
-        width: 100%;
-        height: 60rpx;
-        align-items: center;
-        position: relative;
-        view {
-            align-items: center;
-            image {
-                width: 36rpx;
-                height: 36rpx;
-                margin-right: 6rpx;
-                border-radius: 12rpx;
-                border: 1px solid @bd-color;
-            }
-        }
-        icon {
-            position: absolute;
-            width: 40rpx;
-            height: 40rpx;
-            background-color: @generate-color;
-            right: 0;
-        }
-    }
-    .school-work {
-        width: 100%;
-        color: @generate-color;
-        margin: 20rpx 0;
-    }
-    .school-detail {
-        width: 100%;
-        text {
-            margin-right: 30rpx;
-        }
-    }
-}
-.img-wrap {
-    width: 100%;
-    padding: 40rpx 0;
-    scroll-view {
-        width: 100%;
-        height: 320rpx;
-        padding-left: 40rpx;
-        white-space:nowrap;
-        box-sizing: border-box;
-        .img-add {
-            width: 260rpx;
-            height: 100%;
-            background-color: #ddd;
-            margin-right: 20rpx;
-            display: inline-flex;
-            border: 1px solid #ddd;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            top: -166rpx;
-            flex-direction: column;
-            icon {
-                width: 30rpx;
-                height: 30rpx;
-                background-color: @generate-color;
-                margin-bottom: 10rpx;
-            }
-        }
-        .img-show {
-            width: 260rpx;
-            height: 100%;
-            margin-right: 20rpx;
-            display: inline-block;
-            position: relative;
-            image {
-                width: 100%;
-                height: 100%;
-            }
-            icon {
-                width: 40rpx;
-                height: 40rpx;
-                background-color: @generate-color;
-                position: absolute;
-                right: 0;
-                top: 0;
-            }
-        }
-    }
-    ::-webkit-scrollbar {
-        width: 0;
-        height: 0;
-        color: transparent;
     }
 }
 .footer {

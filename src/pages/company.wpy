@@ -92,7 +92,7 @@
 </view>
 <view class="team" hidden="{{tabIndex!=2}}">
     <view @tap="showTeamIntro({{index}})" wx:for="{{team}}" wx:key="{{index}}" class="team-wrap {{index%2==1?'reverse':''}}">
-        <image mode="aspectFill" src="{{item.header_image}}" />
+        <image mode="aspectFill" src="{{item.header_image==''?'../image/leader-default.png':item.header_image}}" />
         <view class="team-content {{index%2==1?'team-content-reverse':''}}">
             <text class="team-name">{{item.name}}</text>
             <text class="team-position">{{item.work_position_name}}</text>
@@ -109,7 +109,7 @@
 <view class="shop" hidden="{{tabIndex!=3}}" wx:if="{{baseData.companyType<4}}">
     <view wx:for="{{shop}}" wx:key="{{index}}" class="shop-outer-wrap" hover-class="shop-item-hover" @tap="showDetail({{index}})">
         <view class="shop-inner-wrap">
-            <image class="shop-img" mode="aspectFill" src="{{item.shop_image_url}}" />
+            <image class="shop-img" mode="aspectFill" src="{{item.shop_image_url==''?'../image/store-default.png':item.shop_image_url}}" />
             <view class="shop-content">
                 <view class="shop-name">
                     {{item.name}}
@@ -140,7 +140,7 @@
 <view class="shop" hidden="{{tabIndex!=3}}" wx:if="{{baseData.companyType==4}}">
     <view class="school-outer-wrap" wx:for="{{shop}}" wx:key="{{index}}" hover-class="school-item-hover" @tap="showDetail({{index}})">
         <view class="school-inner-wrap">
-            <image class="school-img" mode="aspectFill" src="{{item.shop_image_url}}" />
+            <image class="school-img" mode="aspectFill" src="{{item.shop_image_url==''?'../image/school-default.png':item.shop_image_url}}" />
             <view class="school-content">
                 <view class="school-name">
                     {{item.name}}
@@ -170,7 +170,7 @@
 <view class="shop" hidden="{{tabIndex!=3}}" wx:if="{{baseData.companyType>4}}">
     <view class="prod-outer-wrap" wx:for="{{shop}}" wx:key="{{index}}" @tap="showDetail({{index}})">
         <view class="prod-inner-wrap">
-            <image mode="aspectFill" src="{{item.shop_image_url}}" />
+            <image mode="aspectFill" src="{{item.shop_image_url==''?'../image/product-default.png':item.shop_image_url}}" />
             <view class="prod-text-wrap">
                 <view>
                     {{item.name}}

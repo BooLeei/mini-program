@@ -1,7 +1,7 @@
 
 <view class="top">
-    <image src="{{}}"/>
-    <view>李峰<icon/></view>
+    <image bindtap="toLogin" src="{{hasLogin?'':'../image/uploadHeaderPic.png'}}"/>
+    <view bindtap="toLogin">{{hasLogin?'李峰':'登录/注册'}}<icon  wx:if="{{hasLogin}}"/></view>
     <icon bindtap="slide" class="top-right-arrow"/>
 </view>
 <view class="list-wrap">
@@ -19,5 +19,8 @@
     </view>
     <view class="list-item">
         <icon/>我的设置<icon class="list-right-arrow"/>
+    </view>
+    <view bindtap="simpleResume" class="list-item">
+        <icon/>简版简历测试入口<icon class="list-right-arrow"/>
     </view>
 </view>
