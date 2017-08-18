@@ -1,32 +1,38 @@
 <template>
 <view class="top">
-    <image src="{{}}" />
-    <view>李峰<icon></icon></view>
+    <image @tap="toLogin" src="{{hasLogin?headerImageFull:'../image/uploadHeaderPic.png'}}" />
+    <view @tap="toLogin">{{hasLogin?nickname:'登录/注册'}}
+        <icon class="man" wx:if="{{hasLogin&&sex==0}}"></icon>
+        <icon class="woman" wx:if="{{hasLogin&&sex==1}}"></icon>
+    </view>
     <icon @tap="slide" class="top-right-arrow"></icon>
 </view>
 <view class="list-wrap">
-    <view class="list-item">
+    <view @tap="progess" class="list-item">
         <icon></icon>求职进度<icon class="list-right-arrow"></icon>
     </view>
     <view @tap="resume" class="list-item">
         <icon></icon>我的简历<icon class="list-right-arrow"></icon>
     </view>
-    <view class="list-item">
+    <view @tap="collect" class="list-item">
         <icon></icon>收藏职位<icon class="list-right-arrow"></icon>
     </view>
-    <view class="list-item">
+    <view @tap="follow" class="list-item">
         <icon></icon>关注公司<icon class="list-right-arrow"></icon>
     </view>
-    <view class="list-item">
+    <view @tap="setting" class="list-item">
         <icon></icon>我的设置<icon class="list-right-arrow"></icon>
     </view>
+    <view @tap="simpleResume" class="list-item">
+        <icon></icon>简版简历测试入口<icon class="list-right-arrow"></icon>
+    </view>
 </view>
-<!-- <loading></loading> -->
 </template>
 
 <script>
 import wepy from 'wepy'
-import Loading from '../components/loading'
+import Request from '../utils/request'
+import {Get} from '../utils/storage'
 
 export default class Mine extends wepy.page {
     config = {
@@ -36,36 +42,89 @@ export default class Mine extends wepy.page {
         disableScroll: false
     }
 
-    components = {
-        'loading': Loading
+    data = {
+        hasLogin: false,
+        sex: '0',
+        headerImageFull: '',
+        tel: '',
+        nickname: ''
     }
 
+    userId = ''
+    request = new Request()
+
     methods = {
+        toLogin () {
+            if (this.hasLogin) {
+                return false
+            } else {
+                wepy.navigateTo({url: 'login'})
+            }
+        },
         slide () {
-            wepy.navigateTo({
-                url: 'introduction'
-            })
+            wepy.navigateTo({url: 'introduction'})
+        },
+        progess () {
+            if (this.hasLogin) {
+                wepy.navigateTo({url: `progress?id=${this.userId}`})
+            } else {
+                wepy.navigateTo({url: 'login'})
+            }
         },
         resume () {
-            // if (wepy.getStorageSync("userId")) {
-                wepy.navigateTo({
-                    url: `resume?id=${wepy.getStorageSync("userId")}`
-                })
-            // } else {
-            //     return
-            // }
+            if (this.hasLogin) {
+                wepy.navigateTo({url: `resume?id=${this.userId}`})
+            } else {
+                wepy.navigateTo({url: 'login'})
+            }
+        },
+        collect () {
+            if (this.hasLogin) {
+                wepy.navigateTo({url: `collect?id=${this.userId}`})
+            } else {
+                wepy.navigateTo({url: 'login'})
+            }
+        },
+        follow () {
+            if (this.hasLogin) {
+                wepy.navigateTo({url: `follow?id=${this.userId}`})
+            } else {
+                wepy.navigateTo({url: 'login'})
+            }
+        },
+        setting () {
+            if (this.hasLogin) {
+                wepy.navigateTo({url: `setting?id=${this.userId}`})
+            } else {
+                wepy.navigateTo({url: 'login'})
+            }
+        },
+        simpleResume () {
+            wepy.navigateTo({url: 'simpleResume?id=294'})
         }
     }
 
     onLoad () {
-        // this.$invoke('loading', 'show')
         wepy.setNavigationBarColor({
             frontColor: '#ffffff',
             backgroundColor: '#40c4ff'
         })
-        setTimeout(() => {
-            // this.$invoke('loading', 'hide')
-        }, 300)
+        Get('userId').then(res => {
+            this.hasLogin = true
+            this.userId = res
+            this.request.Get({
+                userId: this.userId,
+                type: 'detail'
+            }, '/UserPerson/getInfo')
+            .then(({data}) => {
+                Object.assign(this, data)
+                this.$apply()
+            })
+            this.$apply()
+        }).catch(err => {
+            this.hasLogin = false
+            this.$apply()
+        })
     }
 }
 </script>
@@ -89,7 +148,6 @@ export default class Mine extends wepy.page {
         height: 160rpx;
         border-radius: 16rpx;
         border: 1px solid #f2f2f5;
-        background-color: #f00;
     }
     view {
         margin-top: 30rpx;
@@ -99,8 +157,13 @@ export default class Mine extends wepy.page {
         icon {
             width: 30rpx;
             height: 30rpx;
-            background-color: @generate-color;
             margin-left: 10rpx;
+        }
+        .man {
+            background-color: @generate-color;
+        }
+        .woman {
+            background-color: @red-color;
         }
     }
     .top-right-arrow {

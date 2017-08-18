@@ -1,0 +1,310 @@
+<template>
+<view class="wrap" @tap="cancelFollow">
+    <view class="item-wrap" wx:for="{{follow}}" wx:key="{{index}}" wx:for-index="indexs">
+        <view class="comp" @tap="toCompany({{item.id}})">
+            <image class="comp-left" mode="aspectFill" src="{{item.headerImage}}" />
+            <view class="comp-right">
+                <view class="comp-name">
+                    <text class="name">{{item.nickname}}</text>
+                    <view class="{{item.isApproveOffcial=='1'?'auth':''}}">
+                        <icon wx:if="{{item.isApproveOffcial=='1'}}"></icon>
+                        <icon wx:if="{{item.isApproveOffcial=='0'}}"></icon>
+                        <text>{{item.isApproveOffcial=='1'?'已认证':'未认证'}}</text>
+                    </view>
+                </view>
+                <view class="comp-info">
+                    <view>
+                        <icon></icon>
+                        <text>{{item.createCompanyYear}}</text>
+                    </view>
+                    <view>
+                        <icon></icon>
+                        <text>{{item.cityName}}</text>
+                    </view>
+                    <view>
+                        <icon></icon>
+                        <text>{{item.shopType}}店</text>
+                    </view>
+                </view>
+                <view class="comp-comment">
+                    <text>公司评价：</text>
+                    <icon class="full" wx:for="{{item.appraiseNum}}" wx:key="{{index}}"></icon>
+                    <icon class="empty" wx:for="{{5 - item.appraiseNum}}" wx:key="{{index}}"></icon>
+                </view>
+                <view class="comp-jobNum">
+                    <icon></icon>
+                    <text>{{item.workNum}}个 职位在招</text>
+                </view>
+            </view>
+            <icon class="right-arrow"></icon>
+        </view>
+        <view class="btn-wrap">
+            <button hover-class="btn-active" data-id="{{item.id}}" data-btnindex="{{indexs}}">取消收藏</button>
+        </view>
+    </view>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Request from '../utils/request'
+
+export default class Follow extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '关注公司'
+    }
+
+    request = new Request()
+
+    userId = ''
+
+    page = {
+        index: 1,
+        busy: false,
+        hasNot: false
+    }
+
+    getFollowCompany (page = 1, pageSize = 8) {
+        return this.request.Get({
+            userId: this.userId,
+            page: page,
+            pageSize: pageSize
+        }, '/UserOperate/getCompanyList')
+    }
+
+    data = {
+        follow: []
+    }
+
+    methods = {
+        cancelFollow (e) {
+            console.log(e)
+            if (e.target.dataset.btnindex != undefined) {
+                this.request.Post({
+                    userId: this.userId,
+                    objectId: e.target.dataset.id,
+                    type: 1,
+                    status: 0
+                }, '/UserOperate/addUserOperate')
+                .then(ret => {
+                    this.follow.splice(Number.parseInt(e.target.dataset.btnindex), 1)
+                    this.$apply()
+                })
+            }
+        },
+        toCompany (id) {
+            wepy.navigateTo({
+                url: `company?id=${id}`
+            })
+        }
+    }
+
+    onReachBottom () {
+        if (this.page.busy) {
+            return false
+        }
+        if (this.page.hasNot) {
+            return false
+        }
+        this.page.index++
+        this.page.busy = true
+        this.getFollowCompany(this.page.index)
+        .then(({data}) => {
+            if (Array.isArray(data) && data.length === 0) {
+                this.hasNot = true
+            }
+            this.follow = [...this.follow, ...data]
+            this.$apply()
+        })
+    }
+
+    onPullDownRefresh () {
+        this.getFollowCompany()
+        .then(({data}) => {
+            this.follow = data
+            wepy.stopPullDownRefresh()
+            this.$apply()
+        })
+    }
+
+    onLoad (params) {
+        this.userId = params.id
+        this.getFollowCompany()
+        .then(({data}) => {
+            this.follow = data
+            this.$apply()
+        })
+    }
+
+    onUnload () {
+        this.page.index = 1
+        this.page.busy = false
+        this.page.hasNot = false
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+page {
+    background-color: @bg-color;
+}
+.wrap {
+    width: 100%;
+    height: 100%;
+    background-color: @bg-color;
+    padding: 16rpx 20rpx;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+.item-wrap {
+    width: 100%;
+    flex-direction: column;
+    background-color: #fff;
+    margin: 16rpx 0;
+    .btn-wrap {
+        width: 100%;
+        height: 100rpx;
+        border-top: 1px solid @bd-color;
+        align-items: center;
+        justify-content: center;
+        button {
+            width: 670rpx;
+            height: 74rpx;
+            line-height: 74rpx;
+            background-color: @generate-color;
+            color: #fff;
+            font-size: bold;
+            border-radius: 16rpx;
+            will-change: auto;
+            transform: translateZ(0);
+            transition: transform 100ms linear;
+            margin: 0;
+            font-size: 28rpx;
+        }
+        .btn-active {
+            transform: scale(0.9);
+        }
+    }
+}
+.comp {
+    width: 100%;
+    height: 230rpx;
+    box-sizing: border-box;
+    align-items:center;
+    position: relative;
+    padding-left: 20rpx;
+    .comp-left {
+        width: 180rpx;
+        height: 180rpx;
+        border: 1px solid @bd-color;
+        border-radius: 10rpx;
+    }
+    .comp-right {
+        flex: 1;
+        padding: 0 30rpx;
+        flex-direction: column;
+        justify-content: center;
+        .comp-name {
+            width: 100%;
+            height: 60rpx;
+            align-items: center;
+            .name {
+                width: 288rpx;
+                font-size: 32rpx;
+                color: @font-color2;
+                font-weight: bold;
+                overflow-x: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            view {
+                width: 134rpx;
+                height: 40rpx;
+                border-radius: 20rpx;
+                border: 1px solid @font-color;
+                color: @font-color;
+                align-items: center;
+                justify-content: flex-end;
+                padding-right: 14rpx;;
+                position: relative;
+                icon {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    left: 4rpx;
+                    width: 30rpx;
+                    height: 30rpx;
+                    background-color: @generate-color;
+                    border-radius: 50%;
+                }
+            }
+            .auth {
+                border-color: @generate-color;
+                color: @generate-color;
+            }
+        }
+        .comp-info {
+            width: 100%;
+            height: 40rpx;
+            view {
+                height: 100%;
+                align-items: center;
+                margin-right: 20rpx;
+                icon {
+                    width: 30rpx;
+                    height: 30rpx;
+                    background-color: @generate-color;
+                    margin-right: 4rpx;
+                }
+            }
+        }
+        .comp-comment {
+            width: 100%;
+            height: 40rpx;
+            align-items: center;
+            icon {
+                color: @red-color;
+            }
+        }
+        .comp-jobNum {
+            width: 100%;
+            height: 50rpx;
+            align-items: center;
+            color: @generate-color;
+            icon {
+                width: 32rpx;
+                height: 32rpx;
+                background-color: @generate-color;
+            }
+        }
+    }
+    .right-arrow {
+        position: absolute;
+        right: 40rpx;
+        top: 50%;
+        width: 30rpx;
+        height: 30rpx;
+        border-right: 2px solid #ccc;
+        border-top: 2px solid #ccc;
+        transform:translateY(-50%) rotate(45deg);
+    }
+}
+.full {
+    width: 30rpx;
+    height: 30rpx;
+    background-color: @generate-color;
+    border-radius: 50%;
+    margin: 0 6rpx;
+}
+.empty {
+    width: 30rpx;
+    height: 30rpx;
+    border: 1px solid @generate-color;
+    box-sizing: border-box;
+    border-radius: 50%;
+    margin: 0 6rpx;
+}
+</style>

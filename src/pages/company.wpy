@@ -1,8 +1,15 @@
 <template>
 <view class="logo">
     <view class="follow">
-        <button plain >未关注</button>
-        <text>{{baseData.attentionNum}}人关注</text>
+        <button plain @tap="followCompany">{{baseData.hasOperate==1?'已关注':'关注'}}</button>
+        <view class="follow-num-wrap">
+            <view class="follow-num" :class="{'follow-num-plus':follow==2,'follow-num-sub':follow==0,'follow-num-now':follow==1}">
+                <text class="follow-subtract">{{baseData.attentionNum - 1}}</text>
+                <text class="follow-normal">{{baseData.attentionNum}}</text>
+                <text class="follow-plus">{{baseData.attentionNum + 1}}</text>
+            </view>
+            <view class="follow-text">人关注</view>
+        </view>
     </view>
     <view class="comment" @tap="showComment">
         <icon></icon>
@@ -92,7 +99,7 @@
 </view>
 <view class="team" hidden="{{tabIndex!=2}}">
     <view @tap="showTeamIntro({{index}})" wx:for="{{team}}" wx:key="{{index}}" class="team-wrap {{index%2==1?'reverse':''}}">
-        <image mode="aspectFill" src="{{item.header_image}}" />
+        <image mode="aspectFill" src="{{item.header_image==''?'../image/leader-default.png':item.header_image}}" />
         <view class="team-content {{index%2==1?'team-content-reverse':''}}">
             <text class="team-name">{{item.name}}</text>
             <text class="team-position">{{item.work_position_name}}</text>
@@ -109,7 +116,7 @@
 <view class="shop" hidden="{{tabIndex!=3}}" wx:if="{{baseData.companyType<4}}">
     <view wx:for="{{shop}}" wx:key="{{index}}" class="shop-outer-wrap" hover-class="shop-item-hover" @tap="showDetail({{index}})">
         <view class="shop-inner-wrap">
-            <image class="shop-img" mode="aspectFill" src="{{item.shop_image_url}}" />
+            <image class="shop-img" mode="aspectFill" src="{{item.shop_image_url==''?'../image/store-default.png':item.shop_image_url}}" />
             <view class="shop-content">
                 <view class="shop-name">
                     {{item.name}}
@@ -140,7 +147,7 @@
 <view class="shop" hidden="{{tabIndex!=3}}" wx:if="{{baseData.companyType==4}}">
     <view class="school-outer-wrap" wx:for="{{shop}}" wx:key="{{index}}" hover-class="school-item-hover" @tap="showDetail({{index}})">
         <view class="school-inner-wrap">
-            <image class="school-img" mode="aspectFill" src="{{item.shop_image_url}}" />
+            <image class="school-img" mode="aspectFill" src="{{item.shop_image_url==''?'../image/school-default.png':item.shop_image_url}}" />
             <view class="school-content">
                 <view class="school-name">
                     {{item.name}}
@@ -170,7 +177,7 @@
 <view class="shop" hidden="{{tabIndex!=3}}" wx:if="{{baseData.companyType>4}}">
     <view class="prod-outer-wrap" wx:for="{{shop}}" wx:key="{{index}}" @tap="showDetail({{index}})">
         <view class="prod-inner-wrap">
-            <image mode="aspectFill" src="{{item.shop_image_url}}" />
+            <image mode="aspectFill" src="{{item.shop_image_url==''?'../image/product-default.png':item.shop_image_url}}" />
             <view class="prod-text-wrap">
                 <view>
                     {{item.name}}
@@ -285,6 +292,386 @@
 <loading :show.sync="loading"></loading>
 </template>
 
+<script>
+import wepy from 'wepy'
+import Loading from '../components/loading'
+import Request from '../utils/request'
+import Progress from '../components/comp-progress'
+// import ShopItem from '../components/comp-shop-item'
+// import SchoolItem from '../components/comp-school-item'
+// import ProdItem from '../components/comp-prod-item'
+import JobItem from '../components/job-list-item'
+// import Modal from '../components/modal-popup'
+// import SimpleModal from '../components/simple-modal-popup'
+import { QQMAPKEY } from '../utils/constants'
+import {Get} from '../utils/storage'
+import Toast from '../components/toast'
+import QQMapWX from '../utils/qqmap-wx-jssdk.min'
+import { Preview } from '../utils/imageUtils'
+import {log} from '../utils/log'
+
+export default class Company extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '公司信息'
+    }
+
+    data = {
+        loading: false,
+        follow: 1,
+        nameHidden: true,
+        tabIndex: 1,
+        tabFixed: false,
+        unfold: false,
+        comment: false,
+        teamDetail: false,
+        shopDetail: false,
+        teamIndex: 0,
+        shopIndex: 0,
+        baseData: null,
+        about: null,
+        tempProgress: [],
+        team: [],
+        shop: [],
+        job: [],
+        commentStar: [
+            {
+                text: '品牌知名度',
+                star: 0
+            }, {
+                text: '行业影响力',
+                star: 0
+            }, {
+                text: '企业规模',
+                star: 0
+            }, {
+                text: '团队人才',
+                star: 0
+            }, {
+                text: '薪资福利',
+                star: 0
+            }, {
+                text: '发展潜力',
+                star: 0
+            }
+        ]
+    }
+
+    mapApi = new QQMapWX({
+        key: QQMAPKEY
+    })
+
+    login = {
+        has: false,
+        userId: '',
+        id: ''
+    }
+
+    request = new Request()
+
+    location = {
+        lon: '',
+        lat: ''
+    }
+
+    scrollTop = 0
+
+    components = {
+        'loading': Loading,
+        // 'comment': Modal,
+        'progress': Progress,
+        // 'shop-item': ShopItem,
+        // 'school-item': SchoolItem,
+        // 'prod-item': ProdItem,
+        // 'team-modal': SimpleModal,
+        'job-item': JobItem,
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    computed = {
+        detailAddress () {
+            if (this.about) {
+                return this.about.location.substring(this.about.location.lastIndexOf('-') + 1, this.about.location.length) + this.about.address
+            }
+        }
+    }
+
+    events = {
+        // 'comment': (...args) => {
+        //     log(args)
+        //     this.comment = false
+        // },
+        // 'emitIndex': (index, e) => {
+        //     log(index)
+        //     log(e)
+        //     this.shopIndex = Number.parseInt(index)
+        //     this.shopDetail = true
+        // }
+    }
+
+    methods = {
+        showName () {
+            this.nameHidden = !this.nameHidden
+        },
+        toggleTab (e) {
+            this.tabIndex = Number.parseInt(e.target.dataset.index)
+        },
+        preview (e) {
+            Preview(e.target.dataset.index, this.about.imgListFull)
+        },
+        slide () {
+            this.unfold = !this.unfold
+        },
+        showComment () {
+            if (!this.login.has) {
+                this.toast({content: '请先登录'})
+                wepy.navigateTo({url: 'login'})
+                return false
+            }
+            this.comment = true
+        },
+        hideComment () {
+            this.comment = false
+        },
+        sureComment () {
+            // 调评价接口
+            this.request.Post({
+                userCompanyId: this.login.id,
+                userId: this.login.userId,
+                brandRecognition: this.commentStar[0].star,
+                influence: this.commentStar[1].star,
+                scale: this.commentStar[2].star,
+                talents: this.commentStar[3].star,
+                salary: this.commentStar[4].star,
+                develop: this.commentStar[5].star
+            }, '/UserCompanyAppraiseList/add')
+            .then(ret => {
+                this.toast({content: '评价成功'})
+                this.comment = false
+                this.$apply()
+            })
+            .catch(err => {
+                if (err.err == 21311201) {
+                    this.toast({content: '您已评价过，请90天后再来评价'})
+                } else if (err.err == -1) {
+                    this.toast({content: '您还未完成评价'})
+                }
+            })
+        },
+        changeStar (e) {
+            if (e.target.dataset.id !== undefined && e.target.dataset.index !== undefined) {
+                if (this.commentStar[e.target.dataset.id].star === e.target.dataset.index + 1) {
+                    this.commentStar[e.target.dataset.id].star = 0
+                } else {
+                    this.commentStar[e.target.dataset.id].star = e.target.dataset.index + 1
+                }
+            }
+        },
+        showTeamIntro (index) {
+            this.teamIndex = index
+            this.teamDetail = true
+        },
+        hideTeamPopup () {
+            this.teamDetail = false
+        },
+        hideShopPopup () {
+            this.shopDetail = false
+        },
+        openMap () {
+            wepy.openLocation({
+                latitude: this.location.lat,
+                longitude: this.location.lon,
+                name: this.baseData.nickname,
+                address: this.baseData.cityName + this.detailAddress
+            })
+        },
+        showDetail (index) {
+            this.shopIndex = Number.parseInt(index)
+            this.shopDetail = true
+        },
+        followCompany () {
+            if (!this.login.has) {
+                this.toast({content: '请先登录'})
+                wepy.navigateTo({url: 'login'})
+                return false
+            }
+            let type = this.baseData.hasOperate == 1 ? 0 : 1
+            this.request.Post({
+                userId: this.login.userId,
+                objectId: this.login.id,
+                type: 1,
+                status: type
+            }, '/UserOperate/addUserOperate')
+            .then(ret => {
+                if (this.baseData.hasOperate == 1) {
+                    this.toast({content: '已取消关注'})
+                    this.baseData.hasOperate = 0
+                    if (this.follow == 2) {
+                        this.follow = 1
+                    } else if (this.follow == 1) {
+                        this.follow = 0
+                    } else {
+                        return
+                    }
+                } else {
+                    this.toast({content: '已关注'})
+                    this.baseData.hasOperate = 1
+                    if (this.follow == 0) {
+                        this.follow = 1
+                    } else if (this.follow == 1) {
+                        this.follow = 2
+                    } else {
+                        return
+                    }
+                }
+                this.$apply()
+            })
+        },
+        stopPropagation () {
+            return false
+        }
+    }
+
+    watch = {
+        tabIndex (newVal, oldVal) {
+            if (newVal > 1) {
+                switch (newVal) {
+                case 2:
+                    this.request.Get({
+                        'userCompanyId': this.baseData.userId
+                    }, '/CompanyManager/getList')
+                    .then(({data}) => {
+                        log(data)
+                        this.team = data
+                        this.$apply()
+                    })
+                    break
+                case 3:
+                    this.request.Get({
+                        'userCompanyId': this.baseData.userId,
+                        'companyType': this.baseData.companyType
+                    }, '/ShopList/getList')
+                    .then(({data}) => {
+                        log(data)
+                        this.shop = data
+                        this.$apply()
+                    })
+                    break
+                case 4:
+                    this.request.Get({
+                        'userCompanyId': this.baseData.userId
+                    }, '/InviteWork/getListByUserCompanyId')
+                    .then(({data}) => {
+                        log(data)
+                        this.job = data
+                        this.$apply()
+                    })
+                    break
+                default:
+                }
+            }
+        }
+    }
+
+    onShareAppMessage () {
+        return {
+            title: this.baseData.nickname,
+            path: `/pages/company?id=${this.baseData.userId}`,
+            success: ret => {
+                log(ret)
+            },
+            fail: err => {
+                log(err)
+            }
+        }
+    }
+
+    onPageScroll (e) {
+        if (e.scrollTop >= 335) {
+            this.tabFixed = true
+        } else {
+            this.tabFixed = false
+        }
+    }
+
+    /**
+     * 页面卸载后清除逻辑数据
+     */
+    onUnload () {
+        this.nameHidden = true
+        this.tabIndex = 1
+        this.tabFixed = false
+        this.unfold = false
+        this.comment = false
+        this.teamDetail = false
+        this.shopDetail = false
+        this.teamIndex = 0
+        this.shopIndex = 0
+        this.baseData = null
+        this.about = null
+        this.tempProgress = []
+        this.team = []
+        this.shop = []
+        this.job = []
+    }
+
+    onLoad (params) {
+        this.loading = true
+        this.login.id = params.id
+        Get('userId').then(ret => {
+            this.login.has = true
+            this.login.userId = ret
+            this.$apply()
+        }).catch(err => {
+            this.login.has = false
+            this.$apply()
+        })
+        wx.createSelectorQuery().select('#fixed').boundingClientRect(rect => {
+            this.scrollTop = rect.top
+        }).exec()
+        Promise.all([
+            this.request.Get({'userCompanyId': params.id}, '/Company/getAbout'),
+            this.request.Get({'userCompanyId': params.id, 'userId': wepy.getStorageSync('userId') || 0}, '/Company/getInfo')
+        ]).then(([{data: about}, {data: info}]) => {
+            log(info)
+            info.companyType = Number.parseInt(info.companyType)
+            info.attentionNum = Number.parseInt(info.attentionNum)
+            this.baseData = info
+            this.tempProgress = about.progressList.slice(0, 3)
+            for (let item of this.tempProgress) {
+                item.year = item.time.slice(0, 4)
+                item.month = item.time.slice(4, 6)
+                item.day = item.time.slice(6, 8)
+            }
+            if (this.tempProgress.length > 0) {
+                this.tempProgress[this.tempProgress.length - 1].last = true
+            }
+            this.about = about
+            this.loading = false
+            wepy.setNavigationBarColor({
+                frontColor: '#ffffff',
+                backgroundColor: '#40c4ff'
+            })
+            this.$apply()
+            this.mapApi.geocoder({
+                address: this.baseData.cityName + this.detailAddress,
+                success: ({result: { location }}) => {
+                    this.location.lon = location.lng
+                    this.location.lat = location.lat
+                },
+                fail: err => {
+                    log(err)
+                }
+            })
+        })
+    }
+}
+</script>
+
 <style lang="less">
 @import url('../utils/global');
 
@@ -328,8 +715,44 @@
             color: #fff;
             margin-bottom: 10rpx;
         }
-        text {
-            font-size: 26rpx;
+        .follow-num-wrap {
+            align-items: center;
+            justify-content: center;
+            overflow-y: hidden;
+            .follow-num {
+                position: relative;
+                min-width: 30rpx;
+                height: 30rpx;
+                align-items: center;
+                justify-content: center;
+                will-change: auto;
+                transform: translateZ(0);
+                transition: transform 150ms linear;
+                color: #fff;
+                text {
+                    position: absolute;
+                    left: 50%;
+                    transform: translateX(-50%);
+                }
+                .follow-subtract {
+                    bottom: 30rpx;
+                }
+                .follow-plus {
+                    top: 30rpx;
+                }
+            }
+            .follow-text {
+                color: #fff;
+            }
+            .follow-num-plus {
+                transform: translateY(-100%);
+            }
+            .follow-num-now {
+                transform: translateY(0);
+            }
+            .follow-num-sub {
+                transform: translateY(100%);
+            }
         }
     }
     .comment {
@@ -878,8 +1301,9 @@
                 width: 30rpx;
                 height: 30rpx;
                 border-radius: 50%;
-                box-sizing: border-box;
                 outline: 10rpx solid #fff;
+                background-clip: content-box;
+                padding: 10rpx;
             }
             .comment-full {
                 background-color: @generate-color;
@@ -896,7 +1320,7 @@
     position: fixed;
     top: 0;
     z-index: 10;
-    background-color: rgba(0,0,0,0.6);
+    background-color: rgba(0,0,0,0.7);
     align-items: center;
     justify-content: center;
 }
@@ -1065,295 +1489,3 @@
     }
 }
 </style>
-
-<script>
-import wepy from 'wepy'
-import Loading from '../components/loading'
-import Request from '../utils/request'
-import Progress from '../components/comp-progress'
-// import ShopItem from '../components/comp-shop-item'
-// import SchoolItem from '../components/comp-school-item'
-// import ProdItem from '../components/comp-prod-item'
-import JobItem from '../components/job-list-item'
-// import Modal from '../components/modal-popup'
-// import SimpleModal from '../components/simple-modal-popup'
-import { QQMAPKEY } from '../utils/constants'
-import QQMapWX from '../utils/qqmap-wx-jssdk.min'
-import { Preview } from '../utils/imageUtils'
-import {log} from '../utils/log'
-
-export default class Company extends wepy.page {
-    config = {
-        backgroundTextStyle: 'dark',
-        navigationBarTitleText: '公司信息'
-    }
-
-    data = {
-        loading: false,
-        nameHidden: true,
-        tabIndex: 1,
-        tabFixed: false,
-        unfold: false,
-        comment: false,
-        teamDetail: false,
-        shopDetail: false,
-        teamIndex: 0,
-        shopIndex: 0,
-        baseData: null,
-        about: null,
-        tempProgress: [],
-        team: [],
-        shop: [],
-        job: [],
-        commentStar: [
-            {
-                text: '品牌知名度',
-                star: 0
-            }, {
-                text: '行业影响力',
-                star: 0
-            }, {
-                text: '企业规模',
-                star: 0
-            }, {
-                text: '团队人才',
-                star: 0
-            }, {
-                text: '薪资福利',
-                star: 0
-            }, {
-                text: '发展潜力',
-                star: 0
-            }
-        ]
-    }
-
-    mapApi = new QQMapWX({
-        key: QQMAPKEY
-    })
-
-    request = new Request()
-
-    location = {
-        lon: '',
-        lat: ''
-    }
-
-    scrollTop = 0
-
-    components = {
-        'loading': Loading,
-        // 'comment': Modal,
-        'progress': Progress,
-        // 'shop-item': ShopItem,
-        // 'school-item': SchoolItem,
-        // 'prod-item': ProdItem,
-        // 'team-modal': SimpleModal,
-        'job-item': JobItem
-    }
-
-    computed = {
-        detailAddress () {
-            if (this.about) {
-                return this.about.location.substring(this.about.location.lastIndexOf('-') + 1, this.about.location.length) + this.about.address
-            }
-        }
-    }
-
-    events = {
-        // 'comment': (...args) => {
-        //     log(args)
-        //     this.comment = false
-        // },
-        // 'emitIndex': (index, e) => {
-        //     log(index)
-        //     log(e)
-        //     this.shopIndex = Number.parseInt(index)
-        //     this.shopDetail = true
-        // }
-    }
-
-    methods = {
-        showName () {
-            this.nameHidden = !this.nameHidden
-        },
-        toggleTab (e) {
-            this.tabIndex = Number.parseInt(e.target.dataset.index)
-        },
-        preview (e) {
-            Preview(e.target.dataset.index, this.about.imgListFull)
-        },
-        slide () {
-            this.unfold = !this.unfold
-        },
-        showComment () {
-            this.comment = true
-        },
-        hideComment () {
-            this.comment = false
-        },
-        sureComment () {
-            // 调评价接口
-            this.comment = false
-        },
-        changeStar (e) {
-            if (e.target.dataset.id !== undefined && e.target.dataset.index !== undefined) {
-                if (this.commentStar[e.target.dataset.id].star === e.target.dataset.index + 1) {
-                    this.commentStar[e.target.dataset.id].star = 0
-                } else {
-                    this.commentStar[e.target.dataset.id].star = e.target.dataset.index + 1
-                }
-            }
-        },
-        showTeamIntro (index) {
-            this.teamIndex = index
-            this.teamDetail = true
-        },
-        hideTeamPopup () {
-            this.teamDetail = false
-        },
-        hideShopPopup () {
-            this.shopDetail = false
-        },
-        openMap () {
-            wepy.openLocation({
-                latitude: this.location.lat,
-                longitude: this.location.lon,
-                name: this.baseData.nickname,
-                address: this.baseData.cityName + this.detailAddress
-            })
-        },
-        showDetail (index) {
-            this.shopIndex = Number.parseInt(index)
-            this.shopDetail = true
-        },
-        stopPropagation () {
-            return false
-        }
-    }
-
-    watch = {
-        tabIndex (newVal, oldVal) {
-            if (newVal > 1) {
-                switch (newVal) {
-                case 2:
-                    this.request.Get({
-                        'userCompanyId': this.baseData.userId
-                    }, '/CompanyManager/getList')
-                    .then(({data}) => {
-                        log(data)
-                        this.team = data
-                        this.$apply()
-                    })
-                    break
-                case 3:
-                    this.request.Get({
-                        'userCompanyId': this.baseData.userId,
-                        'companyType': this.baseData.companyType
-                    }, '/ShopList/getList')
-                    .then(({data}) => {
-                        log(data)
-                        this.shop = data
-                        this.$apply()
-                    })
-                    break
-                case 4:
-                    this.request.Get({
-                        'userCompanyId': this.baseData.userId
-                    }, '/InviteWork/getListByUserCompanyId')
-                    .then(({data}) => {
-                        log(data)
-                        this.job = data
-                        this.$apply()
-                    })
-                    break
-                default:
-                }
-            }
-        }
-    }
-
-    onShareAppMessage () {
-        return {
-            title: this.baseData.nickname,
-            path: `/pages/company?id=${this.baseData.userId}`,
-            success: ret => {
-                log(ret)
-            },
-            fail: err => {
-                log(err)
-            }
-        }
-    }
-
-    onPageScroll (e) {
-        if (e.scrollTop >= 335) {
-            this.tabFixed = true
-        } else {
-            this.tabFixed = false
-        }
-    }
-
-    /**
-     * 页面卸载后清除逻辑数据
-     */
-    onUnload () {
-        this.nameHidden = true
-        this.tabIndex = 1
-        this.tabFixed = false
-        this.unfold = false
-        this.comment = false
-        this.teamDetail = false
-        this.shopDetail = false
-        this.teamIndex = 0
-        this.shopIndex = 0
-        this.baseData = null
-        this.about = null
-        this.tempProgress = []
-        this.team = []
-        this.shop = []
-        this.job = []
-    }
-
-    onLoad (params) {
-        this.loading = true
-        wx.createSelectorQuery().select('#fixed').boundingClientRect(rect => {
-            this.scrollTop = rect.top
-        }).exec()
-        Promise.all([
-            this.request.Get({'userCompanyId': params.id}, '/Company/getAbout'),
-            this.request.Get({'userCompanyId': params.id, 'userId': wepy.getStorageSync('userId') || 0}, '/Company/getInfo')
-        ]).then(([{data: about}, {data: info}]) => {
-            log(info)
-            info.companyType = Number.parseInt(info.companyType)
-            this.baseData = info
-            this.tempProgress = about.progressList.slice(0, 3)
-            for (let item of this.tempProgress) {
-                item.year = item.time.slice(0, 4)
-                item.month = item.time.slice(4, 6)
-                item.day = item.time.slice(6, 8)
-            }
-            if (this.tempProgress.length > 0) {
-                this.tempProgress[this.tempProgress.length - 1].last = true
-            }
-            this.about = about
-            this.loading = false
-            wepy.setNavigationBarColor({
-                frontColor: '#ffffff',
-                backgroundColor: '#40c4ff'
-            })
-            this.$apply()
-            this.mapApi.geocoder({
-                address: this.baseData.cityName + this.detailAddress,
-                success: ({result: { location }}) => {
-                    this.location.lon = location.lng
-                    this.location.lat = location.lat
-                },
-                fail: err => {
-                    log(err)
-                }
-            })
-        })
-    }
-}
-</script>

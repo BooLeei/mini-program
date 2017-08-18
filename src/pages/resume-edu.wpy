@@ -1,0 +1,386 @@
+<template>
+<view class="wrap">
+    <view class="list-item" style="z-index:6;">
+        <input class="input-name" value="{{page.name}}" maxlength="30" bindinput="bindInput" bindfocus="bindFocus" />
+        <icon @tap="toggleSlide" hidden="{{!slide}}" class="red"></icon>
+        <icon @tap="toggleSlide" hidden="{{slide}}" class="blue"></icon>
+    </view>
+    <view class="list-item">
+        <text>认证课程名称</text>
+        <input class="input-position" value="{{page.work_name}}" maxlength="20" bindinput="bindName"/>
+    </view>
+    <picker mode="date" fields="month" start="1960-01" end="2017-12" class="base-picker" bindchange="bindStart">
+        <view class="picker-wrap">
+            <view>开始时间</view>
+            <view class="picker-text">{{page.time_start}}</view>
+        </view>
+    </picker>
+    <picker style="border-bottom: 1px solid #f2f2f5" mode="date" fields="month" start="1960-01" end="2017-12" class="base-picker" bindchange="bindEnd">
+        <view class="picker-wrap">
+            <view>毕业时间</view>
+            <view class="picker-text">{{page.time_end=='-1'?'至今':page.time_end}}</view>
+        </view>
+    </picker>
+    <graduate eventName="graduate">
+        <text slot="title">是否结业？</text>
+        <text style="color:#707070" slot="text">{{graduate}}</text>
+    </graduate>
+    <certificate eventName="certificate">
+        <text slot="title">是否获得证书？</text>
+        <text style="color:#707070" slot="text">{{certificate}}</text>
+    </certificate>
+</view>
+<scroll-view hidden="{{!slide}}" scroll-y class="slider" @tap="selectCompany">
+    <view class="block" hidden="{{page.name!=''&&!init}}" wx:for="{{all}}" wx:for-item="parent" wx:key="{{index}}">
+        <view class="title">{{parent.name}}</view>
+        <view class="item" data-from="1" data-type="{{item.type}}" data-index="{{indexs}}" wx:for="{{parent.list}}" wx:for-index="indexs" wx:key="{{index}}">
+            <image src="{{item.logo_url}}" mode="aspectFill" />{{item.name}}
+        </view>
+    </view>
+    <view class="block" hidden="{{page.name==''&&init}}">
+        <view class="item" data-from="0" data-index="{{index}}" wx:for="{{result}}" wx:key="{{index}}">
+            <image src="{{item.logo_url}}" mode="aspectFill" />{{item.name}}
+        </view>
+    </view>
+</scroll-view>
+<view class="footer">
+    <button @tap="cancel" class="left" plain hover-class='btn-active'>取消</button>
+    <button @tap="sure" class="right" hover-class='btn-active'>保存</button>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import SlideBtn from '../components/slide-btn'
+import Request from '../utils/request'
+
+export default class ResumeEdu extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '编辑学习经历',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    data = {
+        init: true,
+        slide: false,
+        page: {
+            "id": '',
+            'name': '',
+            'school_id': '',
+            'school_name': '',
+            'school_logo': '',
+            'work_name': '',
+            'time_start': '',
+            'time_end': '',
+            'graduate_url': '',
+            'graduateUrlDetail': '',
+            'is_graduate': '',
+            'has_certificate': '',
+            'status': '1',
+        },
+        all: [
+            {
+                'type': '4',
+                'name': '教育培训',
+                'list': []
+            }, {
+                'type': '5',
+                'name': '经管培训',
+                'list': []
+            }
+        ],
+        result: []
+    }
+
+    index = -1
+
+    components = {
+        'graduate': SlideBtn,
+        'certificate': SlideBtn
+    }
+
+    request = new Request()
+
+    computed = {
+        graduate () {
+            if (this.page.is_graduate == '1') {
+                return '是'
+            } else if (this.page.is_graduate == '2') {
+                return '否'
+            } else {
+                return ''
+            }
+        },
+        certificate () {
+            if (this.page.has_certificate == '1') {
+                return '是'
+            } else if (this.page.has_certificate == '2') {
+                return '否'
+            } else {
+                return ''
+            }
+        }
+    }
+
+    events = {
+        'graduate': (...args) => {
+            if (args[0] == 1) {
+                this.page.is_graduate = '1'
+            } else {
+                this.page.is_graduate = '2'
+                this.page.has_certificate = '2'
+            }
+        },
+        'certificate': (...args) => {
+            if (this.page.is_graduate == '1') {
+                if (args[0] == 1) {
+                    this.page.has_certificate = '1'
+                } else {
+                    this.page.has_certificate = '2'
+                }
+            }
+        }
+    }
+
+    methods = {
+        toggleSlide () {
+            this.slide = !this.slide
+        },
+        bindFocus () {
+            this.slide = true
+        },
+        bindInput (e) {
+            this.init = false
+            this.page.name = e.detail.value
+            this.request.Get({
+                type: '4,5',
+                name: e.detail.value
+            }, '/SchoolList/getList')
+            .then(({data}) => {
+                this.result = data
+                this.$apply()
+            })
+        },
+        bindName (e) {
+            this.page.work_name = e.detail.value
+        },
+        bindStart (e) {
+            this.page.time_start = e.detail.value
+        },
+        bindEnd (e) {
+            this.page.time_end = e.detail.value
+        },
+        selectCompany (e) {
+            let item = {}
+            if (e.target.dataset.from == '1') {
+                let type = Number.parseInt(e.target.dataset.type)
+                if (type === 4) {
+                    item = this.all[0].list[e.target.dataset.index]
+                } else {
+                    item = this.all[1].list[e.target.dataset.index]
+                }
+            } else {
+                item = this.result[e.target.dataset.index]
+            }
+            this.page.school_id = item.id
+            this.page.school_name = item.name
+            this.page.name = item.name
+            this.page.school_logo = item.logo_url
+            this.slide = false
+        },
+        cancel () {
+            wepy.navigateBack()
+        },
+        sure () {
+            let temp = {}
+            Object.assign(temp, this.page)
+            if (this.index != -1) {
+                this.$parent.global.schoolList[this.index] = temp
+            } else {
+                this.$parent.global.schoolList.unshift(temp)
+            }
+            this.$parent.global.schoolUpdate = true
+            wepy.navigateBack()
+        }
+    }
+
+    onLoad ({index, msg}) {
+        if (msg) {
+            this.index = Number.parseInt(index)
+            this.page = JSON.parse(msg)
+        }
+        this.request.Get({
+            type: '4,5'
+        }, '/SchoolList/getList')
+        .then(({data}) => {
+            for (let [index, item] of data.entries()) {
+                switch (item.type) {
+                case "4":
+                    this.all[0].list.push(item)
+                    break
+                case "5":
+                    this.all[1].list.push(item)
+                    break
+                default:
+                    break
+                }
+            }
+            this.$apply()
+        })
+    }
+
+    onUnload () {
+        this.slide = false
+        this.init = true
+        for (let key of Object.keys(this.page)) {
+            if (key == 'status') {
+                this.page[key] = '1'
+            } else {
+                this.page[key] = ''
+            }
+        }
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+page{
+    background-color: #fff;
+}
+.wrap {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    flex-direction: column;
+}
+.list-item {
+    width: 100%;
+    height: 110rpx;
+    border-top: 1px solid @bd-color;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40rpx;
+    position: relative;
+    background-color: #fff;
+    icon {
+        width: 30rpx;
+        height: 30rpx;
+        background-color: @generate-color;
+        position: absolute;
+        top: 50%;
+        right: 40rpx;
+        transform: translateY(-50%);
+    }
+    .red {
+        background-color: @red-color;
+    }
+}
+.slider {
+    width: 100%;
+    height: 100%;
+    padding-top: 112rpx;
+    background-color: @bg-color;
+    position: fixed;
+    top: 0;
+    z-index: 5;
+    box-sizing: border-box;
+    flex-direction: column;
+}
+.slider::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    color: transparent;
+}
+.input-name {
+    width: 90%;
+    height: 100%;
+    color: @font-color2;
+}
+.input-position {
+    flex: 1;
+    height: 100%;
+    text-align: right;
+    color: @font-color2;
+}
+.base-picker {
+    width: 100%;
+    height: 110rpx;
+    padding: 0 40rpx;
+    border-top: 1px solid #f2f2f5;
+    box-sizing: border-box;
+    .picker-wrap {
+        width: 100%;
+        height: 108rpx;
+        align-items: center;
+        justify-content: space-between;
+        .picker-text {
+            color: @font-color2;
+        }
+    }
+}
+.footer {
+    width: 100%;
+    height: 120rpx;
+    background-color: rgba(255,255,255,0.9);
+    position: fixed;
+    bottom: 0;
+    z-index: 3;
+    padding: 0 40rpx;
+    align-items: center;
+    justify-content: space-between;
+    button {
+        height: 80rpx;
+        line-height: 80rpx;
+        will-change: auto;
+        transform: translateZ(0);
+        font-size: bold;
+        font-size: 28rpx;
+        box-sizing: border-box;
+        transition: transform 150ms linear;
+        margin: 0;
+    }
+    .left {
+        width: 210rpx;
+        color: @generate-color;
+        border: 1px solid @generate-color;
+    }
+    .right {
+        width: 430rpx;
+        background-color: @generate-color;
+        color: #fff;
+    }
+    .btn-active {
+        transform: scale(0.9);
+    }
+}
+.block {
+    width: 100%;
+    flex-direction: column;
+    .title {
+        width: 100%;
+        height: 70rpx;
+        align-items: flex-end;
+        padding: 10rpx 40rpx;
+        color: @font-color;
+    }
+    .item {
+        width: 100%;
+        height: 80rpx;
+        background-color: #fff;
+        padding: 0 40rpx;
+        align-items: center;
+        color: @font-color2;
+        border-top: 1px solid @bd-color;
+        image {
+            width: 54rpx;
+            height: 54rpx;
+            margin-right: 10rpx;
+            border-radius: 12rpx;
+        }
+    }
+}
+</style>

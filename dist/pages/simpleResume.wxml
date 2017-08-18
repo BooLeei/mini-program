@@ -1,0 +1,88 @@
+
+<view class="block">
+    <view class="block-title">基本信息<text>必填</text></view>
+    <view class="block-content">
+        <view class="base-image">
+            <image src="{{page.headerImageFull==''?'../image/uploadHeaderPic.png':page.headerImageFull}}" mode="aspectFill"/>
+            <view>
+                <text class="header-image-name">简历头像</text>
+                <text class="header-image-text">请上传求职者本人的真是、清晰图片
+                建议尺寸：360*360像素</text>
+            </view>
+        </view>
+        <view class="base-input">
+            <text class="base-label">真实姓名</text>
+            <input value="{{page.name}}" class="base-msg" max-length="10" bindinput="bindName"/>
+        </view>
+        <picker mode="selector" class="base-picker" range="{{base.sex}}" bindchange="bindSex" value="{{page.sex}}" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">性别</view>
+                <view class="picker-text">{{base.sex[page.sex].text}}</view>
+            </view>
+        </picker>
+        <picker mode="date" class="base-picker" fields="year" start="1960" end="2017" bindchange="bindBirth" value="{{birthYear}}">
+            <view class="picker-wrap">
+                <view class="picker-label">出生年份</view>
+                <view class="picker-text">{{page.birthYear}}</view>
+            </view>
+        </picker>
+        <picker mode="selector" class="base-picker" range="{{base.edu}}" bindchange="bindEdu" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">最高学历</view>
+                <view class="picker-text">{{page.educationTypeName}}</view>
+            </view>
+        </picker>
+        <picker mode="selector" class="base-picker" range="{{base.exp}}" bindchange="bindExp" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">健身行业从业经验</view>
+                <view class="picker-text">{{page.experienceTypeName}}</view>
+            </view>
+        </picker>
+        <view class="base-input">
+            <text class="base-label">手机号码</text>
+            <input value="{{page.tel}}" type="number" class="base-msg" max-length="11" bindinput="bindPhone"/>
+        </view>
+        <picker mode="selector" class="base-picker" range="{{base.state}}" bindchange="bindState" value="{{page.workStatus}}" range-key="text">
+            <view class="picker-wrap">
+                <view class="picker-label">任职状态</view>
+                <view class="picker-text">{{base.state[page.workStatus].text}}</view>
+            </view>
+        </picker>
+        <view class="base-textarea">
+            <text>自我介绍</text>
+            <textarea value="{{page.intro}}" bindinput="bindIntro" cursor-spacing="200" maxlength="60" placeholder-style="color: #aaa" placeholder="提醒：请勿输入手机号码、座机、微信号、邮箱及网址链接，否则职位将被系统自动删除，且不可恢复"/>
+            <text class="num-count">{{page.intro.length}}/60</text>
+        </view>
+    </view>
+    <view class="block-title">期望工作<text>必填</text></view>
+    <view class="block-content">
+        <picker mode="selector" range="{{base.type}}" range-key="text" class="base-picker" bindchange="bindType">
+            <view class="picker-wrap">
+                <view class="picker-label">公司类型</view>
+                <view class="picker-text">{{page.companyTypeName}}</view>
+            </view>
+        </picker>
+        <picker mode="multiSelector" range="{{job}}" range-key="name" class="base-picker" bindcolumnchange="bindJobColumn" bindchange="bindJob" value="{{jobIndex}}">
+            <view class="picker-wrap">
+                <view class="picker-label">期望职位</view>
+                <view class="picker-text">{{page.workName}}</view>
+            </view>
+        </picker>
+        <picker mode="multiSelector" range="{{city}}" range-key="text" class="base-picker" bindcolumnchange="bindCityColumn" bindchange="bindCity" value="{{cityIndex}}">
+            <view class="picker-wrap">
+                <view class="picker-label">期望城市</view>
+                <view class="picker-text">{{page.cityName}}</view>
+            </view>
+        </picker>
+        <picker mode="selector" range="{{base.salary}}" range-key="text" class="base-picker" bindchange="bindSalary">
+            <view class="picker-wrap">
+                <view class="picker-label">期望薪资</view>
+                <view class="picker-text">{{page.salaryTypeName}}</view>
+            </view>
+        </picker>
+    </view>
+    <view class="footer">
+        <button bindtap="cancel" class="left" plain hover-class="btn-active">取消</button>
+        <button bindtap="sure" class="right" hover-class="btn-active">保存</button>
+    </view>
+</view>

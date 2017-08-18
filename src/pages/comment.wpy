@@ -1,0 +1,387 @@
+<template>
+<view class="wrap">
+    <view class="comment-star" @tap="commentStar">
+        <view class="list-item">
+            <text>面试官</text>
+            <view>
+                <icon class="full" wx:for="{{page.interviewer_num}}" wx:key="{{index}}" data-type="1" data-index="{{index}}"></icon>
+                <icon class="empty" wx:for="{{5 - page.interviewer_num}}" wx:key="{{index}}" data-type="1" data-index="{{index + page.interviewer_num}}"></icon>
+            </view>
+        </view>
+        <view class="list-item">
+            <text>工作相符</text>
+            <view>
+                <icon class="full" wx:for="{{page.conform_num}}" wx:key="{{index}}" data-type="2" data-index="{{index}}"></icon>
+                <icon class="empty" wx:for="{{5 - page.conform_num}}" wx:key="{{index}}" data-type="2" data-index="{{index + page.conform_num}}"></icon>
+            </view>
+        </view>
+        <view class="list-item">
+            <text>工作环境</text>
+            <view>
+                <icon class="full" wx:for="{{page.env_num}}" wx:key="{{index}}" data-type="3" data-index="{{index}}"></icon>
+                <icon class="empty" wx:for="{{5 - page.env_num}}" wx:key="{{index}}" data-type="3" data-index="{{index + page.env_num}}"></icon>
+            </view>
+        </view>
+        <view class="list-item">
+            <text>薪资相符</text>
+            <view>
+                <icon class="full" wx:for="{{page.salary_num}}" wx:key="{{index}}" data-type="4" data-index="{{index}}"></icon>
+                <icon class="empty" wx:for="{{5 - page.salary_num}}" wx:key="{{index}}" data-type="4" data-index="{{index + page.salary_num}}"></icon>
+            </view>
+        </view>
+    </view>
+    <view class="comment-tag">
+        <view class="tag-write" wx:if="{{type=='1'}}">
+            <view class="tag-title">贴标签<text>（最多可贴3个标签，长按移除）</text></view>
+            <view class="tag-cont">
+                <view @longtap="delTag({{index}})" wx:for="{{tagArr}}" wx:key="{{index}}">{{item}}</view>
+            </view>
+            <view class="tag-input">
+                <input value="{{tempTag}}" bindinput="bindTag" maxlength="6" bindconfirm="stickTag"/>
+                <button @tap="stickTag" hover-class="btn-active">贴上</button>
+                <text></text>
+            </view>
+        </view>
+        <view class="tag-read" wx:if="{{type!='1'}}">
+            <view class="tag-title">面试标签</view>
+            <view class="tag-cont">
+                <view wx:for="{{tagArr}}" wx:key="{{index}}">{{item}}</view>
+            </view>
+        </view>
+    </view>
+    <view class="comment-content">
+        <view class="content-wrap" wx:if="{{type==1}}">
+            <text class="content-title">说点什么</text>
+            <textarea value="{{page.content}}" maxlength="100" bindinput="bindContent"></textarea>
+            <text class="count-num">{{page.content.length}}/100</text>
+        </view>
+        <view class="content-wrap" wx:if="{{type!=1}}">
+            <text class="content-title">评价内容</text>
+            <view>{{page.content}}</view>
+        </view>
+    </view>
+</view>
+<view class="footer">
+    <button wx:if="{{type!=1}}" @tap="del" class="single-btn" hover-class='btn-active'>删 除</button>
+    <block wx:if="{{type==1}}">
+        <button @tap="cancel" class="left" plain hover-class='btn-active'>取消</button>
+        <button @tap="sure" class="right" hover-class='btn-active'>确定</button>
+    </block>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Request from '../utils/request'
+
+export default class Comment extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '对此次面试进行评价',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    request = new Request()
+
+    userId = ''
+
+    data = {
+        type: '1',
+        tagArr: [],
+        tempTag: '',
+        page: {
+            'id': '',
+            'interviewer_num': 0,
+            'conform_num': 0,
+            'env_num': 0,
+            'salary_num': 0,
+            'tag_str': '',
+            'content': ''
+        }
+    }
+
+    methods = {
+        bindTag (e) {
+            console.log(e)
+            this.tempTag = e.detail.value
+            console.log(this.tempTag)
+        },
+        stickTag () {
+            if (this.tagArr.length >= 3) {
+                return false
+            }
+            if (this.tempTag == '') {
+                return false
+            }
+            this.tagArr.push(this.tempTag)
+            this.tempTag = ''
+        },
+        delTag (index) {
+            this.tagArr.splice(index, 1)
+        },
+        bindContent (e) {
+            this.page.content = e.detail.value
+        },
+        cancel () {
+            wepy.navigateBack()
+        },
+        commentStar (e) {
+            if (this.type != 1) {
+                return false
+            }
+            if (e.target.dataset.index != undefined) {
+                switch (Number.parseInt(e.target.dataset.type)) {
+                case 1:
+                    if (this.page.interviewer_num == Number.parseInt(e.target.dataset.index) + 1) {
+                        this.page.interviewer_num = 0
+                    } else {
+                        this.page.interviewer_num = Number.parseInt(e.target.dataset.index) + 1
+                    }
+                    break
+                case 2:
+                    if (this.page.conform_num == Number.parseInt(e.target.dataset.index) + 1) {
+                        this.page.conform_num = 0
+                    } else {
+                        this.page.conform_num = Number.parseInt(e.target.dataset.index) + 1
+                    }
+                    break
+                case 3:
+                    if (this.page.env_num == Number.parseInt(e.target.dataset.index) + 1) {
+                        this.page.env_num = 0
+                    } else{
+                        this.page.env_num = Number.parseInt(e.target.dataset.index) + 1
+                    }
+                    break
+                case 4:
+                    if (this.page.salary_num == Number.parseInt(e.target.dataset.index) + 1) {
+                        this.page.salary_num = 0
+                    } else {
+                        this.page.salary_num = Number.parseInt(e.target.dataset.index) + 1
+                    }
+                    break
+                default:
+                    return
+                }
+            }
+        }
+    }
+
+    onLoad ({type, id}) {
+        this.type = type
+        this.page.id = id
+        if (Number.parseInt(type) !== 1) {
+            this.request.Get({
+                id: id
+            }, '/InviteWorkFeedback/getInfo')
+            .then(({data}) => {
+                for (let key of Object.keys(data)) {
+                    if (key == 'salary_num' || key == 'interviewer_num' || key == 'env_num' || key == 'conform_num') {
+                        data[key] = Number.parseInt(data[key])
+                    }
+                }
+                this.page = data
+                this.tagArr = this.page.tag_str.split(',')
+                this.$apply()
+            })
+        }
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+page {
+    background-color: #fff;
+}
+.wrap {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    padding: 30rpx 40rpx;
+    flex-direction: column;
+}
+.comment-star {
+    width: 100%;
+    flex-direction: column;
+    padding-right: 140rpx;
+    padding-bottom: 20rpx;
+    .list-item {
+        width: 100%;
+        height: 70rpx;
+        align-items: center;
+        justify-content: space-between;
+        text {
+            font-weight: 500;
+            font-size: 28rpx;
+        }
+        .full {
+            width: 36rpx;
+            height: 36rpx;
+            background-color: @generate-color;
+            margin-right: 20rpx;
+            border-radius: 50%;
+        }
+        .empty {
+            width: 36rpx;
+            height: 36rpx;
+            border: 1px solid @generate-color;
+            margin-right: 20rpx;
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
+    }
+}
+.comment-tag {
+    width: 100%;
+    border-top: 1px solid @bd-color;
+    border-bottom: 1px solid @bd-color;
+    padding: 20rpx 0;
+    flex-direction: column;
+    .tag-write {
+        width: 100%;
+        padding: 20rpx 0;
+        flex-direction: column;
+        .tag-input {
+            width: 100%;
+            position: relative;
+            input {
+                width: 400rpx;
+                height: 80rpx;
+                background-color: @bg-color;
+                border-radius: 12rpx;
+                padding: 0 50rpx 0 12rpx;
+            }
+            button {
+                width: 160rpx;
+                height: 80rpx;
+                line-height: 80rpx;
+                background-color: @generate-color;
+                color: #fff;
+                border-radius: 12rpx;
+                margin: 0;
+                font-size: 28rpx;
+                font-weight: bold;
+                margin-left: 10rpx;
+                will-change: auto;
+                transform: translateZ(0);
+                transition: transform 100ms linear
+            }
+            .btn-active {
+                transform: scale(0.96)
+            }
+        }
+    }
+    .tag-read {
+        width: 100%;
+        flex-direction: column;
+        padding: 20rpx 0;
+    }
+    .tag-title {
+        width: 100%;
+        font-weight: 500;
+        color: @font-color2;
+        font-size: 28rpx;
+        text {
+            color: @font-color;
+            font-weight: normal;
+            font-size: 26rpx;
+        }
+    }
+    .tag-cont {
+        width: 100%;
+        flex-wrap: wrap;
+        height: 120rpx;
+        align-items: center;
+        view {
+            color: #fff;
+            height: 52rpx;
+            background-color: @generate-color;
+            border-radius: 26rpx;
+            align-items: center;
+            padding: 0 26rpx;
+            margin-right: 30rpx;
+        }
+    }
+}
+.comment-content {
+    width: 100%;
+    padding: 20rpx 0;
+    .content-wrap {
+        width: 100%;
+        flex-direction: column;
+        line-height: 1;
+        position: relative;
+        .content-title {
+            color: @font-color2;
+            font-size: 28rpx;
+            font-weight: 500;
+            height: 80rpx;
+            line-height: 80rpx;
+        }
+        view {
+            width: 100%;
+            line-height: 1.4;
+        }
+        textarea {
+            width: 100%;
+            height: 250rpx;
+            background-color: @bg-color;
+            border-radius: 12rpx;
+            padding: 12rpx;
+            box-sizing: border-box;
+        }
+        .count-num {
+            position: absolute;
+            bottom: 20rpx;
+            right: 50rpx;
+            color: @font-color;
+            font-size: 26rpx;
+            font-weight: normal;
+            height: auto;
+            line-height: inherit;
+        }
+    }
+}
+.footer {
+    width: 100%;
+    height: 120rpx;
+    background-color: rgba(255,255,255,0.9);
+    position: fixed;
+    bottom: 0;
+    z-index: 3;
+    padding: 0 40rpx;
+    align-items: center;
+    justify-content: space-between;
+    button {
+        height: 80rpx;
+        line-height: 80rpx;
+        will-change: auto;
+        transform: translateZ(0);
+        font-weight: bold;
+        font-size: 28rpx;
+        box-sizing: border-box;
+        transition: transform 150ms linear;
+        margin: 0;
+    }
+    .left {
+        width: 210rpx;
+        color: @generate-color;
+        border: 1px solid @generate-color;
+    }
+    .right {
+        width: 430rpx;
+        background-color: @generate-color;
+        color: #fff;
+    }
+    .single-btn {
+        width: 100%;
+        background-color: @generate-color;
+        color: #fff;
+    }
+    .btn-active {
+        transform: scale(0.96);
+    }
+}
+</style>

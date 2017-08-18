@@ -1,0 +1,483 @@
+<template>
+<view class="page-wrap" style="height:{{height}}px">
+    <view class="wrap">
+        <image src="../image/login-slogan.png" mode="aspectFill" />
+        <block wx:if="{{type==1}}">
+            <view class="input">
+                <input class="{{invalid=='a1'?'invalid':''}}" focus="{{invalid=='a1'}}" value="{{login.tel}}"
+                placeholder="手机号" bindinput="bindLoginTel" placeholder-class="placeholder" />
+                <icon></icon>
+            </view>
+            <view class="input">
+                <input class="{{invalid=='a2'?'invalid':''}}" focus="{{invalid=='a2'}}" value="{{login.password}}"
+                type="password" bindinput="bindLoginPassword" placeholder="密码" placeholder-class="placeholder" />
+                <icon></icon>
+            </view>
+            <button @tap="normalLogin" loading="{{loading}}" class="btn" hover-class="btn-active">登录</button>
+            <view class="tab">
+                <text @tap="toggleType(3)">注册账号</text>
+                <text @tap="toggleType(2)">手机登录</text>
+            </view>
+        </block>
+        <block wx:if="{{type==2}}">
+            <view class="input">
+                <input class="{{invalid=='b1'?'invalid':''}}" focus="{{invalid=='b1'}}" value="{{phone.tel}}"
+                placeholder="手机号" bindinput="bindPhoneTel" placeholder-class="placeholder" />
+                <icon></icon>
+            </view>
+            <view class="btn-input">
+                <input class="{{invalid=='b2'?'invalid':''}}" focus="{{invalid=='b2'}}" value="{{phone.code}}"
+                placeholder="验证码" bindinput="bindPhoneCode" placeholder-class="placeholder" />
+                <button @tap="getAuthCode(2)" class="mini-btn" disabled="{{loginCode}}" hover-class="btn-active">{{loginCount}}</button>
+                <icon></icon>
+            </view>
+            <button @tap="codeLogin" class="btn" hover-class="btn-active">登录</button>
+            <view class="tab">
+                <text @tap="toggleType(3)">注册账号</text>
+                <text @tap="toggleType(1)">帐号登录</text>
+            </view>
+        </block>
+        <block wx:if="{{type==3}}">
+            <view class="input">
+                <input class="{{invalid=='c1'?'invalid':''}}" focus="{{invalid=='c1'}}" value="{{reg.tel}}"
+                 placeholder="手机号" bindblur="checkAccount" bindinput="bindRegTel" placeholder-class="placeholder" />
+                <icon></icon>
+            </view>
+            <view class="input">
+                <input class="{{invalid=='c2'?'invalid':''}}" focus="{{invalid=='c2'}}" value="{{reg.password}}"
+                type="password" bindinput="bindRegPassword" placeholder="密码" placeholder-class="placeholder" />
+                <icon></icon>
+            </view>
+            <view class="btn-input">
+                <input class="{{invalid=='c3'?'invalid':''}}" focus="{{invalid=='c3'}}" value="{{reg.code}}"
+                placeholder="验证码" bindinput="bindRegCode" placeholder-class="placeholder" />
+                <button @tap="getAuthCode(3)" class="mini-btn" disabled="{{regCode}}" hover-class="btn-active">{{regCount}}</button>
+                <icon></icon>
+            </view>
+            <button @tap="regesiter" class="btn" hover-class="btn-active">注册</button>
+            <view class="tab">
+                <text @tap="toggleType(1)">登录帐号</text>
+                <text @tap="toggleType(2)">手机登录</text>
+            </view>
+        </block>
+    </view>
+</view>
+<toast></toast>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Toast from '../components/toast'
+import Request from '../utils/request'
+import md5 from 'md5-es'
+import {Set} from '../utils/storage.js'
+import {log} from '../utils/log'
+
+export default class Login extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '登录',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    request = new Request()
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    data = {
+        loading: false,
+        invalid: '',
+        type: 1,
+        height: 0,
+        loginCode: false,
+        regCode: false,
+        loginCount: '获取',
+        regCount: '获取',
+        login: {
+            tel: '',
+            password: ''
+        },
+        phone: {
+            tel: '',
+            code: ''
+        },
+        reg: {
+            tel: '',
+            password: '',
+            code: ''
+        }
+    }
+
+    components = {
+        'toast': Toast
+    }
+
+    getCode (phone, type = 7) {
+        return this.request.Get({
+            codeMethod:"2",
+            tel: phone,
+            useType: type
+        }, '/Code/getCode')
+    }
+
+    methods = {
+        toggleType (type) {
+            this.type = Number.parseInt(type)
+        },
+        checkAccount (e) {
+            if (!(/^1[3|4|5|7|8][0-9]{9}$/.test(e.detail.value))) {
+                return false
+            }
+            this.request.Get({
+                account: this.reg.tel,
+                userType: '0,1'
+            }, '/User/checkAccount')
+            .then(({data}) => {
+                if (!data.checkAccountResult) {
+                    this.toast({content: '该手机号已注册，请直接登录'})
+                }
+            })
+        },
+        getAuthCode (type) {
+            if (this.regCode || this.loginCode) {
+                this.toast({content: '请不要频繁获取验证码'})
+                return false
+            }
+            let count = 60
+            let self = this
+            if (Number.parseInt(type) === 2) {
+                if (!(/^1[3|4|5|7|8][0-9]{9}$/.test(this.phone.tel))) {
+                    this.toast({content: '请输入正确的手机号码'})
+                    return false
+                }
+                this.getCode(this.phone.tel, 7)
+                .then(ret => {
+                    this.loginCode = true
+                    this.loginCount = `剩余${count}S`
+                    setTimeout(function inner () {
+                        if (count === 1) {
+                            self.loginCode = false
+                            self.loginCount = '获取'
+                            self.$apply()
+                            return false
+                        }
+                        count--
+                        self.loginCount = `剩余${count}S`
+                        self.$apply()
+                        setTimeout(inner, 1000)
+                    }, 1000)
+                }).catch(err => {})
+            } else {
+                if (!(/^1[3|4|5|7|8][0-9]{9}$/.test(this.reg.tel))) {
+                    this.toast({content: '请输入正确的手机号码'})
+                    return false
+                }
+                this.getCode(this.reg.tel, 1)
+                .then(ret => {
+                    this.regCode = true
+                    this.regCount = `剩余${count}S`
+                    setTimeout(function inner () {
+                        if (count === 1) {
+                            self.regCode = false
+                            self.regCount = '获取'
+                            self.$apply()
+                            return false
+                        }
+                        count--
+                        self.regCount = `剩余${count}S`
+                        self.$apply()
+                        setTimeout(inner, 1000)
+                    }, 1000)
+                })
+            }
+        },
+        bindLoginTel (e) {
+            this.login.tel = e.detail.value
+        },
+        bindLoginPassword (e) {
+            this.login.password = e.detail.value
+        },
+        bindPhoneTel (e) {
+            this.phone.tel = e.detail.value
+        },
+        bindPhoneCode (e) {
+            this.phone.code = e.detail.value
+        },
+        bindRegTel (e) {
+            this.reg.tel = e.detail.value
+        },
+        bindRegPassword (e) {
+            this.reg.password = e.detail.value
+        },
+        bindRegCode (e) {
+            this.reg.code = e.detail.value
+        },
+        normalLogin () {
+            if (this.login.tel == '') {
+                this.invalid = 'a1'
+                this.toast({content: '请输入手机号'})
+                return false
+            }
+            if (this.login.password == '') {
+                this.invalid = 'a2'
+                this.toast({content: '请输入密码'})
+                return false
+            }
+            if (!(/^1[3|4|5|7|8][0-9]{9}$/.test(this.login.tel))) {
+                this.invalid = 'a1'
+                this.toast({content: '请输入正确格式的手机号'})
+                return false
+            }
+            this.request.Get({
+                account: this.login.tel,
+                passwd: md5.hash(this.login.password),
+                userType:'0,1',
+                openId: "",
+                accessToken: ""
+            }, '/User/login')
+            .then(({data}) => {
+                log(data)
+                Set('userId', data.id)
+                .then(() => {
+                    if (data.userInfoFinishType != 0) {
+                        wepy.navigateTo({
+                            url: 'simpleResume?id=' + data.id
+                        })
+                    } else {
+                        wepy.reLaunch({
+                            url: 'mine?userId=' + data.id
+                        })
+                    }
+                })
+            })
+        },
+        codeLogin () {
+            if (this.phone.tel == '') {
+                this.invalid = 'b1'
+                this.toast({content: '请输入手机号'})
+                return false
+            }
+            if (!(/^1[3|4|5|7|8][0-9]{9}$/.test(this.phone.tel))) {
+                this.invalid = 'b1'
+                this.toast({content: '请输入正确格式的手机号'})
+                return false
+            }
+            if (this.phone.code == '') {
+                this.invalid = 'b2'
+                this.toast({content: '请输入验证码'})
+                return false
+            }
+            this.request.Get({
+                account: this.phone.tel,
+                code: this.phone.code,
+                userType:'0,1',
+                openId: '',
+                accessToken: ''
+            }, '/User/login')
+            .then(({data}) => {
+                log(data)
+                Set('userId', data.id)
+                .then(() => {
+                    if (data.userInfoFinishType != 0) {
+                        wepy.navigateTo({
+                            url: 'simpleResume?id=' + data.id
+                        })
+                    } else {
+                        wepy.relaunch({
+                            url: 'mine?userId=' + data.id
+                        })
+                    }
+                })
+            })
+        },
+        regesiter () {
+            if (this.reg.tel == '') {
+                this.invalid = 'c1'
+                this.toast({content: '请输入手机号'})
+                return false
+            }
+            if (!(/^1[3|4|5|7|8][0-9]{9}$/.test(this.reg.tel))) {
+                this.invalid = 'c1'
+                this.toast({content: '请输入正确格式的手机号'})
+                return false
+            }
+            if (this.reg.password == '') {
+                this.invalid = 'c2'
+                this.toast({content: '请输入密码'})
+                return false
+            }
+            // if (!(/^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,16}$/.test(this.reg.passsword))) {
+            //     this.invalid = 'c2'
+            //     this.toast({content: '请输入6-16位字母+数字组合的密码'})
+            //     return false
+            // }
+            if (this.reg.code == '') {
+                this.invalid = 'c3'
+                this.toast({content: '请输入验证码'})
+                return false
+            }
+            this.request.Get({
+                tel: this.reg.tel,
+                passwdTel: md5.hash(this.reg.password),
+                code: this.reg.code,
+                userType: 1,
+                companyType: 0,
+                openId: '',
+                accessToken: ''
+            }, '/User/addUser')
+            .then(({data}) => {
+                log(data)
+                Set('userId', data.id)
+                .then(() => {
+                    wepy.redirectTo({
+                        url: 'simpleResume?id=' + data.id
+                    })
+                })
+            })
+        }
+    }
+
+    onLoad () {
+        wepy.getSystemInfo({
+            success: res => {
+                this.height = res.windowHeight
+                this.$apply()
+            }
+        })
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+.page-wrap {
+    width: 100%;
+    background-color: #fff;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 240rpx;
+}
+.wrap {
+    width: 590rpx;
+    flex-direction: column;
+    border-radius: 40rpx;
+    border: 1px solid @bd-color;
+    align-items: center;
+    padding: 0 40rpx 40rpx;
+    image {
+        width: 320rpx;
+        height: 36rpx;
+        margin: 20rpx 0;
+    }
+    .invalid {
+        border: 1px solid @red-color;
+    }
+}
+.input {
+    width: 100%;
+    height: 80rpx;
+    position: relative;
+    margin: 10rpx 0;
+    input {
+        width: 100%;
+        height: 100%;
+        padding-left: 80rpx;
+        border-radius: 10rpx;
+        background-color: @bg-color;
+    }
+    icon {
+        width: 44rpx;
+        height: 48rpx;
+        background-color: @generate-color;
+        position: absolute;
+        left: 16rpx;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+}
+.btn-input {
+    width: 100%;
+    height: 80rpx;
+    position: relative;
+    margin: 10rpx 0;
+    align-items: center;
+    justify-content: space-between;
+    input {
+        flex: 1;
+        height: 100%;
+        background-color: @bg-color;
+        padding-left: 80rpx;
+        border-radius: 10rpx;
+    }
+    icon {
+        width: 44rpx;
+        height: 48rpx;
+        background-color: @generate-color;
+        position: absolute;
+        left: 16rpx;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+}
+.mini-btn {
+    width: 160rpx;
+    height: 80rpx;
+    background-color: @generate-color;
+    color: #fff;
+    font-size: 28rpx;
+    font-weight: bold;
+    border-radius: 10rpx;
+    line-height: 80rpx;
+    will-change: auto;
+    transform: translateZ(0);
+    transition: transform 100ms linear;
+    margin: 0;
+    padding: 0;
+    margin-left: 20rpx;
+    box-sizing: border-box;
+}
+.mini-btn[disabled] {
+    background-color: @bg-color;
+    color: #d1d1d1;
+    font-weight: 500;
+    font-size: 26rpx;
+    border: 0;
+    box-sizing: border-box;
+}
+.btn {
+    width: 100%;
+    height: 80rpx;
+    background-color: @generate-color;
+    color: #fff;
+    font-size: 28rpx;
+    font-weight: bold;
+    border-radius: 10rpx;
+    line-height: 80rpx;
+    will-change: auto;
+    transform: translateZ(0);
+    transition: transform 100ms linear;
+    margin: 0;
+    margin-top: 30rpx;
+}
+.btn-active {
+    transform: scale(0.96)
+}
+.tab {
+    width: 100%;
+    height: 60rpx;
+    align-items: center;
+    justify-content: space-between;
+    color: #aaa;
+    font-weight: 500;
+    margin-top: 30rpx;
+    text {
+        padding: 16rpx 0;
+    }
+}
+.placeholder {
+    color: #ccc;
+}
+</style>

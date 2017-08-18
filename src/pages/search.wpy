@@ -319,7 +319,7 @@
     z-index: 5;
     width: 100%;
     height: 100%;
-    padding: 270rpx 20rpx 60rpx;
+    padding: 290rpx 30rpx 40rpx;
     background-color: #fff;
     will-change: auto;
     transform: translate3d(0,-100%,0);

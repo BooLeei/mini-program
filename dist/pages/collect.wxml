@@ -1,0 +1,41 @@
+
+<view class="wrap" bindtap="cancelCollect">
+    <block wx:for="{{collect}}" wx:for-index="index" wx:for-item="item" wx:key="index">
+        <view class="item-wrap">
+            
+    <navigator url="jobDetail?id={{item.id}}&type={{2}}" class="listItem" hover-class="item-hover">
+        <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
+        <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
+        <view class="right-side">
+            <view class="first-line">
+                <text class="name">{{item.work_name}}</text>
+                <text class="salary">{{item.salary_name}}</text>
+            </view>
+            <view class="second-line">
+                <view>
+                    <icon class="iconfont icon-icon-test"/>
+                    <text>{{item.city_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-shijian2"/>
+                    <text>{{item.work_experience_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-xueli1"/>
+                    <text>{{item.education_name}}</text>
+                </view>
+            </view>
+            <view class="third-line">
+                <text  wx:for="{{item.tagList}}" wx:key="{{index}}">{{item.name}}</text>
+            </view>
+            <view class="describe">{{item.userCompany.brand_describe}}</view>
+        </view>
+        <icon wx:if="{{item.userCompany.is_approve_offical==1}}" class="comp-approve"/>
+    </navigator>
+
+            <view class="btn-wrap">
+                <button hover-class="btn-active" data-id="{{item.id}}" data-btnindex="{{index}}">取消收藏</button>
+            </view>
+        </view>
+    </block>
+</view>

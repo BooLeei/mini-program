@@ -26,8 +26,8 @@
         <view style="width:100%;padding:0 40rpx;box-sizing:border-box;">
             <view class="text-wrap">
                 <text class="text-line" style="color:#aaa;">职位发布时间：{{publishTime}}</text>
-                <button @tap="collect" hidden="{{collect}}" plain class="collect-btn has" hove-class="collect-btn-hover">收藏职位</button>
-                <button @tap="collect" hidden="{{!collect}}" plain class="collect-btn no" hove-class="collect-btn-hover">已收藏</button>
+                <button @tap="collect" wx:if="{{page.hasCollect==0}}" plain class="collect-btn has" hove-class="collect-btn-hover">收藏职位</button>
+                <button @tap="collect" wx:if="{{page.hasCollect==1}}" plain class="collect-btn no" hove-class="collect-btn-hover">已收藏</button>
             </view>
         </view>
         <view class="comp" @tap="toCompany">
@@ -339,8 +339,20 @@
             width: 100%;
             height: 40rpx;
             align-items: center;
-            icon {
-                color: @red-color;
+            .full {
+                width: 30rpx;
+                height: 30rpx;
+                background-color: @generate-color;
+                border-radius: 50%;
+                margin: 0 6rpx;
+            }
+            .empty {
+                width: 30rpx;
+                height: 30rpx;
+                border: 1px solid @generate-color;
+                box-sizing: border-box;
+                border-radius: 50%;
+                margin: 0 6rpx;
             }
         }
         .comp-jobNum {
@@ -612,7 +624,9 @@
 import wepy from 'wepy'
 import Loading from '../components/loading'
 import Request from '../utils/request'
+import Toast from '../components/toast'
 import { formatDay } from '../utils/formatTime'
+import {Get} from '../utils/storage'
 import { QQMAPKEY } from '../utils/constants'
 import QQMapWX from '../utils/qqmap-wx-jssdk.min'
 import { log } from '../utils/log'
@@ -626,6 +640,7 @@ export default class JobDetail extends wepy.page {
     request = new Request()
 
     data = {
+        hasLogin: false,
         loading: false,
         page: null,
         tagIndex: 0,
@@ -638,9 +653,15 @@ export default class JobDetail extends wepy.page {
     }
 
     type = '1'
+    id = ''
+    userId = ''
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
 
     components = {
-        'loading': Loading
+        'loading': Loading,
+        'toast': Toast
     }
 
     mapApi = new QQMapWX({
@@ -654,27 +675,33 @@ export default class JobDetail extends wepy.page {
             } else {
                 return ''
             }
-        },
-        collect () {
-            if (this.page && Number.parseInt(this.page.hasCollect) === 1) {
-                return true
-            } else {
-                return false
-            }
         }
     }
 
     methods = {
         collect () {
-            // if (wepy.getStorageSync('userId')) {
+            if (!this.hasLogin) {
+                this.toast({content: '请先登录'})
+                wepy.navigateTo({url: 'login'})
+                return false
+            }
             if (Number.parseInt(this.page.hasCollect) === 1) {
                 this.page.hasCollect = 0
             } else {
                 this.page.hasCollect = 1
             }
-            // } else {
-            //     wepy.showToast({title: '请先登录'})
-            // }
+            this.request.Post({
+                userId: this.userId,
+                inviteWorkId: this.id,
+                status: this.page.hasCollect
+            }, '/InviteWork/collect')
+            .then(({data}) => {
+                if (this.page.hasCollect === 1) {
+                    this.toast({content: '已收藏'})
+                } else {
+                    this.toast({content: '取消收藏'})
+                }
+            })
         },
         toCompany () {
             if (this.type === '3') {
@@ -740,6 +767,15 @@ export default class JobDetail extends wepy.page {
     onLoad (params) {
         this.loading = true
         this.type = params.type
+        this.id = params.id
+        Get('userId').then(ret => {
+            this.hasLogin = true
+            this.userId = ret
+            this.$apply()
+        }).catch(err => {
+            this.hasLogin = false
+            this.$apply()
+        })
         this.request.Get({
             'userId': wepy.getStorageSync('userId') || 0,
             'inviteWorkId': params.id
@@ -764,6 +800,7 @@ export default class JobDetail extends wepy.page {
     onUnload () {
         this.tagIndex = 0
         this.nameIndex = -1
+        this.hasLogin = false
     }
 }
 </script>

@@ -1,24 +1,45 @@
 <template>
-<view class="list-item" style="margin-top: 20rpx;">
-    <text>{{page.company_name}}</text>
-    <icon></icon>
-</view>
-<view class="list-item">
-    <text>担任职位</text>
-    <input />
-</view>
-<picker mode="date" start="1960-01" end="2017-12" class="base-picker" bindchange="bindExp">
-    <view class="picker-wrap">
-        <view>入职时间</view>
-        <view class="picker-text">{{page.time_start}}</view>
+<view class="wrap">
+    <view class="list-item" style="z-index:6;">
+        <input class="input-name" value="{{page.company_name}}" maxlength="30" bindinput="bindInput" bindfocus="bindFocus" />
+        <icon @tap="toggleSlide" hidden="{{!slide}}" class="red"></icon>
+        <icon @tap="toggleSlide" hidden="{{slide}}" class="blue"></icon>
     </view>
-</picker>
-<picker mode="date" start="1960-01" end="2017-12" class="base-picker" bindchange="bindExp">
-    <view class="picker-wrap">
-        <view>离职时间</view>
-        <view class="picker-text">{{page.experienceTypeName}}</view>
+    <view class="list-item">
+        <text>担任职位</text>
+        <input class="input-position" value="{{page.work_name}}" maxlength="20" bindinput="bindName"/>
     </view>
-</picker>
+    <picker mode="date" fields="month" start="1960-01" end="2017-12" class="base-picker" bindchange="bindStart">
+        <view class="picker-wrap">
+            <view>入职时间</view>
+            <view class="picker-text">{{page.time_start}}</view>
+        </view>
+    </picker>
+    <picker mode="date" fields="month" start="1960-01" end="2017-12" class="base-picker" bindchange="bindEnd">
+        <view class="picker-wrap">
+            <view>离职时间</view>
+            <view class="picker-text">{{page.time_end=='-1'?'至今':page.time_end}}</view>
+        </view>
+    </picker>
+    <view class="content" wx:if="{{!slider}}">
+        <view>工作内容</view>
+        <textarea value="{{page.content}}" bindinput="bindContent"></textarea>
+        <text>{{page.content.length}}/60</text>
+    </view>
+</view>
+<scroll-view hidden="{{!slide}}" scroll-y class="slider" @tap="selectCompany">
+    <view class="block" hidden="{{page.company_name!=''&&!init}}" wx:for="{{all}}" wx:for-item="parent" wx:key="{{index}}">
+        <view class="title">{{parent.name}}</view>
+        <view class="item" data-from="1" data-type="{{item.type}}" data-index="{{indexs}}" wx:for="{{parent.list}}" wx:for-index="indexs" wx:key="{{index}}">
+            <image src="{{item.logo_url}}" mode="aspectFill" />{{item.name}}
+        </view>
+    </view>
+    <view class="block" hidden="{{page.company_name==''&&init}}">
+        <view class="item" data-from="0" data-index="{{index}}" wx:for="{{result}}" wx:key="{{index}}">
+            <image src="{{item.logo_url}}" mode="aspectFill" />{{item.name}}
+        </view>
+    </view>
+</scroll-view>
 <view class="footer">
     <button @tap="cancel" class="left" plain hover-class='btn-active'>取消</button>
     <button @tap="sure" class="right" hover-class='btn-active'>保存</button>
@@ -27,6 +48,8 @@
 
 <script>
 import wepy from 'wepy'
+import Request from '../utils/request'
+import {log} from '../utils/log'
 
 export default class ResumeExp extends wepy.page {
     config = {
@@ -36,19 +59,212 @@ export default class ResumeExp extends wepy.page {
         disableScroll: false
     }
 
-    index = 0
+    index = -1
+    temp = ''
+
+    request = new Request()
 
     data = {
+        init: true,
         slide: false,
         page: {
+            'id': '',
+            'company_name': '',
+            'content': '',
+            'school_id': '',
+            'school_logo': '',
+            'school_name': '',
+            'status': '1',
+            'time_end': '',
+            'time_start': '',
+            'work_name': ''
+        },
+        result: [],
+        all: [
+            {
+                'type': '1',
+                'name': '大型连锁健身俱乐部',
+                'list': []
+            }, {
+                'type': '2',
+                'name': '小型连锁特色健身房',
+                'list': []
+            }, {
+                'type': '3',
+                'name': '新型健身工作室',
+                'list': []
+            }, {
+                'type': '4',
+                'name': '教练培训',
+                'list': []
+            }, {
+                'type': '5',
+                'name': '经管培训',
+                'list': []
+            }, {
+                'type': '6',
+                'name': '器械设备供应商',
+                'list': []
+            }, {
+                'type': '7',
+                'name': '媒体资讯',
+                'list': []
+            }, {
+                'type': '8',
+                'name': '会展/活动/赛事',
+                'list': []
+            }, {
+                'type': '9',
+                'name': '互联网',
+                'list': []
+            }, {
+                'type': '0',
+                'name': '其它',
+                'list': []
+            }
+        ]
+    }
 
+    watch = {
+        slide (newVal, oldVal) {
+            if (newVal) {
+                log(1234)
+                this.page.content = ''
+            } else {
+                log(4321)
+                this.page.content = this.temp
+            }
+        }
+    }
+
+
+    methods = {
+        toggleSlide () {
+            this.slide = !this.slide
+        },
+        bindFocus () {
+            this.slide = true
+        },
+        bindInput (e) {
+            this.init = false
+            this.page.company_name = e.detail.value
+            this.request.Get({
+                type: '',
+                name: e.detail.value
+            }, '/SchoolList/getList')
+            .then(({data}) => {
+                log(data)
+                this.result = data
+                this.$apply()
+            })
+        },
+        bindName (e) {
+            this.page.work_name = e.detail.value
+        },
+        bindStart (e) {
+            this.page.time_start = e.detail.value
+        },
+        bindEnd (e) {
+            this.page.time_end = e.detail.value
+        },
+        bindContent (e) {
+            this.page.content = e.detail.value
+            this.temp = e.detail.value
+        },
+        selectCompany (e) {
+            let item = {}
+            if (e.target.dataset.from == '1') {
+                let type = Number.parseInt(e.target.dataset.type)
+                if (type !== 0) {
+                    item = this.all[type - 1].list[e.target.dataset.index]
+                } else {
+                    item = this.all[9].list[e.target.dataset.index]
+                }
+            } else {
+                item = this.result[e.target.dataset.index]
+            }
+            log(item)
+            this.page.school_id = item.id
+            this.page.school_name = item.name
+            this.page.company_name = item.name
+            this.page.school_logo = item.logo_url
+            this.slide = false
+        },
+        cancel () {
+            wepy.navigateBack()
+        },
+        sure () {
+            let temp = {}
+            Object.assign(temp, this.page)
+            if (this.index != -1) {
+                this.$parent.global.workList[this.index] = temp
+            } else {
+                this.$parent.global.workList.unshift(temp)
+            }
+            this.$parent.global.workUpdate = true
+            wepy.navigateBack()
         }
     }
 
     onLoad ({index, msg}) {
         if (msg) {
             this.index = Number.parseInt(index)
-            this.page = msg
+            this.page = JSON.parse(msg)
+            this.temp = this.page.content
+        }
+        this.request.Get({
+            type: ''
+        }, '/SchoolList/getList')
+        .then(({data}) => {
+            for (let [index, item] of data.entries()) {
+                switch (item.type) {
+                case "1":
+                    this.all[0].list.push(item)
+                    break
+                case "2":
+                    this.all[1].list.push(item)
+                    break
+                case "3":
+                    this.all[2].list.push(item)
+                    break
+                case "4":
+                    this.all[3].list.push(item)
+                    break
+                case "5":
+                    this.all[4].list.push(item)
+                    break
+                case "6":
+                    this.all[5].list.push(item)
+                    break
+                case "7":
+                    this.all[6].list.push(item)
+                    break
+                case "8":
+                    this.all[7].list.push(item)
+                    break
+                case "9":
+                    this.all[8].list.push(item)
+                    break
+                case "0":
+                    this.all[9].list.push(item)
+                    break
+                default:
+                    break
+                }
+            }
+            this.$apply()
+        })
+    }
+
+    onUnload () {
+        this.slide = false
+        this.init = true
+        for (let key of Object.keys(this.page)) {
+            if (key == 'status') {
+                this.page[key] = '1'
+            } else {
+                this.page[key] = ''
+            }
         }
     }
 }
@@ -60,6 +276,12 @@ export default class ResumeExp extends wepy.page {
 page{
     background-color: #fff;
 }
+.wrap {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    flex-direction: column;
+}
 .list-item {
     width: 100%;
     height: 110rpx;
@@ -67,12 +289,54 @@ page{
     align-items: center;
     justify-content: space-between;
     padding: 0 40rpx;
+    position: relative;
+    background-color: #fff;
+    icon {
+        width: 30rpx;
+        height: 30rpx;
+        background-color: @generate-color;
+        position: absolute;
+        top: 50%;
+        right: 40rpx;
+        transform: translateY(-50%);
+    }
+    .red {
+        background-color: @red-color;
+    }
+}
+.slider {
+    width: 100%;
+    height: 100%;
+    padding-top: 112rpx;
+    background-color: @bg-color;
+    position: fixed;
+    top: 0;
+    z-index: 5;
+    box-sizing: border-box;
+    flex-direction: column;
+    overflow: auto;
+}
+.slider::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    color: transparent;
+}
+.input-name {
+    width: 90%;
+    height: 100%;
+    color: @font-color2;
+}
+.input-position {
+    flex: 1;
+    height: 100%;
+    text-align: right;
+    color: @font-color2;
 }
 .base-picker {
     width: 100%;
     height: 110rpx;
     padding: 0 40rpx;
-    border-bottom: 1px solid #f2f2f5;
+    border-top: 1px solid #f2f2f5;
     box-sizing: border-box;
     .picker-wrap {
         width: 100%;
@@ -82,6 +346,30 @@ page{
         .picker-text {
             color: @font-color2;
         }
+    }
+}
+.content {
+    width: 100%;
+    height: 420rpx;
+    padding: 0 40rpx;
+    justify-content: space-around;
+    position: relative;
+    flex-direction: column;
+    border-top: 1px solid @bd-color;
+    textarea {
+        width: 100%;
+        height: 320rpx;
+        border-radius: 12rpx;
+        padding: 12rpx;
+        background-color: @bg-color;
+        color: @font-color2;
+        box-sizing: border-box;
+    }
+    text {
+        position: absolute;
+        right: 50rpx;
+        bottom: 30rpx;
+        color: @font-color
     }
 }
 .footer {
@@ -117,6 +405,32 @@ page{
     }
     .btn-active {
         transform: scale(0.9);
+    }
+}
+.block {
+    width: 100%;
+    flex-direction: column;
+    .title {
+        width: 100%;
+        height: 70rpx;
+        align-items: flex-end;
+        padding: 10rpx 40rpx;
+        color: @font-color;
+    }
+    .item {
+        width: 100%;
+        height: 80rpx;
+        background-color: #fff;
+        padding: 0 40rpx;
+        align-items: center;
+        color: @font-color2;
+        border-top: 1px solid @bd-color;
+        image {
+            width: 54rpx;
+            height: 54rpx;
+            margin-right: 10rpx;
+            border-radius: 12rpx;
+        }
     }
 }
 </style>

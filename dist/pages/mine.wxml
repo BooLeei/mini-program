@@ -1,24 +1,29 @@
 
 <view class="top">
-    <image src="{{}}"/>
-    <view>李峰<icon/></view>
+    <image bindtap="toLogin" src="{{hasLogin?headerImageFull:'../image/uploadHeaderPic.png'}}"/>
+    <view bindtap="toLogin">{{hasLogin?nickname:'登录/注册'}}
+        <icon class="man"  wx:if="{{hasLogin&&sex==0}}"/>
+        <icon class="woman"  wx:if="{{hasLogin&&sex==1}}"/>
+    </view>
     <icon bindtap="slide" class="top-right-arrow"/>
 </view>
 <view class="list-wrap">
-    <view class="list-item">
+    <view bindtap="progess" class="list-item">
         <icon/>求职进度<icon class="list-right-arrow"/>
     </view>
     <view bindtap="resume" class="list-item">
         <icon/>我的简历<icon class="list-right-arrow"/>
     </view>
-    <view class="list-item">
+    <view bindtap="collect" class="list-item">
         <icon/>收藏职位<icon class="list-right-arrow"/>
     </view>
-    <view class="list-item">
+    <view bindtap="follow" class="list-item">
         <icon/>关注公司<icon class="list-right-arrow"/>
     </view>
-    <view class="list-item">
+    <view bindtap="setting" class="list-item">
         <icon/>我的设置<icon class="list-right-arrow"/>
     </view>
+    <view bindtap="simpleResume" class="list-item">
+        <icon/>简版简历测试入口<icon class="list-right-arrow"/>
+    </view>
 </view>
-<!-- <loading></loading> -->

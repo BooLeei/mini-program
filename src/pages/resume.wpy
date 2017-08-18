@@ -20,7 +20,7 @@
                 <view class="picker-text">{{base.sex[page.sex].text}}</view>
             </view>
         </picker>
-        <picker mode="date" class="base-picker" fields="year" start="1960" end="2017" bindchange="page.bindBirth" value="{{birthYear}}">
+        <picker mode="date" class="base-picker" fields="year" start="1960" end="2017" bindchange="bindBirth" value="{{birthYear}}">
             <view class="picker-wrap">
                 <view class="picker-label">出生年份</view>
                 <view class="picker-text">{{page.birthYear}}</view>
@@ -145,7 +145,7 @@
                 <text>{{item.has_certificate==1?'有证书':'无证书'}}</text>
             </view>
         </view>
-        <view wx:if="{{addEduShow}}" class="add-btn">
+        <view wx:if="{{addEduShow}}" class="add-btn" @tap="addEdu">
             <icon></icon>
             <text>添加学习经历</text>
         </view>
@@ -154,7 +154,7 @@
     <view class="block-content">
         <view class="img-wrap">
             <scroll-view scroll-x>
-                <view class="img-add" @tap="addImg">
+                <view class="img-add" style="top: {{page.showUrl.length==0?'0':'-166rpx'}}" @tap="addImg">
                     <icon></icon>
                     <text>添加图片</text>
                 </view>
@@ -165,11 +165,17 @@
             </scroll-view>
         </view>
     </view>
+    <view class="footer">
+        <button @tap="cancel" class="left" plain hover-class='btn-active'>取消</button>
+        <button @tap="sure" class="right" hover-class='btn-active'>保存</button>
+    </view>
 </view>
+<loading :show.sync="loading"></loading>
 </template>
 
 <script>
 import wepy from 'wepy'
+import Loading from '../components/loading'
 import Request from '../utils/request'
 import { Preview, Choose, Upload } from '../utils/imageUtils'
 import {log} from '../utils/log'
@@ -199,7 +205,7 @@ export default class Resume extends wepy.page {
                         resolve('点击确定')
                     }
                     if (ret.cancel) {
-                        reject('用户取消')
+                        reject(new Error('用户取消'))
                     }
                 },
                 fail: err => {
@@ -210,9 +216,9 @@ export default class Resume extends wepy.page {
     }
 
     data = {
-        initCity: true,
-        initJob: true,
+        loading: false,
         page: {
+            // userId: wepy.getStorageSync('userId'),
             resumeId: '',
             headerImage: '',
             headerImageFull: '',
@@ -377,11 +383,17 @@ export default class Resume extends wepy.page {
                     value: 9,
                     text: '50K以上'
                 }
-            ],
+            ]
         },
         city: [this.storage.city, this.storage.city[0].children],
-        job: [this.storage.job, this.storage.job[0].list, this.storage.job[0].list[0].workList],
+        job: [this.storage.job, this.storage.job[0].list, this.storage.job[0].list[0].workList]
     }
+
+    components = {
+        'loading': Loading
+    }
+
+    userId = ''
 
     arrayWatch (arr) {
         let count = 0
@@ -528,16 +540,23 @@ export default class Resume extends wepy.page {
             this.$parent.global.tagList = this.page.tagList
             this.$parent.global.tagUpdate = false
             wepy.navigateTo({
-                url: 'resume-tag?grandId=' + this.page.parentWorkClassId
-                + '&parentId='+ this.page.workClassId + '&id=' + this.page.workId
-                + '&index=' + index + '&msg=' + JSON.stringify(this.page.tagList[index])
+                url: 'resume-tag?grandId=' + this.page.parentWorkClassId +
+                '&parentId=' + this.page.workClassId + '&id=' + this.page.workId +
+                '&index=' + index + '&msg=' + JSON.stringify(this.page.tagList[index])
             })
         },
         editExp (index) {
             this.$parent.global.workList = this.page.workList
             this.$parent.global.workUpdate = false
             wepy.navigateTo({
-                url: 'resume-exp?index=' + index + '&msg=' + JSON.stringify(this.page.tagList[index])
+                url: 'resume-exp?index=' + index + '&msg=' + JSON.stringify(this.page.workList[index])
+            })
+        },
+        editEdu (index) {
+            this.$parent.global.schoolList = this.page.schoolList
+            this.$parent.global.schoolUpdate = false
+            wepy.navigateTo({
+                url: 'resume-edu?index=' + index + '&msg=' + JSON.stringify(this.page.schoolList[index])
             })
         },
         addTag () {
@@ -548,8 +567,8 @@ export default class Resume extends wepy.page {
             this.$parent.global.tagList = this.page.tagList
             this.$parent.global.tagUpdate = false
             wepy.navigateTo({
-                url: 'resume-tag?grandId='+ this.page.parentWorkClassId
-                +'&parentId='+ this.page.workClassId +'&id='+ this.page.workId
+                url: 'resume-tag?grandId='+ this.page.parentWorkClassId +
+                '&parentId=' + this.page.workClassId + '&id=' + this.page.workId
             })
         },
         addExp () {
@@ -557,6 +576,30 @@ export default class Resume extends wepy.page {
             this.$parent.global.workUpdate = false
             wepy.navigateTo({
                 url: 'resume-exp'
+            })
+        },
+        addEdu () {
+            this.$parent.global.schoolList = this.page.schoolList
+            this.$parent.global.schoolUpdate = false
+            wepy.navigateTo({
+                url: 'resume-edu'
+            })
+        },
+        cancel () {
+            this.showModal({content: '确定放弃编辑简历吗？'})
+            .then(ret => {
+                wepy.navigateBack()
+            })
+        },
+        sure () {
+            // this.page.userId = wepy.getStorageSync('userId')
+            this.page.userId = this.userId
+            this.request.Post(this.page, '/Resume/update')
+            .then(ret => {
+                wepy.navigateBack()
+            })
+            .catch(err => {
+                log(err)
             })
         }
     }
@@ -568,13 +611,27 @@ export default class Resume extends wepy.page {
         if (this.$parent.global.workUpdate) {
             this.page.workList = [...this.$parent.global.workList]
         }
+        if (this.$parent.global.schoolUpdate) {
+            this.page.schoolList = [...this.$parent.global.schoolList]
+        }
+    }
+
+    onPullDownRefresh () {
+        this.request.Get({'userId': this.userId}, '/Resume/getInfoSelf')
+        .then(({data}) => {
+            this.page = data
+            wepy.stopPullDownRefresh()
+            this.$apply()
+        })
     }
 
     onLoad (params) {
-        this.request.Get({'userId': 294}, '/Resume/getInfoSelf')
+        this.loading = true
+        this.userId = params.id
+        this.request.Get({'userId': params.id}, '/Resume/getInfoSelf')
         .then(({data}) => {
-            log(data)
             this.page = data
+            this.loading = false
             this.$apply()
         })
     }
@@ -910,6 +967,39 @@ page {
         width: 0;
         height: 0;
         color: transparent;
+    }
+}
+.footer {
+    width: 100%;
+    height: 120rpx;
+    background-color: #fff;
+    align-items: center;
+    padding: 0 40rpx;
+    margin-top: 20rpx;
+    justify-content: space-between;
+    button {
+        height: 80rpx;
+        line-height: 80rpx;
+        will-change: auto;
+        transform: translateZ(0);
+        font-size: bold;
+        font-size: 28rpx;
+        box-sizing: border-box;
+        transition: transform 150ms linear;
+        margin: 0;
+    }
+    .left {
+        width: 210rpx;
+        color: @generate-color;
+        border: 1px solid @generate-color;
+    }
+    .right {
+        width: 430rpx;
+        background-color: @generate-color;
+        color: #fff;
+    }
+    .btn-active {
+        transform: scale(0.9);
     }
 }
 </style>

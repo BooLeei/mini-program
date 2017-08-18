@@ -20,7 +20,7 @@
                 <view class="picker-text">{{base.sex[page.sex].text}}</view>
             </view>
         </picker>
-        <picker mode="date" class="base-picker" fields="year" start="1960" end="2017" bindchange="page.bindBirth" value="{{birthYear}}">
+        <picker mode="date" class="base-picker" fields="year" start="1960" end="2017" bindchange="bindBirth" value="{{birthYear}}">
             <view class="picker-wrap">
                 <view class="picker-label">出生年份</view>
                 <view class="picker-text">{{page.birthYear}}</view>
@@ -144,7 +144,7 @@
                 <text>{{item.has_certificate==1?'有证书':'无证书'}}</text>
             </view>
         </view>
-        <view wx:if="{{addEduShow}}" class="add-btn">
+        <view wx:if="{{addEduShow}}" class="add-btn" bindtap="addEdu">
             <icon/>
             <text>添加学习经历</text>
         </view>
@@ -153,7 +153,7 @@
     <view class="block-content">
         <view class="img-wrap">
             <scroll-view scroll-x>
-                <view class="img-add" bindtap="addImg">
+                <view class="img-add" style="top: {{page.showUrl.length==0?'0':'-166rpx'}}" bindtap="addImg">
                     <icon/>
                     <text>添加图片</text>
                 </view>
@@ -164,4 +164,13 @@
             </scroll-view>
         </view>
     </view>
+    <view class="footer">
+        <button bindtap="cancel" class="left" plain hover-class="btn-active">取消</button>
+        <button bindtap="sure" class="right" hover-class="btn-active">保存</button>
+    </view>
+</view>
+
+<!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
+<view class="loading"  wx:if="{{$loading$show}}">
+    <image class="loading-img" src="../image/loading.png"/>
 </view>

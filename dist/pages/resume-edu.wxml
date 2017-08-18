@@ -1,0 +1,61 @@
+
+<view class="wrap">
+    <view class="list-item" style="z-index:6;">
+        <input class="input-name" value="{{page.name}}" maxlength="30" bindinput="bindInput" bindfocus="bindFocus"/>
+        <icon bindtap="toggleSlide" hidden="{{!slide}}" class="red"/>
+        <icon bindtap="toggleSlide" hidden="{{slide}}" class="blue"/>
+    </view>
+    <view class="list-item">
+        <text>认证课程名称</text>
+        <input class="input-position" value="{{page.work_name}}" maxlength="20" bindinput="bindName"/>
+    </view>
+    <picker mode="date" fields="month" start="1960-01" end="2017-12" class="base-picker" bindchange="bindStart">
+        <view class="picker-wrap">
+            <view>开始时间</view>
+            <view class="picker-text">{{page.time_start}}</view>
+        </view>
+    </picker>
+    <picker style="border-bottom: 1px solid #f2f2f5" mode="date" fields="month" start="1960-01" end="2017-12" class="base-picker" bindchange="bindEnd">
+        <view class="picker-wrap">
+            <view>毕业时间</view>
+            <view class="picker-text">{{page.time_end=='-1'?'至今':page.time_end}}</view>
+        </view>
+    </picker>
+    
+<view class="slide-wrap" bindtap="$graduate$slides" style="background-color:{{$graduate$disable?'#ddd':'#fff'}}">
+    <view class="text {{$graduate$slide?'text-slide':''}}">
+        <text>是否结业？</text>
+        <text style="color:#707070">{{graduate}}</text>
+    </view>
+    <view class="slide-btn slide-first {{$graduate$slide?'first-slide':''}}" bindtap="$graduate$sure">是</view>
+    <view class="slide-btn slide-second {{$graduate$slide?'second-slide':''}}" bindtap="$graduate$no">否</view>
+</view>
+
+    
+<view class="slide-wrap" bindtap="$certificate$slides" style="background-color:{{$certificate$disable?'#ddd':'#fff'}}">
+    <view class="text {{$certificate$slide?'text-slide':''}}">
+        <text>是否获得证书？</text>
+        <text style="color:#707070">{{certificate}}</text>
+    </view>
+    <view class="slide-btn slide-first {{$certificate$slide?'first-slide':''}}" bindtap="$certificate$sure">是</view>
+    <view class="slide-btn slide-second {{$certificate$slide?'second-slide':''}}" bindtap="$certificate$no">否</view>
+</view>
+
+</view>
+<scroll-view hidden="{{!slide}}" scroll-y class="slider" bindtap="selectCompany">
+    <view class="block" hidden="{{page.name!=''&&!init}}"  wx:for="{{all}}" wx:for-item="parent" wx:key="{{index}}">
+        <view class="title">{{parent.name}}</view>
+        <view class="item" data-from="1" data-type="{{item.type}}" data-index="{{indexs}}" wx:for="{{parent.list}}" wx:for-index="indexs" wx:key="{{index}}">
+            <image src="{{item.logo_url}}" mode="aspectFill"/>{{item.name}}
+        </view>
+    </view>
+    <view class="block" hidden="{{page.name==''&&init}}">
+        <view class="item" data-from="0" data-index="{{index}}"  wx:for="{{result}}" wx:key="{{index}}">
+            <image src="{{item.logo_url}}" mode="aspectFill"/>{{item.name}}
+        </view>
+    </view>
+</scroll-view>
+<view class="footer">
+    <button bindtap="cancel" class="left" plain hover-class="btn-active">取消</button>
+    <button bindtap="sure" class="right" hover-class="btn-active">保存</button>
+</view>

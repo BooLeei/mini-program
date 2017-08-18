@@ -1,8 +1,15 @@
 
 <view class="logo">
     <view class="follow">
-        <button plain>未关注</button>
-        <text>{{baseData.attentionNum}}人关注</text>
+        <button plain bindtap="followCompany">{{baseData.hasOperate==1?'已关注':'关注'}}</button>
+        <view class="follow-num-wrap">
+            <view class="follow-num {{follow==2 ? 'follow-num-plus' : ''}} {{follow==0 ? 'follow-num-sub' : ''}} {{follow==1 ? 'follow-num-now' : ''}}" >
+                <text class="follow-subtract">{{baseData.attentionNum - 1}}</text>
+                <text class="follow-normal">{{baseData.attentionNum}}</text>
+                <text class="follow-plus">{{baseData.attentionNum + 1}}</text>
+            </view>
+            <view class="follow-text">人关注</view>
+        </view>
     </view>
     <view class="comment" bindtap="showComment">
         <icon/>
@@ -107,7 +114,7 @@
 </view>
 <view class="team" hidden="{{tabIndex!=2}}">
     <view bindtap="showTeamIntro"  wx:for="{{team}}" wx:key="{{index}}" class="team-wrap {{index%2==1?'reverse':''}}" data-wepy-params-a="{{index}}">
-        <image mode="aspectFill" src="{{item.header_image}}"/>
+        <image mode="aspectFill" src="{{item.header_image==''?'../image/leader-default.png':item.header_image}}"/>
         <view class="team-content {{index%2==1?'team-content-reverse':''}}">
             <text class="team-name">{{item.name}}</text>
             <text class="team-position">{{item.work_position_name}}</text>
@@ -124,7 +131,7 @@
 <view class="shop" hidden="{{tabIndex!=3}}"  wx:if="{{baseData.companyType<4}}">
     <view wx:for="{{shop}}" wx:key="{{index}}" class="shop-outer-wrap" hover-class="shop-item-hover" bindtap="showDetail" data-wepy-params-a="{{index}}">
         <view class="shop-inner-wrap">
-            <image class="shop-img" mode="aspectFill" src="{{item.shop_image_url}}"/>
+            <image class="shop-img" mode="aspectFill" src="{{item.shop_image_url==''?'../image/store-default.png':item.shop_image_url}}"/>
             <view class="shop-content">
                 <view class="shop-name">
                     {{item.name}}
@@ -155,7 +162,7 @@
 <view class="shop" hidden="{{tabIndex!=3}}"  wx:if="{{baseData.companyType==4}}">
     <view class="school-outer-wrap" wx:for="{{shop}}" wx:key="{{index}}" hover-class="school-item-hover" bindtap="showDetail" data-wepy-params-a="{{index}}">
         <view class="school-inner-wrap">
-            <image class="school-img" mode="aspectFill" src="{{item.shop_image_url}}"/>
+            <image class="school-img" mode="aspectFill" src="{{item.shop_image_url==''?'../image/school-default.png':item.shop_image_url}}"/>
             <view class="school-content">
                 <view class="school-name">
                     {{item.name}}
@@ -185,7 +192,7 @@
 <view class="shop" hidden="{{tabIndex!=3}}"  wx:if="{{baseData.companyType>4}}">
     <view class="prod-outer-wrap" wx:for="{{shop}}" wx:key="{{index}}" bindtap="showDetail" data-wepy-params-a="{{index}}">
         <view class="prod-inner-wrap">
-            <image mode="aspectFill" src="{{item.shop_image_url}}"/>
+            <image mode="aspectFill" src="{{item.shop_image_url==''?'../image/product-default.png':item.shop_image_url}}"/>
             <view class="prod-text-wrap">
                 <view>
                     {{item.name}}

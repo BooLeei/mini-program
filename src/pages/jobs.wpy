@@ -129,8 +129,8 @@ export default class Jobs extends wepy.page {
         wx.createSelectorQuery().select('#fixed').boundingClientRect(rect => {
             this.page.scrollTop = rect.top - 45
         }).exec()
-        // this.cityId = this.$parent.global.choose.region_id
-        // this.cityName = this.$parent.global.choose.region_name
+        this.cityId = this.$parent.global.choose.region_id
+        this.cityName = this.$parent.global.choose.region_name
         let all = Promise.all([
             this.Request.Get({type: '100'}, '/Banner/getListByType'),
             this.getJobList(0),

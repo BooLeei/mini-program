@@ -12,7 +12,7 @@ export default class Request {
                     if (Number.parseInt(ret.data.err) === 0) {
                         resolve(ret.data)
                     } else {
-                        reject(ret.data)
+                        reject(ret)
                     }
                 },
                 fail: err => {
@@ -32,7 +32,7 @@ export default class Request {
                     if (Number.parseInt(ret.data.err) === 0) {
                         resolve(ret.data)
                     } else {
-                        reject(ret.data)
+                        reject(ret)
                     }
                 },
                 fail: err => {
