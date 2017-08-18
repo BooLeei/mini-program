@@ -19,11 +19,11 @@
         </block>
         <block  wx:if="{{type==2}}">
             <view class="input">
-                <input value="{{phone.tel}}" placeholder="手机号" bindinput="bindPhoneTel" placeholder-class="placeholder"/>
+                <input class="{{invalid=='b1'?'invalid':''}}" focus="{{invalid=='b1'}}" value="{{phone.tel}}" placeholder="手机号" bindinput="bindPhoneTel" placeholder-class="placeholder"/>
                 <icon/>
             </view>
             <view class="btn-input">
-                <input value="{{phone.code}}" placeholder="验证码" bindinput="bindPhoneCode" placeholder-class="placeholder"/>
+                <input class="{{invalid=='b2'?'invalid':''}}" focus="{{invalid=='b2'}}" value="{{phone.code}}" placeholder="验证码" bindinput="bindPhoneCode" placeholder-class="placeholder"/>
                 <button bindtap="getAuthCode" class="mini-btn" disabled="{{loginCode}}" hover-class="btn-active" data-wepy-params-a="2">{{loginCount}}</button>
                 <icon/>
             </view>
@@ -35,15 +35,15 @@
         </block>
         <block wx:if="{{type==3}}">
             <view class="input">
-                <input value="{{reg.tel}}" placeholder="手机号" bindblur="checkAccount" bindinput="bindRegTel" placeholder-class="placeholder"/>
+                <input class="{{invalid=='c1'?'invalid':''}}" focus="{{invalid=='c1'}}" value="{{reg.tel}}" placeholder="手机号" bindblur="checkAccount" bindinput="bindRegTel" placeholder-class="placeholder"/>
                 <icon/>
             </view>
             <view class="input">
-                <input value="{{reg.password}}" type="password" bindinput="bindRegPassword" placeholder="密码" placeholder-class="placeholder"/>
+                <input class="{{invalid=='c2'?'invalid':''}}" focus="{{invalid=='c2'}}" value="{{reg.password}}" type="password" bindinput="bindRegPassword" placeholder="密码" placeholder-class="placeholder"/>
                 <icon/>
             </view>
             <view class="btn-input">
-                <input value="{{reg.code}}" placeholder="验证码" bindinput="bindRegCode" placeholder-class="placeholder"/>
+                <input class="{{invalid=='c3'?'invalid':''}}" focus="{{invalid=='c3'}}" value="{{reg.code}}" placeholder="验证码" bindinput="bindRegCode" placeholder-class="placeholder"/>
                 <button bindtap="getAuthCode" class="mini-btn" disabled="{{regCode}}" hover-class="btn-active" data-wepy-params-a="3">{{regCount}}</button>
                 <icon/>
             </view>

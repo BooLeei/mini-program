@@ -32,9 +32,9 @@
     </view>
     <view class="comment-tag">
         <view class="tag-write" wx:if="{{type=='1'}}">
-            <view class="tag-title">贴标签<text>（最多可贴3个标签）</text></view>
+            <view class="tag-title">贴标签<text>（最多可贴3个标签，长按移除）</text></view>
             <view class="tag-cont">
-                <view wx:for="{{tagArr}}" wx:key="{{index}}">{{item}}</view>
+                <view bindlongtap="delTag" wx:for="{{tagArr}}" wx:key="{{index}}" data-wepy-params-a="{{index}}">{{item}}</view>
             </view>
             <view class="tag-input">
                 <input value="{{tempTag}}" bindinput="bindTag" maxlength="6" bindconfirm="stickTag"/>

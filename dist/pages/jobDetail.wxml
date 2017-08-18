@@ -26,8 +26,8 @@
         <view style="width:100%;padding:0 40rpx;box-sizing:border-box;">
             <view class="text-wrap">
                 <text class="text-line" style="color:#aaa;">职位发布时间：{{publishTime}}</text>
-                <button bindtap="collect" hidden="{{collect}}" plain class="collect-btn has" hove-class="collect-btn-hover">收藏职位</button>
-                <button bindtap="collect" hidden="{{!collect}}" plain class="collect-btn no" hove-class="collect-btn-hover">已收藏</button>
+                <button bindtap="collect"  wx:if="{{page.hasCollect==0}}" plain class="collect-btn has" hove-class="collect-btn-hover">收藏职位</button>
+                <button bindtap="collect"  wx:if="{{page.hasCollect==1}}" plain class="collect-btn no" hove-class="collect-btn-hover">已收藏</button>
             </view>
         </view>
         <view class="comp" bindtap="toCompany">
@@ -36,8 +36,8 @@
                 <view class="comp-name">
                     <text class="name">{{page.userCompany.nickname}}</text>
                     <view class="{{page.userCompany.isApproveOffcial=='1'?'auth':''}}">
-                        <icon  wx:if="{{page.userCompany.isApproveOffcial=='1'}}"/>
-                        <icon  wx:if="{{page.userCompany.isApproveOffcial=='0'}}"/>
+                        <icon wx:if="{{page.userCompany.isApproveOffcial=='1'}}"/>
+                        <icon wx:if="{{page.userCompany.isApproveOffcial=='0'}}"/>
                         <text>{{page.userCompany.isApproveOffcial=='1'?'已认证':'未认证'}}</text>
                     </view>
                 </view>

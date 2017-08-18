@@ -153,7 +153,7 @@
     <view class="block-content">
         <view class="img-wrap">
             <scroll-view scroll-x>
-                <view class="img-add" bindtap="addImg">
+                <view class="img-add" style="top: {{page.showUrl.length==0?'0':'-166rpx'}}" bindtap="addImg">
                     <icon/>
                     <text>添加图片</text>
                 </view>

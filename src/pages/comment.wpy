@@ -32,9 +32,9 @@
     </view>
     <view class="comment-tag">
         <view class="tag-write" wx:if="{{type=='1'}}">
-            <view class="tag-title">贴标签<text>（最多可贴3个标签）</text></view>
+            <view class="tag-title">贴标签<text>（最多可贴3个标签，长按移除）</text></view>
             <view class="tag-cont">
-                <view wx:for="{{tagArr}}" wx:key="{{index}}">{{item}}</view>
+                <view @longtap="delTag({{index}})" wx:for="{{tagArr}}" wx:key="{{index}}">{{item}}</view>
             </view>
             <view class="tag-input">
                 <input value="{{tempTag}}" bindinput="bindTag" maxlength="6" bindconfirm="stickTag"/>
@@ -103,7 +103,9 @@ export default class Comment extends wepy.page {
 
     methods = {
         bindTag (e) {
+            console.log(e)
             this.tempTag = e.detail.value
+            console.log(this.tempTag)
         },
         stickTag () {
             if (this.tagArr.length >= 3) {
@@ -112,6 +114,11 @@ export default class Comment extends wepy.page {
             if (this.tempTag == '') {
                 return false
             }
+            this.tagArr.push(this.tempTag)
+            this.tempTag = ''
+        },
+        delTag (index) {
+            this.tagArr.splice(index, 1)
         },
         bindContent (e) {
             this.page.content = e.detail.value
@@ -161,21 +168,23 @@ export default class Comment extends wepy.page {
     }
 
     onLoad ({type, id}) {
-        console.log(type)
         this.type = type
-        this.request.Get({
-            id: 41
-        }, '/InviteWorkFeedback/getInfo')
-        .then(({data}) => {
-            for (let key of Object.keys(data)) {
-                if (key == 'salary_num' || key == 'interviewer_num' || key == 'env_num' || key == 'conform_num') {
-                    data[key] = Number.parseInt(data[key])
+        this.page.id = id
+        if (Number.parseInt(type) !== 1) {
+            this.request.Get({
+                id: id
+            }, '/InviteWorkFeedback/getInfo')
+            .then(({data}) => {
+                for (let key of Object.keys(data)) {
+                    if (key == 'salary_num' || key == 'interviewer_num' || key == 'env_num' || key == 'conform_num') {
+                        data[key] = Number.parseInt(data[key])
+                    }
                 }
-            }
-            this.page = data
-            this.tagArr = this.page.tag_str.split(',')
-            this.$apply()
-        })
+                this.page = data
+                this.tagArr = this.page.tag_str.split(',')
+                this.$apply()
+            })
+        }
     }
 }
 </script>

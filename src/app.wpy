@@ -42,7 +42,6 @@ export default class extends wepy.app {
             'pages/allProgress',
             'pages/allShopJobs',
             'pages/introduction',
-            'pages/followCompany',
             'pages/resume-tag',
             'pages/resume-exp',
             'pages/resume-edu',
@@ -50,7 +49,8 @@ export default class extends wepy.app {
             'pages/follow',
             'pages/progress',
             'pages/comment',
-            'pages/simpleResume'
+            'pages/simpleResume',
+            'pages/setting'
         ],
         window: {
             backgroundTextStyle: 'light',

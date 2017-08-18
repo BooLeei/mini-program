@@ -1,8 +1,15 @@
 <template>
 <view class="logo">
     <view class="follow">
-        <button plain >未关注</button>
-        <text>{{baseData.attentionNum}}人关注</text>
+        <button plain @tap="followCompany">{{baseData.hasOperate==1?'已关注':'关注'}}</button>
+        <view class="follow-num-wrap">
+            <view class="follow-num" :class="{'follow-num-plus':follow==2,'follow-num-sub':follow==0,'follow-num-now':follow==1}">
+                <text class="follow-subtract">{{baseData.attentionNum - 1}}</text>
+                <text class="follow-normal">{{baseData.attentionNum}}</text>
+                <text class="follow-plus">{{baseData.attentionNum + 1}}</text>
+            </view>
+            <view class="follow-text">人关注</view>
+        </view>
     </view>
     <view class="comment" @tap="showComment">
         <icon></icon>
@@ -297,6 +304,8 @@ import JobItem from '../components/job-list-item'
 // import Modal from '../components/modal-popup'
 // import SimpleModal from '../components/simple-modal-popup'
 import { QQMAPKEY } from '../utils/constants'
+import {Get} from '../utils/storage'
+import Toast from '../components/toast'
 import QQMapWX from '../utils/qqmap-wx-jssdk.min'
 import { Preview } from '../utils/imageUtils'
 import {log} from '../utils/log'
@@ -309,6 +318,7 @@ export default class Company extends wepy.page {
 
     data = {
         loading: false,
+        follow: 1,
         nameHidden: true,
         tabIndex: 1,
         tabFixed: false,
@@ -351,6 +361,12 @@ export default class Company extends wepy.page {
         key: QQMAPKEY
     })
 
+    login = {
+        has: false,
+        userId: '',
+        id: ''
+    }
+
     request = new Request()
 
     location = {
@@ -368,7 +384,12 @@ export default class Company extends wepy.page {
         // 'school-item': SchoolItem,
         // 'prod-item': ProdItem,
         // 'team-modal': SimpleModal,
-        'job-item': JobItem
+        'job-item': JobItem,
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
     }
 
     computed = {
@@ -406,6 +427,11 @@ export default class Company extends wepy.page {
             this.unfold = !this.unfold
         },
         showComment () {
+            if (!this.login.has) {
+                this.toast({content: '请先登录'})
+                wepy.navigateTo({url: 'login'})
+                return false
+            }
             this.comment = true
         },
         hideComment () {
@@ -413,7 +439,28 @@ export default class Company extends wepy.page {
         },
         sureComment () {
             // 调评价接口
-            this.comment = false
+            this.request.Post({
+                userCompanyId: this.login.id,
+                userId: this.login.userId,
+                brandRecognition: this.commentStar[0].star,
+                influence: this.commentStar[1].star,
+                scale: this.commentStar[2].star,
+                talents: this.commentStar[3].star,
+                salary: this.commentStar[4].star,
+                develop: this.commentStar[5].star
+            }, '/UserCompanyAppraiseList/add')
+            .then(ret => {
+                this.toast({content: '评价成功'})
+                this.comment = false
+                this.$apply()
+            })
+            .catch(err => {
+                if (err.err == 21311201) {
+                    this.toast({content: '您已评价过，请90天后再来评价'})
+                } else if (err.err == -1) {
+                    this.toast({content: '您还未完成评价'})
+                }
+            })
         },
         changeStar (e) {
             if (e.target.dataset.id !== undefined && e.target.dataset.index !== undefined) {
@@ -445,6 +492,44 @@ export default class Company extends wepy.page {
         showDetail (index) {
             this.shopIndex = Number.parseInt(index)
             this.shopDetail = true
+        },
+        followCompany () {
+            if (!this.login.has) {
+                this.toast({content: '请先登录'})
+                wepy.navigateTo({url: 'login'})
+                return false
+            }
+            let type = this.baseData.hasOperate == 1 ? 0 : 1
+            this.request.Post({
+                userId: this.login.userId,
+                objectId: this.login.id,
+                type: 1,
+                status: type
+            }, '/UserOperate/addUserOperate')
+            .then(ret => {
+                if (this.baseData.hasOperate == 1) {
+                    this.toast({content: '已取消关注'})
+                    this.baseData.hasOperate = 0
+                    if (this.follow == 2) {
+                        this.follow = 1
+                    } else if (this.follow == 1) {
+                        this.follow = 0
+                    } else {
+                        return
+                    }
+                } else {
+                    this.toast({content: '已关注'})
+                    this.baseData.hasOperate = 1
+                    if (this.follow == 0) {
+                        this.follow = 1
+                    } else if (this.follow == 1) {
+                        this.follow = 2
+                    } else {
+                        return
+                    }
+                }
+                this.$apply()
+            })
         },
         stopPropagation () {
             return false
@@ -536,6 +621,15 @@ export default class Company extends wepy.page {
 
     onLoad (params) {
         this.loading = true
+        this.login.id = params.id
+        Get('userId').then(ret => {
+            this.login.has = true
+            this.login.userId = ret
+            this.$apply()
+        }).catch(err => {
+            this.login.has = false
+            this.$apply()
+        })
         wx.createSelectorQuery().select('#fixed').boundingClientRect(rect => {
             this.scrollTop = rect.top
         }).exec()
@@ -545,6 +639,7 @@ export default class Company extends wepy.page {
         ]).then(([{data: about}, {data: info}]) => {
             log(info)
             info.companyType = Number.parseInt(info.companyType)
+            info.attentionNum = Number.parseInt(info.attentionNum)
             this.baseData = info
             this.tempProgress = about.progressList.slice(0, 3)
             for (let item of this.tempProgress) {
@@ -620,8 +715,44 @@ export default class Company extends wepy.page {
             color: #fff;
             margin-bottom: 10rpx;
         }
-        text {
-            font-size: 26rpx;
+        .follow-num-wrap {
+            align-items: center;
+            justify-content: center;
+            overflow-y: hidden;
+            .follow-num {
+                position: relative;
+                min-width: 30rpx;
+                height: 30rpx;
+                align-items: center;
+                justify-content: center;
+                will-change: auto;
+                transform: translateZ(0);
+                transition: transform 150ms linear;
+                color: #fff;
+                text {
+                    position: absolute;
+                    left: 50%;
+                    transform: translateX(-50%);
+                }
+                .follow-subtract {
+                    bottom: 30rpx;
+                }
+                .follow-plus {
+                    top: 30rpx;
+                }
+            }
+            .follow-text {
+                color: #fff;
+            }
+            .follow-num-plus {
+                transform: translateY(-100%);
+            }
+            .follow-num-now {
+                transform: translateY(0);
+            }
+            .follow-num-sub {
+                transform: translateY(100%);
+            }
         }
     }
     .comment {
@@ -1170,8 +1301,9 @@ export default class Company extends wepy.page {
                 width: 30rpx;
                 height: 30rpx;
                 border-radius: 50%;
-                box-sizing: border-box;
                 outline: 10rpx solid #fff;
+                background-clip: content-box;
+                padding: 10rpx;
             }
             .comment-full {
                 background-color: @generate-color;
@@ -1188,7 +1320,7 @@ export default class Company extends wepy.page {
     position: fixed;
     top: 0;
     z-index: 10;
-    background-color: rgba(0,0,0,0.6);
+    background-color: rgba(0,0,0,0.7);
     align-items: center;
     justify-content: center;
 }

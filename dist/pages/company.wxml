@@ -1,8 +1,15 @@
 
 <view class="logo">
     <view class="follow">
-        <button plain>未关注</button>
-        <text>{{baseData.attentionNum}}人关注</text>
+        <button plain bindtap="followCompany">{{baseData.hasOperate==1?'已关注':'关注'}}</button>
+        <view class="follow-num-wrap">
+            <view class="follow-num {{follow==2 ? 'follow-num-plus' : ''}} {{follow==0 ? 'follow-num-sub' : ''}} {{follow==1 ? 'follow-num-now' : ''}}" >
+                <text class="follow-subtract">{{baseData.attentionNum - 1}}</text>
+                <text class="follow-normal">{{baseData.attentionNum}}</text>
+                <text class="follow-plus">{{baseData.attentionNum + 1}}</text>
+            </view>
+            <view class="follow-text">人关注</view>
+        </view>
     </view>
     <view class="comment" bindtap="showComment">
         <icon/>

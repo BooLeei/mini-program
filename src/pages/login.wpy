@@ -21,11 +21,13 @@
         </block>
         <block wx:if="{{type==2}}">
             <view class="input">
-                <input value="{{phone.tel}}" placeholder="手机号" bindinput="bindPhoneTel" placeholder-class="placeholder" />
+                <input class="{{invalid=='b1'?'invalid':''}}" focus="{{invalid=='b1'}}" value="{{phone.tel}}"
+                placeholder="手机号" bindinput="bindPhoneTel" placeholder-class="placeholder" />
                 <icon></icon>
             </view>
             <view class="btn-input">
-                <input value="{{phone.code}}" placeholder="验证码" bindinput="bindPhoneCode" placeholder-class="placeholder" />
+                <input class="{{invalid=='b2'?'invalid':''}}" focus="{{invalid=='b2'}}" value="{{phone.code}}"
+                placeholder="验证码" bindinput="bindPhoneCode" placeholder-class="placeholder" />
                 <button @tap="getAuthCode(2)" class="mini-btn" disabled="{{loginCode}}" hover-class="btn-active">{{loginCount}}</button>
                 <icon></icon>
             </view>
@@ -37,15 +39,18 @@
         </block>
         <block wx:if="{{type==3}}">
             <view class="input">
-                <input value="{{reg.tel}}" placeholder="手机号" bindblur="checkAccount" bindinput="bindRegTel" placeholder-class="placeholder" />
+                <input class="{{invalid=='c1'?'invalid':''}}" focus="{{invalid=='c1'}}" value="{{reg.tel}}"
+                 placeholder="手机号" bindblur="checkAccount" bindinput="bindRegTel" placeholder-class="placeholder" />
                 <icon></icon>
             </view>
             <view class="input">
-                <input value="{{reg.password}}" type="password" bindinput="bindRegPassword" placeholder="密码" placeholder-class="placeholder" />
+                <input class="{{invalid=='c2'?'invalid':''}}" focus="{{invalid=='c2'}}" value="{{reg.password}}"
+                type="password" bindinput="bindRegPassword" placeholder="密码" placeholder-class="placeholder" />
                 <icon></icon>
             </view>
             <view class="btn-input">
-                <input value="{{reg.code}}" placeholder="验证码" bindinput="bindRegCode" placeholder-class="placeholder" />
+                <input class="{{invalid=='c3'?'invalid':''}}" focus="{{invalid=='c3'}}" value="{{reg.code}}"
+                placeholder="验证码" bindinput="bindRegCode" placeholder-class="placeholder" />
                 <button @tap="getAuthCode(3)" class="mini-btn" disabled="{{regCode}}" hover-class="btn-active">{{regCount}}</button>
                 <icon></icon>
             </view>
@@ -64,8 +69,9 @@
 import wepy from 'wepy'
 import Toast from '../components/toast'
 import Request from '../utils/request'
-import {log} from '../utils/log'
 import md5 from 'md5-es'
+import {Set} from '../utils/storage.js'
+import {log} from '../utils/log'
 
 export default class Login extends wepy.page {
     config = {
@@ -224,11 +230,6 @@ export default class Login extends wepy.page {
                 this.toast({content: '请输入正确格式的手机号'})
                 return false
             }
-            // if (!(/^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,16}$/.test(this.login.passsword))) {
-            //     this.invalid = 'a2'
-            //     this.toast({content: '帐号密码错误'})
-            //     return false
-            // }
             this.request.Get({
                 account: this.login.tel,
                 passwd: md5.hash(this.login.password),
@@ -236,10 +237,105 @@ export default class Login extends wepy.page {
                 openId: "",
                 accessToken: ""
             }, '/User/login')
-            .then(ret => {
-                log(ret)
+            .then(({data}) => {
+                log(data)
+                Set('userId', data.id)
+                .then(() => {
+                    if (data.userInfoFinishType != 0) {
+                        wepy.navigateTo({
+                            url: 'simpleResume?id=' + data.id
+                        })
+                    } else {
+                        wepy.reLaunch({
+                            url: 'mine?userId=' + data.id
+                        })
+                    }
+                })
             })
-
+        },
+        codeLogin () {
+            if (this.phone.tel == '') {
+                this.invalid = 'b1'
+                this.toast({content: '请输入手机号'})
+                return false
+            }
+            if (!(/^1[3|4|5|7|8][0-9]{9}$/.test(this.phone.tel))) {
+                this.invalid = 'b1'
+                this.toast({content: '请输入正确格式的手机号'})
+                return false
+            }
+            if (this.phone.code == '') {
+                this.invalid = 'b2'
+                this.toast({content: '请输入验证码'})
+                return false
+            }
+            this.request.Get({
+                account: this.phone.tel,
+                code: this.phone.code,
+                userType:'0,1',
+                openId: '',
+                accessToken: ''
+            }, '/User/login')
+            .then(({data}) => {
+                log(data)
+                Set('userId', data.id)
+                .then(() => {
+                    if (data.userInfoFinishType != 0) {
+                        wepy.navigateTo({
+                            url: 'simpleResume?id=' + data.id
+                        })
+                    } else {
+                        wepy.relaunch({
+                            url: 'mine?userId=' + data.id
+                        })
+                    }
+                })
+            })
+        },
+        regesiter () {
+            if (this.reg.tel == '') {
+                this.invalid = 'c1'
+                this.toast({content: '请输入手机号'})
+                return false
+            }
+            if (!(/^1[3|4|5|7|8][0-9]{9}$/.test(this.reg.tel))) {
+                this.invalid = 'c1'
+                this.toast({content: '请输入正确格式的手机号'})
+                return false
+            }
+            if (this.reg.password == '') {
+                this.invalid = 'c2'
+                this.toast({content: '请输入密码'})
+                return false
+            }
+            // if (!(/^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,16}$/.test(this.reg.passsword))) {
+            //     this.invalid = 'c2'
+            //     this.toast({content: '请输入6-16位字母+数字组合的密码'})
+            //     return false
+            // }
+            if (this.reg.code == '') {
+                this.invalid = 'c3'
+                this.toast({content: '请输入验证码'})
+                return false
+            }
+            this.request.Get({
+                tel: this.reg.tel,
+                passwdTel: md5.hash(this.reg.password),
+                code: this.reg.code,
+                userType: 1,
+                companyType: 0,
+                openId: '',
+                accessToken: ''
+            }, '/User/addUser')
+            .then(({data}) => {
+                log(data)
+                Set('userId', data.id)
+                .then(() => {
+                    wepy.redirectTo({
+                        url: 'simpleResume?id=' + data.id
+                    })
+                })
+            })
         }
     }
 

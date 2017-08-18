@@ -1,7 +1,10 @@
 
 <view class="top">
-    <image bindtap="toLogin" src="{{hasLogin?'':'../image/uploadHeaderPic.png'}}"/>
-    <view bindtap="toLogin">{{hasLogin?'李峰':'登录/注册'}}<icon  wx:if="{{hasLogin}}"/></view>
+    <image bindtap="toLogin" src="{{hasLogin?headerImageFull:'../image/uploadHeaderPic.png'}}"/>
+    <view bindtap="toLogin">{{hasLogin?nickname:'登录/注册'}}
+        <icon class="man"  wx:if="{{hasLogin&&sex==0}}"/>
+        <icon class="woman"  wx:if="{{hasLogin&&sex==1}}"/>
+    </view>
     <icon bindtap="slide" class="top-right-arrow"/>
 </view>
 <view class="list-wrap">
@@ -17,7 +20,7 @@
     <view bindtap="follow" class="list-item">
         <icon/>关注公司<icon class="list-right-arrow"/>
     </view>
-    <view class="list-item">
+    <view bindtap="setting" class="list-item">
         <icon/>我的设置<icon class="list-right-arrow"/>
     </view>
     <view bindtap="simpleResume" class="list-item">

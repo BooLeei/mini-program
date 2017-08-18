@@ -154,7 +154,7 @@
     <view class="block-content">
         <view class="img-wrap">
             <scroll-view scroll-x>
-                <view class="img-add" @tap="addImg">
+                <view class="img-add" style="top: {{page.showUrl.length==0?'0':'-166rpx'}}" @tap="addImg">
                     <icon></icon>
                     <text>添加图片</text>
                 </view>
@@ -593,7 +593,7 @@ export default class Resume extends wepy.page {
         },
         sure () {
             // this.page.userId = wepy.getStorageSync('userId')
-            this.page.userId = '294'
+            this.page.userId = this.userId
             this.request.Post(this.page, '/Resume/update')
             .then(ret => {
                 wepy.navigateBack()
