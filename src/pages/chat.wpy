@@ -1,0 +1,120 @@
+<template>
+<scroll-view scroll-y class="chat-list">
+    <view class="chat-item">
+
+    </view>
+</scoll-view>
+<view class="chat-input">
+    <textarea value="{{sendMsg}}" bindinput="bindSendMsg" cursor-spacing="20" fixed="true" hover-start-time="0"></textarea>
+    <button hover-class="btn-active">发送</button>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import {Receive, Send} from '../utils/socket'
+import Request from '../utils/request'
+import {log} from '../utils/log'
+
+export default class Chat extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '聊天消息'
+    }
+
+    request = new Request()
+    userId = ''
+    data = {
+        msg: {},
+        cursor: 0,
+        sendMsg: '',
+        chatList: []
+    }
+
+    getChatList (page = 1, pageSize = 12) {
+        return this.request.Get({
+            groupId: this.msg._id,
+            page: 1,
+            pageSize: 15,
+            userId: this.userId
+        }, '/Chat/getListByGroupId')
+    }
+
+    methods = {
+        bindSendMsg (e) {
+            this.sendMsg = e.detail.value
+        }
+    }
+
+    onShow () {
+        Receive().then(({data}) => {
+            log(data)
+            let {data: ret} = JSON.parse(data)
+        })
+    }
+
+    onLoad ({type, userId, msg}) {
+        msg = JSON.parse(msg)
+        this.userId = userId
+        Object.assign(this.msg, msg)
+        log(type)
+        log(msg)
+        wepy.setNavigationBarTitle({title: msg.chatUserName})
+        this.getChatList().then(({data}) => {
+            log(data)
+        })
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+page {
+    background-color: @bg-color;
+}
+.chat-input {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    border-top: 1px solid #ddd;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background-color: #fff;
+    textarea {
+        flex: 1;
+        height: 35px;
+        border: 1px solid #ddd;
+        border-radius: 12rpx;
+        font-size: 36rpx;
+        line-height: 1.1;
+        padding: 5px;
+        box-sizing: border-box;
+        color: #707070;
+    }
+    textarea::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        color: transparent;
+    }
+    button {
+        width: 80px;
+        height: 35px;
+        line-height: 35px;
+        background-color: @generate-color;
+        color: #fff;
+        font-size: 36rpx;
+        font-weight: 500;
+        margin-left: 6rpx;
+        border-radius: 12rpx;
+        will-change: auto;
+        transform: translateZ(0);
+        transition: transform 70ms linear;
+    }
+    .btn-active {
+        transform: scale(0.96);
+    }
+}
+</style>

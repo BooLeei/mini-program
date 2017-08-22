@@ -1,0 +1,173 @@
+<template>
+    <view class="list-item" @touchstart="slideStart" @touchmove="slideMove({{index}})" @tap="toChat({{index}}, {{listItem}})">
+        <view class="slide-wrap {{slideToggle==index?'wrap-active':''}}">
+            <view class="list-left">
+                <image src="{{listItem.chatUserHeaderImage}}" mode="aspectFill" />
+                <text class="unread-num" wx:if="{{listItem.nr!=0}}">{{listItem.nr}}</text>
+            </view>
+            <view class="list-right">
+                <view class="msg-title" style="color:#40c4ff;">
+                    {{listItem.chatUserName}}<text class="msg-time">{{time}}</text>
+                </view>
+                <view class="msg-cont">{{listItem.c}}</view>
+            </view>
+        </view>
+        <view class="slide first {{slideToggle==index?'first-active':''}}">{{listItem.isTop==1?'取消置顶':'置顶消息'}}</view>
+        <view class="slide second {{slideToggle==index?'second-active':''}}">删除</view>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import {formatTime} from '../utils/formatTime'
+
+export default class ChatItem extends wepy.component {
+    props = {
+        listItem: {
+            type: Object,
+            default: {}
+        },
+        slideToggle: {
+            type: Number,
+            default: -1,
+            twoWay: true
+        },
+        index: {
+            type: Number,
+            default: -1
+        }
+    }
+
+    slide = {
+        pageX: 0,
+        pageY: 0
+    }
+
+    // computed = {
+    //     time () {
+    //         return formatTime(this.listItem.c_t)
+    //     }
+    // }
+
+    methods = {
+        slideStart (index, item, e) {
+            Object.assign(this.slide, e.changedTouches[0])
+        },
+        slideMove (index, item, e) {
+            let temp = e.changedTouches[0]
+            if (temp.pageX - this.slide.pageX < -10 && Math.abs(temp.pageY - this.slide.pageY) < 6) {
+                this.slideToggle = index
+            }
+            if (temp.pageX - this.slide.pageX > 10 && Math.abs(temp.pageY - this.slide.pageY) < 6) {
+                this.slideToggle = -1
+            }
+        },
+        toChat (index, item) {
+            if (this.slideToggle != -1) {
+                this.slideToggle = -1
+                return false
+            }
+
+        }
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+.list-item {
+    width: 100%;
+    height: 152rpx;
+    padding: 0 40rpx;
+    background-color: #fff;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+.item-active {
+    background-color: #f0f0f0;
+}
+.slide-wrap {
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    will-change: auto;
+    transform: translateZ(0);
+    transition: transform 300ms linear;
+}
+.wrap-active {
+    transform: translate3d(-380rpx,0,0);
+}
+.slide {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 28rpx;
+    will-change: auto;
+    transform: translate3d(100%,0,0);
+    transition: transform 300ms linear;
+    color: #fff;
+}
+.first {
+    width: 220rpx;
+    background-color: #ddd;
+}
+.first-active {
+    transform: translate3d(-160rpx,0,0);
+}
+.second {
+    width: 160rpx;
+    background-color: @red-color;
+}
+.second-active {
+    transform: translate3d(0,0,0);
+}
+.list-left {
+    width: 120rpx;
+    height: 120rpx;
+    position: relative;
+    image {
+        width: 120rpx;
+        height: 120rpx;
+        border: 1px solid @bd-color;
+        border-radius: 12rpx;
+    }
+    .unread-num {
+        position: absolute;
+        background-color: @red-color;
+        border-radius: 20rpx;
+        right: -14rpx;
+        top: -14rpx;
+        padding: 0 14rpx;
+        height: 40rpx;
+        line-height: 40rpx;
+        text-align: center;
+        color: #fff;
+    }
+}
+.list-right {
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 16rpx 0 16rpx 30rpx;
+    height: 100%;
+    .msg-title {
+        font-size: 28rpx;
+        font-weight: 500;
+        position: relative;
+        .msg-time {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            color: @font-color;
+            font-size: 26rpx;
+        }
+    }
+}
+</style>

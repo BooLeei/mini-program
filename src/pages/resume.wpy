@@ -51,7 +51,7 @@
         <view class="base-textarea">
             <text>自我介绍</text>
             <textarea value="{{page.intro}}" bindinput="bindIntro" cursor-spacing="200" maxlength="60" placeholder-style="color: #aaa"
-            placeholder="提醒：请勿输入手机号码、座机、微信号、邮箱及网址链接，否则职位将被系统自动删除，且不可恢复"></textarea>
+            placeholder="请用简短的一两句话介绍一下你自己吧！提醒：请勿输入手机号、座机、微信号、邮箱及网址链接，否则将无法保存。"></textarea>
             <text class="num-count">{{page.intro.length}}/60</text>
         </view>
     </view>

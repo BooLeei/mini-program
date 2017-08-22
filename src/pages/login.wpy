@@ -240,6 +240,7 @@ export default class Login extends wepy.page {
             .then(({data}) => {
                 log(data)
                 Set('userId', data.id)
+                Set('userImg', data.headerImageFull)
                 .then(() => {
                     if (data.userInfoFinishType != 0) {
                         wepy.navigateTo({
@@ -279,6 +280,7 @@ export default class Login extends wepy.page {
             .then(({data}) => {
                 log(data)
                 Set('userId', data.id)
+                Set('userImg', data.headerImageFull)
                 .then(() => {
                     if (data.userInfoFinishType != 0) {
                         wepy.navigateTo({

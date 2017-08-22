@@ -1,17 +1,428 @@
 <template>
-    chat list
+<view class="chat-wrap">
+    <view class="list-item" style="margin-top: 20rpx;">
+        <view class="list-left">
+            <image src="{{}}" mode="aspectFill" />
+            <text class="unread-num">66</text>
+        </view>
+        <view class="list-right">
+            <view class="msg-title" style="color:#40c4ff;">
+                国王官方公告通知<text class="msg-time">8月1日</text>
+            </view>
+            <view class="msg-cont">系统更新</view>
+        </view>
+    </view>
+    <view class="list-item" style="margin: 10rpx 0 20rpx;">
+        <view class="list-left">
+            <image src="{{}}" mode="aspectFill" />
+            <text class="unread-num">66</text>
+        </view>
+        <view class="list-right">
+            <view class="msg-title" style="color:#40c4ff;">
+                对我感兴趣<text class="msg-time">8月1日</text>
+            </view>
+            <view class="msg-cont">与对您感兴趣的公司沟通，更容易获得职位呦！</view>
+        </view>
+    </view>
+    <view class="list-wrap top">
+        <view class="list-item" wx:for="{{topList}}" wx:key="{{index}}"
+        @touchstart="slideStart" @touchmove="slideMove({{item}})" @tap="toChat({{item}})">
+            <view class="slide-wrap {{slideId==item._id?'wrap-active':''}}">
+                <view class="list-left">
+                    <image src="{{item.chatUserHeaderImage}}" mode="aspectFill" />
+                    <text class="unread-num" wx:if="{{item.nr!=0}}">{{item.nr}}</text>
+                </view>
+                <view class="list-right">
+                    <view class="msg-title" style="color:#40c4ff;">
+                        {{item.chatUserName}}<text class="msg-time">{{item.time}}</text>
+                    </view>
+                    <view class="msg-cont">{{item.c}}</view>
+                </view>
+            </view>
+            <view class="slide first {{slideId==item._id?'first-active':''}}" @tap.stop="upTop(1, {{index}}, {{item}})">取消置顶</view>
+            <view class="slide second {{slideId==item._id?'second-active':''}}" @tap="removeItem(1, {{index}}, {{item}})">删除</view>
+        </view>
+    </view>
+    <view class="list-wrap">
+        <view class="list-item" wx:for="{{list}}" wx:key="{{index}}"
+        @touchstart="slideStart" @touchmove="slideMove({{item}})" @tap="toChat({{item}})">
+            <view class="slide-wrap {{slideId==item._id?'wrap-active':''}}">
+                <view class="list-left">
+                    <image src="{{item.chatUserHeaderImage}}" mode="aspectFill" />
+                    <text class="unread-num" wx:if="{{item.nr!=0}}">{{item.nr}}</text>
+                </view>
+                <view class="list-right">
+                    <view class="msg-title" style="color:#40c4ff;">
+                        {{item.chatUserName}}<text class="msg-time">{{item.time}}</text>
+                    </view>
+                    <view class="msg-cont">{{item.c}}</view>
+                </view>
+            </view>
+            <view class="slide first {{slideId==item._id?'first-active':''}}" @tap.stop="upTop(0, {{index}}, {{item}})">置顶消息</view>
+            <view class="slide second {{slideId==item._id?'second-active':''}}" @tap.stop="removeItem(0, {{index}}, {{item}})">删除</view>
+        </view>
+    </view>
+</view>
 </template>
-
-<style lang="less">
-    
-</style>
 
 <script>
 import wepy from 'wepy'
+import { Receive} from '../utils/socket'
+import Request from '../utils/request'
+import {formatTime} from '../utils/formatTime'
+import {Get, Set} from '../utils/storage'
+import {log} from '../utils/log'
 
 export default class ChatList extends wepy.page {
-    data = {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '聊天消息'
+    }
 
+    request = new Request()
+
+    top = []
+
+    login = {
+        has: false,
+        userId: ''
+    }
+
+    slide = {
+        pageX: 0,
+        pageY: 0
+    }
+
+    data = {
+        hasLogin: false,
+        slideId: 0,
+        topList: [],
+        list: []
+    }
+
+    sort (arr, key = 'c_t') {
+    　　if (arr.length <= 1) {
+            return arr
+        }
+    　　let pivotIndex = Math.floor(arr.length / 2)
+    　　let pivot = arr.splice(pivotIndex, 1)[0]
+    　　let left = []
+    　　let right = []
+    　　for (let [index, item] of arr.entries()){
+    　　　　if (item[key] > pivot[key]) {
+    　　　　　　left.push(item)
+    　　　　} else {
+    　　　　　　right.push(item)
+    　　　　}
+    　　}
+        return [...this.sort(left), pivot, ...this.sort(right)]
+    }
+
+    methods = {
+        slideStart (item, e) {
+            Object.assign(this.slide, e.changedTouches[0])
+        },
+        slideMove (item, e) {
+            let temp = e.changedTouches[0]
+            if (temp.pageX - this.slide.pageX < -10 && Math.abs(temp.pageY - this.slide.pageY) < 8) {
+                this.slideId = item._id
+            }
+            if (temp.pageX - this.slide.pageX > 10 && Math.abs(temp.pageY - this.slide.pageY) < 8) {
+                this.slideId = 0
+            }
+        },
+        toChat (item) {
+            if (Number.parseInt(this.slideId) !== 0) {
+                this.slideId = 0
+                return false
+            }
+            if (Number.parseInt(item.nr) !== 0) {
+                this.request.Get({
+                    groupId: item._id,
+                    userId: this.login.userId
+                }, '/Chat/changeRead')
+                .then(() => {
+                    item.nr = 0
+                    this.$apply()
+                })
+            }
+            wepy.navigateTo({
+                url: `chat?type=1&userId=${this.login.userId}&msg=${JSON.stringify(item)}`
+            })
+        },
+        upTop (type, index, item) {
+            this.slideId = 0
+            let temp = []
+            if (Number.parseInt(type) === 0) {
+                this.top.push(item._id)
+                Set('topChat', this.top)
+                this.list.splice(index, 1)
+                temp = this.list
+                this.list = []
+                this.topList.unshift(item)
+                this.topList = this.sort(this.topList)
+                setTimeout(() => {
+                    this.list = temp
+                    this.$apply()
+                })
+            } else {
+                for (let [index, value] of this.top.entries()) {
+                    if (value == item._id) {
+                        this.top.splice(index, 1)
+                    }
+                }
+                Set('topChat', this.top)
+                this.topList.splice(index, 1)
+                temp = this.topList
+                this.topList = []
+                this.list.unshift(item)
+                this.list = this.sort(this.list)
+                setTimeout(() => {
+                    this.topList = temp
+                    this.$apply()
+                })
+            }
+        },
+        removeItem (type, index, item) {
+            this.request.Get({
+                groupId: item._id,
+                userId: this.login.userId
+            }, '/Chat/delGroup')
+            .then(ret => {
+                let temp = null
+                if (Number.parseInt(type) === 1) {
+                    this.slideId = 0
+                    this.topList.splice(index, 1)
+                    temp = this.topList
+                    this.topList = []
+                    setTimeout(() => {
+                        this.topList = temp
+                        this.$apply()
+                    })
+                } else {
+                    this.slideId = 0
+                    this.list.splice(index, 1)
+                    temp = this.list
+                    this.list = []
+                    setTimeout(() => {
+                        this.list = temp
+                        this.$apply()
+                    })
+                }
+                this.$apply()
+            })
+        }
+    }
+
+    onShow () {
+        Receive().then(({data}) => {
+            log(data)
+            let {data: ret} = JSON.parse(data)
+            ret._id = ret.f < ret.t ? ret.f + '' + ret.t : ret.f + '' + ret.t
+            ret.c_t = ret.c_t * 1000
+            ret.time = formatTime(ret.c_t)
+            if (this.list.some((item) => item._id == ret._id)) {
+                for (let [index, items] of this.list.entries()) {
+                    if (items._id == ret._id) {
+                        items.nr = Number.parseInt(items.nr) + 1
+                        Object.assign(items, ret)
+                        this.$apply()
+                    }
+                }
+            } else if (this.topList.some((item) => item._id == ret._id)) {
+                for (let [index, items] of this.topList.entries()) {
+                    if (items._id == ret._id) {
+                        items.nr = Number.parseInt(items.nr) + 1
+                        Object.assign(items, ret)
+                        this.$apply()
+                    }
+                }
+            } else {
+                ret.nr = 1
+                ret.isTop = "0"
+                ret.chatUserId = ret.f
+                this.request.Get({userId: ret.f}, '/Chat/getUserInfoById')
+                .then(({data}) => {
+                    ret.chatUserName = data.nickname
+                    ret.chatUserHeaderImage = data.header_image
+                    this.list.unshift(ret)
+                    this.$apply()
+                })
+            }
+        })
+    }
+
+    onLoad () {
+        Get('userId').then(ret => {
+            this.login.userId = ret
+            this.login.has = true
+            Get('topChat').then(innerRet => {
+                this.top = innerRet
+                if (this.top.length === 0) {
+                    this.request.Get({
+                        groupIds: "",
+                        isTop: 0,
+                        page: 0,
+                        pageSize: 0,
+                        userId: this.login.userId
+                    }, '/Chat/getChatGroupList')
+                    .then(({data}) => {
+                        data.forEach((item) => {
+                            item.time = formatTime(item.c_t)
+                        })
+                        this.list = data
+                        this.$apply()
+                    })
+                } else {
+                    Promise.all([
+                        this.request.Get({
+                            groupIds: "",
+                            isTop: 0,
+                            page: 0,
+                            pageSize: 0,
+                            userId: this.login.userId
+                        }, '/Chat/getChatGroupList'),
+                        this.request.Get({
+                            groupIds: this.top.join(','),
+                            isTop: 1,
+                            page: 0,
+                            pageSize: 0,
+                            userId: this.login.userId
+                        }, '/Chat/getChatGroupList')
+                    ]).then(([{data: normal}, {data: top}]) => {
+                        top.forEach((item) => {
+                            item.time = formatTime(item.c_t)
+                        })
+                        normal.forEach((item) => {
+                            item.time = formatTime(item.c_t)
+                        })
+                        this.list = normal
+                        this.topList = top
+                        this.$apply()
+                    })
+                }
+            })
+        }).catch(err => {
+            this.login.userId = ''
+            this.login.has = true
+        })
     }
 }
 </script>
+
+<style lang="less">
+@import url('../utils/global');
+
+page {
+    background-color: @bg-color;
+}
+.chat-wrap {
+    width: 100%;
+    height: 100%;
+    background-color: @bg-color;
+    flex-direction: column;
+}
+.list-wrap {
+    width: 100%;
+    flex-direction: column;
+    background-color: #fff;
+}
+.top {
+    background-color: #f8f8f8;
+    margin-bottom: 10rpx;
+}
+.list-item {
+    width: 100%;
+    height: 152rpx;
+    padding: 0 40rpx;
+    background-color: #fff;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+.item-active {
+    background-color: #f0f0f0;
+}
+.slide-wrap {
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    will-change: auto;
+    transform: translateZ(0);
+    transition: transform 300ms linear;
+}
+.wrap-active {
+    transform: translate3d(-380rpx,0,0);
+}
+.slide {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 28rpx;
+    will-change: auto;
+    transform: translate3d(100%,0,0);
+    transition: transform 300ms linear;
+    color: #fff;
+}
+.first {
+    width: 220rpx;
+    background-color: #ddd;
+}
+.first-active {
+    transform: translate3d(-160rpx,0,0);
+}
+.second {
+    width: 160rpx;
+    background-color: @red-color;
+}
+.second-active {
+    transform: translate3d(0,0,0);
+}
+.list-left {
+    width: 120rpx;
+    height: 120rpx;
+    position: relative;
+    image {
+        width: 120rpx;
+        height: 120rpx;
+        border: 1px solid @bd-color;
+        border-radius: 12rpx;
+    }
+    .unread-num {
+        position: absolute;
+        background-color: @red-color;
+        border-radius: 20rpx;
+        right: -14rpx;
+        top: -14rpx;
+        padding: 0 14rpx;
+        height: 40rpx;
+        line-height: 40rpx;
+        text-align: center;
+        color: #fff;
+    }
+}
+.list-right {
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 16rpx 0 16rpx 30rpx;
+    height: 100%;
+    .msg-title {
+        font-size: 28rpx;
+        font-weight: 500;
+        position: relative;
+        .msg-time {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            color: @font-color;
+            font-size: 26rpx;
+        }
+    }
+}
+</style>

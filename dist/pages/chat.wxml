@@ -1,0 +1,10 @@
+
+<scroll-view scroll-y class="chat-list"/>
+    <view class="chat-item">
+
+    </view>
+
+<view class="chat-input">
+    <textarea value="{{sendMsg}}" bindinput="bindSendMsg" cursor-spacing="20" fixed="true" hover-start-time="0"/>
+    <button hover-class="btn-active">发送</button>
+</view>

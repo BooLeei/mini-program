@@ -70,10 +70,11 @@
         </view>
     </view>
     <view class="space-elem"/>
-    <view class="progress block" hidden="{{tempProgress.length==0}}">
+    <view class="progress block">
         <view class="block-title"><view><icon/>发展历程</view><text/></view>
-        <block  wx:for="{{tempProgress}}" wx:key="{{index}}" wx:for-item="items">
-            
+        <block  wx:if="{{tempProgress.length!=0}}">
+            <block wx:for="{{tempProgress}}" wx:key="{{index}}" wx:for-item="items">
+                
 <view class="progress-item">
     <view class="progress-left">
         <text class="progress-left-up">{{items.month}}/{{items.day}}</text>
@@ -90,10 +91,12 @@
     </view>
 </view>
 
+            </block>
+            <view class="progress-all" hidden="{{about.progressList.length<4}}">
+                <navigator url="allProgress?id={{about.user_id}}">全部历程</navigator>
+            </view>
         </block>
-        <view class="progress-all" hidden="{{about.progressList.length<4}}">
-            <navigator url="allProgress?id={{about.user_id}}">全部历程</navigator>
-        </view>
+        <view wx:if="{{tempProgress.length==0}}" style="width:100%;height:80rpx;align-items:center;justify-content:center">暂无发展历程</view>
     </view>
     <view class="space-elem"/>
     <view class="location-wrap block">

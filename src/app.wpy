@@ -22,18 +22,21 @@ view {
 <script>
 import wepy from 'wepy'
 import Request from './utils/request'
+import {Get, Set} from './utils/storage'
+import {Create, OnOpen, Init} from './utils/socket'
 import { QQMAPKEY } from './utils/constants'
 
 export default class extends wepy.app {
     config = {
         pages: [
+            'pages/chatList',
+            'pages/chat',
             'pages/jobs',
             'pages/login',
             'pages/mine',
             'pages/resume',
             'pages/companys',
             'pages/allRecomend',
-            'pages/chatList',
             'pages/toggleCity',
             'pages/classify',
             'pages/search',
@@ -113,7 +116,6 @@ export default class extends wepy.app {
     }
 
     onLaunch() {
-        console.log(QQMAPKEY)
         wepy.getLocation({
             success: ret => {
                 wepy.request({
@@ -134,26 +136,37 @@ export default class extends wepy.app {
                 })
             }
         })
-
-        if (!wepy.getStorageSync('hotCity')) {
+        Get('userId').then(ret => {
+            Create().catch(err => {
+                console.log(err)
+            })
+            OnOpen().then(innerRet => {
+                Init(ret)
+            }).catch(err => {
+                console.log(err)
+            })
+        })
+        Get('topChat').catch(() => {
+            Set('topChat', [])
+        })
+        Get('hotCity').catch(() => {
             setTimeout(() => {
                 this.Request.Get({provinceId: -1}, '/Region/getCityList')
                 .then(ret => wepy.setStorageSync('hotCity', ret.data))
             }, 3000)
-        }
-
-        if (!wepy.getStorageSync('workList')) {
+        })
+        Get('workList').catch(() => {
             setTimeout(() => {
                 this.Request.Get({}, '/Work/getWorkList')
                 .then(ret => wepy.setStorageSync('workList', ret.data))
             }, 3500)
-        }
-        if (!wepy.getStorageSync('region')) {
+        })
+        Get('region').catch(() => {
             setTimeout(() => {
                 this.Request.special({}, '/region/getAllList')
                 .then(ret => wepy.setStorageSync('region', ret))
             }, 4000)
-        }
+        })
     }
 
     getUserInfo(cb) {
