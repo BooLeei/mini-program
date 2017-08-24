@@ -1,39 +1,40 @@
 <template>
 <view class="chat-wrap">
-    <view class="list-item" style="margin-top: 20rpx;">
+    <view class="list-item" style="margin-top: 20rpx;" @tap="showAlert">
         <view class="list-left">
-            <image src="{{}}" mode="aspectFill" />
-            <text class="unread-num">66</text>
+            <image src="../image/systemHeader.png" mode="aspectFill" />
+            <!-- <text class="unread-num"></text> -->
         </view>
         <view class="list-right">
             <view class="msg-title" style="color:#40c4ff;">
-                国王官方公告通知<text class="msg-time">8月1日</text>
+                国王官方公告通知<text class="msg-time"></text>
             </view>
             <view class="msg-cont">系统更新</view>
         </view>
     </view>
-    <view class="list-item" style="margin: 10rpx 0 20rpx;">
+    <view class="list-item" style="margin: 10rpx 0 20rpx;" @tap="toInterest">
         <view class="list-left">
-            <image src="{{}}" mode="aspectFill" />
-            <text class="unread-num">66</text>
+            <image src="../image/intrestHeader.png" mode="aspectFill" />
+            <text class="unread-num" wx:if="{{intre.noReadCount!=0}}">{{intre.noReadCount}}</text>
         </view>
         <view class="list-right">
             <view class="msg-title" style="color:#40c4ff;">
-                对我感兴趣<text class="msg-time">8月1日</text>
+                对我感兴趣<text class="msg-time" wx:if="{{intre.companyCount!=0}}">{{intre.companyCount}}家</text>
             </view>
-            <view class="msg-cont">与对您感兴趣的公司沟通，更容易获得职位呦！</view>
+            <view class="msg-cont" wx:if="{{intre.companyName==''}}">与对您感兴趣的公司沟通,更容易获得职位呦！</view>
+            <view class="msg-cont" wx:if="{{intre.companyName!=''}}">{{intre.companyName}} 刚刚收藏了我的简历</view>
         </view>
     </view>
     <view class="list-wrap top">
         <view class="list-item" wx:for="{{topList}}" wx:key="{{index}}"
-        @touchstart="slideStart" @touchmove="slideMove({{item}})" @tap="toChat({{item}})">
+        @touchstart="slideStart" @touchmove="slideMove(1, {{index}}, {{item}})" @tap="toChat(1, {{index}}, {{item}})">
             <view class="slide-wrap {{slideId==item._id?'wrap-active':''}}">
                 <view class="list-left">
-                    <image src="{{item.chatUserHeaderImage}}" mode="aspectFill" />
+                    <image src="{{item.chatUserHeaderImage}}" @tap.stop="toCompany({{item.chatUserId}})" mode="aspectFill" />
                     <text class="unread-num" wx:if="{{item.nr!=0}}">{{item.nr}}</text>
                 </view>
                 <view class="list-right">
-                    <view class="msg-title" style="color:#40c4ff;">
+                    <view class="msg-title" style="color:#707070;">
                         {{item.chatUserName}}<text class="msg-time">{{item.time}}</text>
                     </view>
                     <view class="msg-cont">{{item.c}}</view>
@@ -45,17 +46,17 @@
     </view>
     <view class="list-wrap">
         <view class="list-item" wx:for="{{list}}" wx:key="{{index}}"
-        @touchstart="slideStart" @touchmove="slideMove({{item}})" @tap="toChat({{item}})">
+        @touchstart="slideStart" @touchmove="slideMove(0, {{index}}, {{item}})" @tap="toChat(0, {{index}}, {{item}})">
             <view class="slide-wrap {{slideId==item._id?'wrap-active':''}}">
                 <view class="list-left">
-                    <image src="{{item.chatUserHeaderImage}}" mode="aspectFill" />
+                    <image src="{{item.chatUserHeaderImage}}" @tap.stop="toCompany({{item.chatUserId}})" mode="aspectFill" />
                     <text class="unread-num" wx:if="{{item.nr!=0}}">{{item.nr}}</text>
                 </view>
                 <view class="list-right">
-                    <view class="msg-title" style="color:#40c4ff;">
+                    <view class="msg-title" style="color:#707070;">
                         {{item.chatUserName}}<text class="msg-time">{{item.time}}</text>
                     </view>
-                    <view class="msg-cont">{{item.c}}</view>
+                    <text class="msg-cont">{{item.c}}</text>
                 </view>
             </view>
             <view class="slide first {{slideId==item._id?'first-active':''}}" @tap.stop="upTop(0, {{index}}, {{item}})">置顶消息</view>
@@ -63,11 +64,12 @@
         </view>
     </view>
 </view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
-import { Receive} from '../utils/socket'
+import Toast from '../components/toast'
 import Request from '../utils/request'
 import {formatTime} from '../utils/formatTime'
 import {Get, Set} from '../utils/storage'
@@ -80,6 +82,10 @@ export default class ChatList extends wepy.page {
     }
 
     request = new Request()
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
 
     top = []
 
@@ -97,7 +103,13 @@ export default class ChatList extends wepy.page {
         hasLogin: false,
         slideId: 0,
         topList: [],
-        list: []
+        list: [],
+        restart: true,
+        intre: {}
+    }
+
+    components = {
+        'toast': Toast
     }
 
     sort (arr, key = 'c_t') {
@@ -119,10 +131,22 @@ export default class ChatList extends wepy.page {
     }
 
     methods = {
-        slideStart (item, e) {
+        showAlert() {
+            this.toast({content: '功能开发中...'})
+        },
+        toInterest () {
+            if (this.login.has) {
+                wepy.navigateTo({
+                    url: 'interest?id=' + this.login.userId
+                })
+            } else {
+                wepy.navigateTo({url: 'login'})
+            }
+        },
+        slideStart (type, index, item, e) {
             Object.assign(this.slide, e.changedTouches[0])
         },
-        slideMove (item, e) {
+        slideMove (type, index, item, e) {
             let temp = e.changedTouches[0]
             if (temp.pageX - this.slide.pageX < -10 && Math.abs(temp.pageY - this.slide.pageY) < 8) {
                 this.slideId = item._id
@@ -131,7 +155,12 @@ export default class ChatList extends wepy.page {
                 this.slideId = 0
             }
         },
-        toChat (item) {
+        toCompany (id) {
+            wepy.navigateTo({
+                url: 'company?id=' + id
+            })
+        },
+        toChat (type, index, item) {
             if (Number.parseInt(this.slideId) !== 0) {
                 this.slideId = 0
                 return false
@@ -142,10 +171,16 @@ export default class ChatList extends wepy.page {
                     userId: this.login.userId
                 }, '/Chat/changeRead')
                 .then(() => {
-                    item.nr = 0
+                    if (Number.parseInt(type) === 1) {
+                        this.topList[index].nr = 0
+                    } else {
+                        this.list[index].nr = 0
+                    }
                     this.$apply()
                 })
             }
+            this.$parent.global.chatUpdate = false
+            this.$parent.global.chat = []
             wepy.navigateTo({
                 url: `chat?type=1&userId=${this.login.userId}&msg=${JSON.stringify(item)}`
             })
@@ -214,41 +249,83 @@ export default class ChatList extends wepy.page {
         }
     }
 
+    onHide () {
+        this.$parent.global.chatUpdate = false
+    }
+
+    onUnload () {
+        this.$parent.global.chatUpdate = false
+    }
+
     onShow () {
-        Receive().then(({data}) => {
-            log(data)
-            let {data: ret} = JSON.parse(data)
-            ret._id = ret.f < ret.t ? ret.f + '' + ret.t : ret.f + '' + ret.t
-            ret.c_t = ret.c_t * 1000
-            ret.time = formatTime(ret.c_t)
-            if (this.list.some((item) => item._id == ret._id)) {
-                for (let [index, items] of this.list.entries()) {
-                    if (items._id == ret._id) {
-                        items.nr = Number.parseInt(items.nr) + 1
-                        Object.assign(items, ret)
-                        this.$apply()
+        Get('userId').then(id => {
+            this.$parent.restartSocket(id)
+            if (this.$parent.global.chatUpdate) {
+                this.$parent.global.chat.forEach((ret) => {
+                    if (this.list.some((item) => item._id == ret._id)) {
+                        for (let [index, items] of this.list.entries()) {
+                            if (items._id == ret._id) {
+                                ret.nr = Number.parseInt(items.nr) + Number.parseInt(ret.nr)
+                                Object.assign(items, ret)
+                            }
+                        }
+                    } else if (this.topList.some((item) => item._id == ret._id)) {
+                        for (let [index, items] of this.topList.entries()) {
+                            if (items._id == ret._id) {
+                                ret.nr = Number.parseInt(items.nr) + Number.parseInt(ret.nr)
+                                Object.assign(items, ret)
+                            }
+                        }
+                    } else {
+                        ret.isTop = "0"
+                        ret.chatUserId = ret.f
+                        this.request.Get({userId: ret.f}, '/Chat/getUserInfoById')
+                        .then(({data}) => {
+                            ret.chatUserName = data.nickname
+                            ret.chatUserHeaderImage = data.header_image
+                            this.list.unshift(ret)
+                        })
                     }
-                }
-            } else if (this.topList.some((item) => item._id == ret._id)) {
-                for (let [index, items] of this.topList.entries()) {
-                    if (items._id == ret._id) {
-                        items.nr = Number.parseInt(items.nr) + 1
-                        Object.assign(items, ret)
-                        this.$apply()
-                    }
-                }
-            } else {
-                ret.nr = 1
-                ret.isTop = "0"
-                ret.chatUserId = ret.f
-                this.request.Get({userId: ret.f}, '/Chat/getUserInfoById')
-                .then(({data}) => {
-                    ret.chatUserName = data.nickname
-                    ret.chatUserHeaderImage = data.header_image
-                    this.list.unshift(ret)
-                    this.$apply()
                 })
+                this.list = this.sort(this.list)
+                this.topList = this.sort(this.topList)
+                this.$apply()
             }
+            wepy.onSocketMessage(({data}) => {
+                let {data: ret} = JSON.parse(data)
+                log(ret)
+                ret._id = ret.f < ret.t ? ret.f + '' + ret.t : ret.f + '' + ret.t
+                ret.c_t = ret.c_t * 1000
+                ret.time = formatTime(ret.c_t)
+                if (this.list.some((item) => item._id == ret._id)) {
+                    for (let [index, items] of this.list.entries()) {
+                        if (items._id == ret._id) {
+                            items.nr = Number.parseInt(items.nr) + 1
+                            Object.assign(items, ret)
+                        }
+                    }
+                    this.list = this.sort(this.list)
+                } else if (this.topList.some((item) => item._id == ret._id)) {
+                    for (let [index, items] of this.topList.entries()) {
+                        if (items._id == ret._id) {
+                            items.nr = Number.parseInt(items.nr) + 1
+                            Object.assign(items, ret)
+                        }
+                    }
+                    this.topList = this.sort(this.topList)
+                } else {
+                    ret.nr = 1
+                    ret.isTop = "0"
+                    ret.chatUserId = ret.f
+                    this.request.Get({userId: ret.f}, '/Chat/getUserInfoById')
+                    .then(({data}) => {
+                        ret.chatUserName = data.nickname
+                        ret.chatUserHeaderImage = data.header_image
+                        this.list.unshift(ret)
+                    })
+                }
+                this.$apply()
+            })
         })
     }
 
@@ -256,6 +333,14 @@ export default class ChatList extends wepy.page {
         Get('userId').then(ret => {
             this.login.userId = ret
             this.login.has = true
+            this.request.Get({
+                userId: ret,
+                userType: 1
+            }, '/Chat/getNoReadCollect')
+            .then(({data}) => {
+                Object.assign(this.intre, data)
+                this.$apply()
+            })
             Get('topChat').then(innerRet => {
                 this.top = innerRet
                 if (this.top.length === 0) {
@@ -302,9 +387,77 @@ export default class ChatList extends wepy.page {
                     })
                 }
             })
+            this.$apply()
         }).catch(err => {
             this.login.userId = ''
+            this.login.has = false
+        })
+    }
+    onPullDownRefresh () {
+        Get('userId').then(ret => {
+            this.login.userId = ret
             this.login.has = true
+            this.request.Get({
+                userId: ret,
+                userType: 1
+            }, '/Chat/getNoReadCollect')
+            .then(({data}) => {
+                Object.assign(this.intre, data)
+                this.$apply()
+            })
+            this.$parent.restartSocket(this.login.userId)
+            Get('topChat').then(innerRet => {
+                this.top = innerRet
+                if (this.top.length === 0) {
+                    this.request.Get({
+                        groupIds: "",
+                        isTop: 0,
+                        page: 0,
+                        pageSize: 0,
+                        userId: this.login.userId
+                    }, '/Chat/getChatGroupList')
+                    .then(({data}) => {
+                        data.forEach((item) => {
+                            item.time = formatTime(item.c_t)
+                        })
+                        this.list = data
+                        this.$apply()
+                        wepy.stopPullDownRefresh()
+                    })
+                } else {
+                    Promise.all([
+                        this.request.Get({
+                            groupIds: "",
+                            isTop: 0,
+                            page: 0,
+                            pageSize: 0,
+                            userId: this.login.userId
+                        }, '/Chat/getChatGroupList'),
+                        this.request.Get({
+                            groupIds: this.top.join(','),
+                            isTop: 1,
+                            page: 0,
+                            pageSize: 0,
+                            userId: this.login.userId
+                        }, '/Chat/getChatGroupList')
+                    ]).then(([{data: normal}, {data: top}]) => {
+                        top.forEach((item) => {
+                            item.time = formatTime(item.c_t)
+                        })
+                        normal.forEach((item) => {
+                            item.time = formatTime(item.c_t)
+                        })
+                        this.list = normal
+                        this.topList = top
+                        this.$apply()
+                        wepy.stopPullDownRefresh()
+                    })
+                }
+            })
+        }).catch(err => {
+            this.login.userId = ''
+            this.login.has = false
+            wepy.stopPullDownRefresh()
         })
     }
 }
@@ -339,6 +492,7 @@ page {
     align-items: center;
     overflow: hidden;
     position: relative;
+    border-bottom: 1px solid @bd-color;
 }
 .item-active {
     background-color: #f0f0f0;
@@ -373,7 +527,7 @@ page {
     background-color: #ddd;
 }
 .first-active {
-    transform: translate3d(-160rpx,0,0);
+    transform: translate3d(-158rpx,0,0);
 }
 .second {
     width: 160rpx;
@@ -411,6 +565,7 @@ page {
     justify-content: space-around;
     padding: 16rpx 0 16rpx 30rpx;
     height: 100%;
+    overflow: hidden;
     .msg-title {
         font-size: 28rpx;
         font-weight: 500;
@@ -423,6 +578,12 @@ page {
             color: @font-color;
             font-size: 26rpx;
         }
+    }
+    .msg-cont {
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 </style>

@@ -1,38 +1,39 @@
 
 <view class="chat-wrap">
-    <view class="list-item" style="margin-top: 20rpx;">
+    <view class="list-item" style="margin-top: 20rpx;" bindtap="showAlert">
         <view class="list-left">
-            <image src="{{}}" mode="aspectFill"/>
-            <text class="unread-num">66</text>
+            <image src="../image/systemHeader.png" mode="aspectFill"/>
+            <!-- <text class="unread-num"></text> -->
         </view>
         <view class="list-right">
             <view class="msg-title" style="color:#40c4ff;">
-                国王官方公告通知<text class="msg-time">8月1日</text>
+                国王官方公告通知<text class="msg-time"/>
             </view>
             <view class="msg-cont">系统更新</view>
         </view>
     </view>
-    <view class="list-item" style="margin: 10rpx 0 20rpx;">
+    <view class="list-item" style="margin: 10rpx 0 20rpx;" bindtap="toInterest">
         <view class="list-left">
-            <image src="{{}}" mode="aspectFill"/>
-            <text class="unread-num">66</text>
+            <image src="../image/intrestHeader.png" mode="aspectFill"/>
+            <text class="unread-num"  wx:if="{{intre.noReadCount!=0}}">{{intre.noReadCount}}</text>
         </view>
         <view class="list-right">
             <view class="msg-title" style="color:#40c4ff;">
-                对我感兴趣<text class="msg-time">8月1日</text>
+                对我感兴趣<text class="msg-time"  wx:if="{{intre.companyCount!=0}}">{{intre.companyCount}}家</text>
             </view>
-            <view class="msg-cont">与对您感兴趣的公司沟通，更容易获得职位呦！</view>
+            <view class="msg-cont" wx:if="{{intre.companyName==''}}">与对您感兴趣的公司沟通,更容易获得职位呦！</view>
+            <view class="msg-cont" wx:if="{{intre.companyName!=''}}">{{intre.companyName}} 刚刚收藏了我的简历</view>
         </view>
     </view>
     <view class="list-wrap top">
-        <view class="list-item"  wx:for="{{topList}}" wx:key="{{index}}" bindtouchstart="slideStart" bindtouchmove="slideMove" bindtap="toChat" data-wepy-params-a="{{item}}">
+        <view class="list-item" wx:for="{{topList}}" wx:key="{{index}}" bindtouchstart="slideStart" bindtouchmove="slideMove" bindtap="toChat" data-wepy-params-a="1" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">
             <view class="slide-wrap {{slideId==item._id?'wrap-active':''}}">
                 <view class="list-left">
-                    <image src="{{item.chatUserHeaderImage}}" mode="aspectFill"/>
+                    <image src="{{item.chatUserHeaderImage}}" catchtap="toCompany" mode="aspectFill" data-wepy-params-a="{{item.chatUserId}}"/>
                     <text class="unread-num" wx:if="{{item.nr!=0}}">{{item.nr}}</text>
                 </view>
                 <view class="list-right">
-                    <view class="msg-title" style="color:#40c4ff;">
+                    <view class="msg-title" style="color:#707070;">
                         {{item.chatUserName}}<text class="msg-time">{{item.time}}</text>
                     </view>
                     <view class="msg-cont">{{item.c}}</view>
@@ -43,17 +44,17 @@
         </view>
     </view>
     <view class="list-wrap">
-        <view class="list-item"  wx:for="{{list}}" wx:key="{{index}}" bindtouchstart="slideStart" bindtouchmove="slideMove" bindtap="toChat" data-wepy-params-a="{{item}}">
+        <view class="list-item" wx:for="{{list}}" wx:key="{{index}}" bindtouchstart="slideStart" bindtouchmove="slideMove" bindtap="toChat" data-wepy-params-a="0" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">
             <view class="slide-wrap {{slideId==item._id?'wrap-active':''}}">
                 <view class="list-left">
-                    <image src="{{item.chatUserHeaderImage}}" mode="aspectFill"/>
+                    <image src="{{item.chatUserHeaderImage}}" catchtap="toCompany" mode="aspectFill" data-wepy-params-a="{{item.chatUserId}}"/>
                     <text class="unread-num" wx:if="{{item.nr!=0}}">{{item.nr}}</text>
                 </view>
                 <view class="list-right">
-                    <view class="msg-title" style="color:#40c4ff;">
+                    <view class="msg-title" style="color:#707070;">
                         {{item.chatUserName}}<text class="msg-time">{{item.time}}</text>
                     </view>
-                    <view class="msg-cont">{{item.c}}</view>
+                    <text class="msg-cont">{{item.c}}</text>
                 </view>
             </view>
             <view class="slide first {{slideId==item._id?'first-active':''}}" catchtap="upTop" data-wepy-params-a="0" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">置顶消息</view>
@@ -61,3 +62,5 @@
         </view>
     </view>
 </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

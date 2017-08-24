@@ -23,7 +23,7 @@
     </picker>
     <view class="content" wx:if="{{!slider}}">
         <view>工作内容</view>
-        <textarea value="{{page.content}}" bindinput="bindContent"></textarea>
+        <textarea value="{{page.content}}" bindinput="bindContent" @touchmove.stop="stopPropagation"></textarea>
         <text>{{page.content.length}}/60</text>
     </view>
 </view>
@@ -139,6 +139,9 @@ export default class ResumeExp extends wepy.page {
 
 
     methods = {
+        stopPropagation () {
+            return false
+        },
         toggleSlide () {
             this.slide = !this.slide
         },

@@ -241,6 +241,7 @@ export default class Login extends wepy.page {
                 log(data)
                 Set('userId', data.id)
                 Set('userImg', data.headerImageFull)
+                Set('finishType', data.userInfoFinishType)
                 .then(() => {
                     if (data.userInfoFinishType != 0) {
                         wepy.navigateTo({
@@ -281,6 +282,7 @@ export default class Login extends wepy.page {
                 log(data)
                 Set('userId', data.id)
                 Set('userImg', data.headerImageFull)
+                Set('finishType', data.userInfoFinishType)
                 .then(() => {
                     if (data.userInfoFinishType != 0) {
                         wepy.navigateTo({
@@ -332,6 +334,7 @@ export default class Login extends wepy.page {
             .then(({data}) => {
                 log(data)
                 Set('userId', data.id)
+                Set('finishType', 1)
                 .then(() => {
                     wepy.redirectTo({
                         url: 'simpleResume?id=' + data.id

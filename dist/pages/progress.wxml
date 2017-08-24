@@ -55,10 +55,12 @@
             <icon class="right-arrow"/>
         </view>
         <view class="btn-wrap">
+            <button wx:if="{{item.companyStatus!=1 && item.userStatus==0}}" hover-class="btn-active">已投递</button>
             <button wx:if="{{item.companyStatus==1 && item.userStatus==0}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看面试邀请</button>
             <button wx:if="{{item.companyStatus==1 && item.userStatus==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">面试结束并进行评价</button>
             <button wx:if="{{item.userStatus==2}}" hover-class="btn-active" disabled="{{item.inviteStatus!=1}}">进行面试评价</button>
-            <button bindtap="test" wx:if="{{item.userStatus==3 && item.hasFeedback==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看评价</button>
+            <button bindtap="test" wx:if="{{item.userStatus==3 && item.hasFeedback==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active" data-wepy-params-a="{{item.sendResumeId}}">查看评价</button>
+            <button wx:if="{{item.userStatus==3 && item.hasFeedback==0}}" hover-class="btn-active">完成</button>
         </view>
     </view>
     <navigator url="comment?type=1">测试写评论</navigator>

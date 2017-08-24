@@ -1,37 +1,76 @@
 <template>
-<scroll-view scroll-y class="chat-list">
-    <view class="chat-item">
-
+<scroll-view scroll-y class="chat-list" style="height:{{height}}px" bindscrolltoupper="loadNote" scroll-into-view="{{viewId}}" bindscroll="bindAnchor">
+    <view class="chat-item" wx:for="{{chatList}}" wx:key="{{index}}">
+        <view class="other" wx:if="{{item.f==msg.chatUserId}}">
+            <image src="{{msg.chatUserHeaderImage}}" @tap.stop="toCompany" mode="aspectFill"/>
+            <view>
+                <text>{{item.c}}</text>
+                <icon></icon>
+            </view>
+        </view>
+        <view class="mine" wx:if="{{item.f!=msg.chatUserId}}">
+            <view>
+                <text>{{item.c}}</text>
+                <icon></icon>
+            </view>
+            <image src="{{userImg}}" mode="aspectFill" />
+        </view>
     </view>
-</scoll-view>
+    <view id="anchor"></view>
+</scroll-view>
 <view class="chat-input">
-    <textarea value="{{sendMsg}}" bindinput="bindSendMsg" cursor-spacing="20" fixed="true" hover-start-time="0"></textarea>
-    <button hover-class="btn-active">发送</button>
+    <textarea value="{{sendMsg}}" disabled="{{keyboard}}" bindfocus="scrollBottom" bindinput="bindSendMsg"
+     cursor-spacing="20" fixed="true" hover-start-time="0"></textarea>
+    <button @tap="sendMsgBtn" hover-class="btn-active">发送</button>
 </view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
-import {Receive, Send} from '../utils/socket'
+import Toast from '../components/toast'
+import { Send } from '../utils/socket'
+import { Get } from '../utils/storage'
+import {formatTime} from '../utils/formatTime'
 import Request from '../utils/request'
 import {log} from '../utils/log'
 
 export default class Chat extends wepy.page {
     config = {
         backgroundTextStyle: 'dark',
-        navigationBarTitleText: '聊天消息'
+        navigationBarTitleText: '聊天消息',
+        enablePullDownRefresh: false,
+        disableScroll: false
     }
 
     request = new Request()
     userId = ''
+    type = 0
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
     data = {
+        viewId: '',
+        userImg: '',
         msg: {},
-        cursor: 0,
+        height: 0,
         sendMsg: '',
-        chatList: []
+        chatList: [],
+        keyboard: false,
+        tapFocus: false
     }
 
-    getChatList (page = 1, pageSize = 12) {
+    components = {
+        'toast': Toast
+    }
+
+    pages = {
+        index: 1,
+        hasNot: false,
+        busy: false
+    }
+
+    getChatList (page = 1, pageSize = 15) {
         return this.request.Get({
             groupId: this.msg._id,
             page: 1,
@@ -41,27 +80,167 @@ export default class Chat extends wepy.page {
     }
 
     methods = {
+        toCompany () {
+            wepy.navigateTo({
+                url: 'company?id=' + this.msg.chatUserId
+            })
+        },
         bindSendMsg (e) {
             this.sendMsg = e.detail.value
+        },
+        bindAnchor (e) {
+            this.viewId = ''
+            if (e.detail.deltaY > 0) {
+                this.keyboard = true
+                setTimeout(() => {
+                    this.keyboard = false
+                    this.$apply()
+                })
+            }
+        },
+        scrollBottom () {
+            this.viewId = 'anchor'
+        },
+        loadNote () {
+            if (this.pages.hasNot) {
+                return false
+            }
+            if (this.pages.busy) {
+                return false
+            }
+            this.pages.busy = true
+            this.pages.index++
+            this.getChatList(this.pages.index++)
+            .then(({data}) => {
+                this.chatList = [...data.reverse(), ...this.chatList]
+                log(this.chatList)
+                this.$apply()
+            })
+        },
+        sendMsgBtn () {
+            if (this.sendMsg == '') {
+                return false
+            }
+            this.viewId = ''
+            Send({
+                content: this.sendMsg,
+                userId: this.userId,
+                chatId: this.msg.chatUserId,
+                groupId: this.msg._id
+            }).then(ret => {
+                let temp = {
+                    c_t: new Date().getTime(),
+                    f: this.userId,
+                    t: this.msg.chatUserId,
+                    _id: this.msg._id,
+                    c: this.sendMsg,
+                    time: formatTime(new Date().getTime()),
+                    nr: 0
+                }
+                this.chatList.push(temp)
+                this.sendMsg = ''
+                this.$apply()
+                setTimeout(() => {
+                    this.viewId = 'anchor'
+                    this.$apply()
+                })
+                if (this.type == 1) {
+                    this.$parent.global.chatUpdate = true
+                    if (this.$parent.global.chat.some((items) => items._id == temp._id)) {
+                        this.$parent.global.chat.forEach((item) => {
+                            if (item._id = temp._id) {
+                                Object.assign(item, temp)
+                            }
+                        })
+                    } else {
+                        this.$parent.global.chat.push(Object.assign({}, temp))
+                    }
+                }
+            }).catch(err => {
+            })
         }
     }
 
     onShow () {
-        Receive().then(({data}) => {
-            log(data)
+        this.$parent.restartSocket(this.userId)
+        wepy.onSocketMessage(({data}) => {
             let {data: ret} = JSON.parse(data)
+            log(ret)
+            ret.nr = 1
+            ret._id = ret.f < ret.t ? ret.f + '' + ret.t : ret.f + '' + ret.t
+            ret.c_t = ret.c_t * 1000
+            ret.time = formatTime(ret.c_t)
+            if (this.type == 1) {
+                this.$parent.global.chatUpdate = true
+            }
+            if (ret.f == this.msg.chatUserId) {
+                this.viewId = ''
+                this.chatList.push(ret)
+                ret.nr = 0
+                setTimeout(() => {
+                    this.viewId = 'anchor'
+                    this.$apply()
+                })
+                if (this.$parent.global.chat.some((items) => items._id == ret._id)) {
+                    this.$parent.global.chat.forEach((item) => {
+                        if (item._id == ret._id) {
+                            item.c_t = ret.c_t
+                            item.time = ret.time
+                            item.c = ret.c
+                        }
+                    })
+                } else {
+                    this.$parent.global.chat.push(ret)
+                }
+                this.$apply()
+            } else {
+                if (this.$parent.global.chat.some((item) => item._id == ret._id)) {
+                    this.$parent.global.chat.forEach((item) => {
+                        if (item._id == ret._id) {
+                            item.c_t = ret.c_t
+                            item.time = ret.time
+                            item.c = ret.c
+                            item.nr = Number.parseInt(item.nr) + 1
+                        }
+                    })
+                } else {
+                    this.$parent.global.chat.push(ret)
+                }
+            }
+        })
+    }
+
+    getSystemInfo () {
+        return new Promise((resolve, reject) => {
+            wepy.getSystemInfo({
+                success: res => {
+                    resolve(res)
+                },
+                fail: err => {
+                    reject(err)
+                }
+            })
         })
     }
 
     onLoad ({type, userId, msg}) {
         msg = JSON.parse(msg)
-        this.userId = userId
-        Object.assign(this.msg, msg)
-        log(type)
         log(msg)
+        this.userId = userId
+        this.type = type
+        Object.assign(this.msg, msg)
         wepy.setNavigationBarTitle({title: msg.chatUserName})
-        this.getChatList().then(({data}) => {
+        Promise.all([
+            this.getSystemInfo(),
+            Get('userImg'),
+            this.getChatList()
+        ]).then(([{windowHeight: height}, img, {data}]) => {
             log(data)
+            this.height = height
+            this.userImg = img
+            this.chatList = data.reverse()
+            this.viewId = 'anchor'
+            this.$apply()
         })
     }
 }
@@ -73,6 +252,117 @@ export default class Chat extends wepy.page {
 page {
     background-color: @bg-color;
 }
+.chat-list {
+    width: 100%;
+    padding: 0 40rpx 120rpx;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+#anchor {
+    position: absolute;
+    width: 100%;
+    height: 10rpx;
+    background-color: transparent;
+}
+::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    color: transparent;
+}
+.chat-item {
+    width: 100%;
+    height: auto;
+    padding: 20rpx 0;
+}
+.other {
+    width: 100%;
+    height: auto;
+    image {
+        flex-grow: 0;
+        flex-shrink: 0;
+        width: 88rpx;
+        height: 88rpx;
+        border-radius: 50%;
+        margin-right: 26rpx;
+    }
+    view {
+        max-width: 500rpx;
+        height: auto;
+        padding: 16rpx;
+        border-radius: 12rpx;
+        position: relative;
+        font-size: 30rpx;
+        align-items: center;
+        background-color: #fff;
+        color: #707070;
+        text {
+            width: 100%;
+            height: auto;
+            line-height: 1.2;
+            white-space: normal;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            word-break: break-all;
+        }
+        icon {
+            position: absolute;
+            left: -14rpx;
+            top: 30rpx;
+            width: 0;
+            height: 0;
+            border-top: 1px solid transparent;
+            border-bottom: 18rpx solid transparent;
+            border-right: 18rpx solid #fff;
+        }
+    }
+}
+.mine {
+    width: 100%;
+    height: auto;
+    justify-content: flex-end;
+    image {
+        flex-grow: 0;
+        flex-shrink: 0;
+        width: 88rpx;
+        height: 88rpx;
+        border-radius: 50%;
+        margin-left: 26rpx;
+    }
+    view {
+        max-width: 500rpx;
+        height: auto;
+        padding: 16rpx;
+        border-radius: 12rpx;
+        background-color: @generate-color;
+        color: #fff;
+        position: relative;
+        font-size: 30rpx;
+        align-items: center;
+        text {
+            width: 100%;
+            height: auto;
+            line-height: 1.2;
+            white-space: normal;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            word-break: break-all;
+        }
+        icon {
+            position: absolute;
+            right: -14rpx;
+            top: 30rpx;
+            width: 0;
+            height: 0;
+            border-top: 1px solid transparent;
+            border-bottom: 18rpx solid transparent;
+            border-left: 18rpx solid @generate-color;
+        }
+    }
+}
 .chat-input {
     position: fixed;
     bottom: 0;
@@ -81,31 +371,33 @@ page {
     border-top: 1px solid #ddd;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 10px 20px;
     background-color: #fff;
     textarea {
         flex: 1;
         height: 35px;
         border: 1px solid #ddd;
         border-radius: 12rpx;
-        font-size: 36rpx;
-        line-height: 1.1;
-        padding: 5px;
+        font-size: 30rpx;
+        line-height: 1.2;
+        padding: 6px 5px 0;
         box-sizing: border-box;
+        overflow: hidden;
         color: #707070;
     }
-    textarea::-webkit-scrollbar {
+    ::-webkit-scrollbar {
         width: 0;
         height: 0;
         color: transparent;
     }
     button {
+        align-self: flex-end;
         width: 80px;
         height: 35px;
         line-height: 35px;
         background-color: @generate-color;
         color: #fff;
-        font-size: 36rpx;
+        font-size: 30rpx;
         font-weight: 500;
         margin-left: 6rpx;
         border-radius: 12rpx;

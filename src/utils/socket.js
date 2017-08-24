@@ -46,6 +46,7 @@ export function Send ({content = '', userId = '', chatId = '', groupId = ''}) {
 export function Receive () {
     return new Promise((resolve, reject) => {
         wepy.onSocketMessage(res => {
+            console.log(res)
             resolve(res)
         })
     })
@@ -70,7 +71,7 @@ export function OnClose () {
     })
 }
 
-export function Close ({reason = '', code = 1000}) {
+export function Close () {
     return new Promise((resolve, reject) => {
         wepy.closeSocket({
             success: ret => {

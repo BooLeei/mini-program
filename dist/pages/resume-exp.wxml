@@ -23,7 +23,7 @@
     </picker>
     <view class="content"  wx:if="{{!slider}}">
         <view>工作内容</view>
-        <textarea value="{{page.content}}" bindinput="bindContent"/>
+        <textarea value="{{page.content}}" bindinput="bindContent" catchtouchmove="stopPropagation"/>
         <text>{{page.content.length}}/60</text>
     </view>
 </view>

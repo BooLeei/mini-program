@@ -269,7 +269,9 @@ page{
     icon {
         width: 30rpx;
         height: 30rpx;
+        padding: 20rpx;
         background-color: @generate-color;
+        background-clip: content-box;
         position: absolute;
         top: 50%;
         right: 40rpx;

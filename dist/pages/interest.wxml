@@ -1,0 +1,12 @@
+
+<navigator  wx:for="{{list}}" wx:key="{{index}}" url="company?id={{item.userId}}" class="list-item">
+    <image src="{{item.headerImage}}" mode="aspectFill"/>
+    <view class="right">
+        <text class="name">{{item.nickname}}</text>
+        <text class="job">{{item.workNum}}个 职位在招</text>
+        <text class="msg">{{item.collectTime}} 收藏了我的简历</text>
+    </view>
+    <icon/>
+</navigator>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

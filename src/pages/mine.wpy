@@ -32,7 +32,7 @@
 <script>
 import wepy from 'wepy'
 import Request from '../utils/request'
-import {Get} from '../utils/storage'
+import {Get, Set} from '../utils/storage'
 
 export default class Mine extends wepy.page {
     config = {
@@ -118,6 +118,7 @@ export default class Mine extends wepy.page {
             }, '/UserPerson/getInfo')
             .then(({data}) => {
                 Object.assign(this, data)
+                Set('userImg', data.headerImageFull)
                 this.$apply()
             })
             this.$apply()

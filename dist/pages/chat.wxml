@@ -1,10 +1,26 @@
 
-<scroll-view scroll-y class="chat-list"/>
-    <view class="chat-item">
-
+<scroll-view scroll-y class="chat-list" style="height:{{height}}px" bindscrolltoupper="loadNote" scroll-into-view="{{viewId}}" bindscroll="bindAnchor">
+    <view class="chat-item"  wx:for="{{chatList}}" wx:key="{{index}}">
+        <view class="other" wx:if="{{item.f==msg.chatUserId}}">
+            <image src="{{msg.chatUserHeaderImage}}" catchtap="toCompany" mode="aspectFill"/>
+            <view>
+                <text>{{item.c}}</text>
+                <icon/>
+            </view>
+        </view>
+        <view class="mine" wx:if="{{item.f!=msg.chatUserId}}">
+            <view>
+                <text>{{item.c}}</text>
+                <icon/>
+            </view>
+            <image src="{{userImg}}" mode="aspectFill"/>
+        </view>
     </view>
-
+    <view id="anchor"/>
+</scroll-view>
 <view class="chat-input">
-    <textarea value="{{sendMsg}}" bindinput="bindSendMsg" cursor-spacing="20" fixed="true" hover-start-time="0"/>
-    <button hover-class="btn-active">发送</button>
+    <textarea value="{{sendMsg}}" disabled="{{keyboard}}" bindfocus="scrollBottom" bindinput="bindSendMsg" cursor-spacing="20" fixed="true" hover-start-time="0"/>
+    <button bindtap="sendMsgBtn" hover-class="btn-active">发送</button>
 </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

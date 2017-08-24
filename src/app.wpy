@@ -23,17 +23,17 @@ view {
 import wepy from 'wepy'
 import Request from './utils/request'
 import {Get, Set} from './utils/storage'
-import {Create, OnOpen, Init} from './utils/socket'
+import {Create, OnOpen, Init, OnClose, Close, Send} from './utils/socket'
 import { QQMAPKEY } from './utils/constants'
 
 export default class extends wepy.app {
     config = {
         pages: [
-            'pages/chatList',
-            'pages/chat',
             'pages/jobs',
             'pages/login',
             'pages/mine',
+            'pages/chatList',
+            'pages/chat',
             'pages/resume',
             'pages/companys',
             'pages/allRecomend',
@@ -53,7 +53,8 @@ export default class extends wepy.app {
             'pages/progress',
             'pages/comment',
             'pages/simpleResume',
-            'pages/setting'
+            'pages/setting',
+            'pages/interest'
         ],
         window: {
             backgroundTextStyle: 'light',
@@ -136,16 +137,6 @@ export default class extends wepy.app {
                 })
             }
         })
-        Get('userId').then(ret => {
-            Create().catch(err => {
-                console.log(err)
-            })
-            OnOpen().then(innerRet => {
-                Init(ret)
-            }).catch(err => {
-                console.log(err)
-            })
-        })
         Get('topChat').catch(() => {
             Set('topChat', [])
         })
@@ -166,6 +157,24 @@ export default class extends wepy.app {
                 this.Request.special({}, '/region/getAllList')
                 .then(ret => wepy.setStorageSync('region', ret))
             }, 4000)
+        })
+    }
+
+    restartSocket (id) {
+        Create()
+        OnOpen().then(() => {
+            console.log('open')
+            Init(id)
+        })
+    }
+
+    onShow () {
+        Get('userId').then(id => {
+            this.restartSocket(id)
+            OnClose().then(() => {
+                console.log('restart')
+                this.restartSocket(id)
+            })
         })
     }
 
