@@ -959,7 +959,7 @@ export default class JobDetail extends wepy.page {
             } else if (this.type === '2') {
                 wepy.navigateBack({delta: 1})
             } else {
-                wepy.navigateTo({url: `company?id=${this.page.userCompany.id}`})
+                wepy.redirectTo({url: `company?id=${this.page.userCompany.id}`})
             }
         },
         toChat () {

@@ -56,14 +56,42 @@
         </view>
         <view class="btn-wrap">
             <button wx:if="{{item.companyStatus!=1 && item.userStatus==0}}" hover-class="btn-active">已投递</button>
-            <button wx:if="{{item.companyStatus==1 && item.userStatus==0}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看面试邀请</button>
-            <button wx:if="{{item.companyStatus==1 && item.userStatus==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">面试结束并进行评价</button>
-            <button wx:if="{{item.userStatus==2}}" hover-class="btn-active" disabled="{{item.inviteStatus!=1}}">进行面试评价</button>
-            <button @tap="test({{item.sendResumeId}})" wx:if="{{item.userStatus==3 && item.hasFeedback==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看评价</button>
-            <button wx:if="{{item.userStatus==3 && item.hasFeedback==0}}" hover-class="btn-active">完成</button>
+            <button @tap="showInvitation({{item.sendResumeId}}, {{indexs}})" wx:if="{{item.companyStatus==1 && item.userStatus==0}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看面试邀请</button>
+            <button @tap="commentInvitation({{indexs}})" wx:if="{{item.companyStatus==1 && item.userStatus==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">面试结束并进行评价</button>
+            <button @tap="commentInvitation({{indexs}})" wx:if="{{item.userStatus==2}}" hover-class="btn-active" disabled="{{item.inviteStatus!=1}}">进行面试评价</button>
+            <button @tap="getComment({{item.sendResumeId}})" wx:if="{{item.userStatus==3 && item.hasFeedback==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看评价</button>
+            <button wx:if="{{item.userStatus==3 && item.hasFeedback==0}}" hover-class="btn-active">已完成</button>
         </view>
     </view>
-    <navigator url="comment?type=1">测试写评论</navigator>
+</view>
+<view class="modal {{modalToggle?'modal-active':''}}" @tap="hideInvitation" @touchmove.stop="stopPropagation">
+    <view class="modal-wrap" @tap.stop="stopPropagation">
+        <view class="modal-title">您收到面试邀请</view>
+        <view class="modal-list">
+            <text class="modal-label">面试时间</text>
+            <text class="modal-content">{{interview.time}}</text>
+        </view>
+        <view class="modal-list">
+            <text class="modal-label">面试地点</text>
+            <text class="modal-content">{{interview.province_name}}{{interview.city_name}}{{interview.district_name}}{{interview.address}}</text>
+        </view>
+        <view class="modal-list">
+            <text class="modal-label">联系人</text>
+            <text class="modal-content">{{interview.name}}</text>
+        </view>
+        <view class="modal-list">
+            <text class="modal-label">联系电话</text>
+            <text class="modal-content" style="color: #40c4ff;">{{interview.tel}}</text>
+        </view>
+        <view class="modal-alert">
+            <icon></icon>
+            <text>点击确定后，如果爽约放鸽子，将对您今后的求职造成一定影响，请遵守信用。</text>
+        </view>
+        <view class="modal-footer">
+            <button @tap="hideInvitation" plain class="modal-cancel-btn" hover-class="modal-btn-active">再想想</button>
+            <button @tap="sureInvitation" class="modal-sure-btn" hover-class="modal-btn-active">确定前往面试</button>
+        </view>
+    </view>
 </view>
 <toast></toast>
 </template>
@@ -71,6 +99,7 @@
 <script>
 import wepy from 'wepy'
 import Toast from '../components/toast'
+import {formatSecond} from '../utils/formatTime'
 import Request from '../utils/request'
 import {log} from '../utils/log'
 
@@ -88,6 +117,8 @@ export default class Progress extends wepy.page {
         hasNot: false
     }
 
+    listIndex = 0
+
     request = new Request()
     getProgress (page = 1, pageSize = 8) {
         return this.request.Get({
@@ -98,7 +129,9 @@ export default class Progress extends wepy.page {
     }
 
     data = {
-        progress: []
+        progress: [],
+        interview: {},
+        modalToggle: false
     }
 
     components = {
@@ -116,13 +149,67 @@ export default class Progress extends wepy.page {
         })
     }
 
+    updateStatus (status) {
+        return this.request.Post({
+            sendResumeId: this.progress[this.listIndex].sendResumeId,
+            userStatus: status
+        }, '/SendResume/updateStatus')
+    }
+
     methods = {
+        stopPropagation () {
+            return false
+        },
         toCompany (id) {
             wepy.navigateTo({
                 url: `company?id=${id}`
             })
         },
-        test (id) {
+        showInvitation (index) {
+            this.listIndex = Number.parseInt(index)
+            this.request.Get({
+                sendResumeId: this.progress[this.listIndex].sendResumeId
+            }, '/SendResumeInviteList/getInfo')
+            .then(({data}) => {
+                data.time = formatSecond(Number.parseInt(data.time) * 1000, '.', ':')
+                this.interview = data
+                this.modalToggle = true
+                this.$apply()
+            })
+        },
+        sureInvitation () {
+            this.updateStatus(1)
+            .then(({data}) => {
+                this.progress[this.listIndex].userStatus = 1
+                this.modalToggle = false
+                this.$apply()
+            })
+        },
+        hideInvitation () {
+            this.modalToggle = false
+        },
+        commentInvitation (index) {
+            this.listIndex = Number.parseInt(index)
+            if (this.progress[this.listIndex].userStatus == 2) {
+                wepy.navigateTo({url: `comment?type=1`})
+            } else {
+                this.updateStatus(2)
+                .then(({data}) => {
+                    this.progress[this.listIndex].userStatus = 2
+                    this.$apply()
+                    wepy.navigateTo({url: `comment?type=1`})
+                }).catch(({data}) => {
+                    if (data.err == 1) {
+                        this.toast({content: '还未到面试时间，请面试后再评价'})
+                    } else if (data.err == 2) {
+                        this.toast({content: '已超出时间期限'})
+                    } else {
+                        this.toast({content: '系统繁忙，请稍后再试'})
+                    }
+                })
+            }
+        },
+        getComment (id) {
             wepy.navigateTo({
                 url: `comment?id=${id}&type=2`
             })
@@ -377,5 +464,104 @@ page {
     box-sizing: border-box;
     border-radius: 50%;
     margin: 0 6rpx;
+}
+.modal {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    z-index: -1;
+    opacity: 0;
+    will-change: auto;
+    transform: translateZ(0);
+    transition: all 200ms linear;
+}
+.modal-active {
+    z-index: 3;
+    opacity: 1;
+}
+.modal-wrap {
+    width: 600rpx;
+    flex-direction: column;
+    padding: 20rpx 40rpx;
+    background-color: #fff;
+}
+.modal-title {
+    width: 100%;
+    height: 100rpx;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid @bd-color;
+    color: @generate-color;
+    font-size: 30rpx;
+    font-weight: bold;
+}
+.modal-list {
+    width: 100%;
+    padding: 30rpx 0;
+    border-bottom: 1px solid @bd-color;
+    align-items: center;
+    font-size: 28rpx;
+    .modal-label {
+        width: 180rpx;
+        height: 100%;
+        font-weight: 500;
+    }
+    .modal-content {
+        flex: 1;
+        word-break: break-all;
+        color: @font-color2;
+        line-height: 1.4;
+    }
+}
+.modal-alert {
+    width: 100%;
+    margin: 20rpx 0;
+    align-items: center;
+    icon {
+        width: 30rpx;
+        height: 30rpx;
+        background-color: @generate-color;
+        margin-right: 20rpx;
+    }
+    text {
+        flex: 1;
+        line-height: 1.4;
+        font-size: 24rpx;
+    }
+}
+.modal-footer {
+    width: 100%;
+    height: 100rpx;
+    align-items: center;
+    justify-content: space-between;
+    button {
+        height: 72rpx;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        align-items: center;
+        font-size: 30rpx;
+        font-weight: bold;
+        will-change: auto;
+        transform: translateZ(0);
+        transition: transform 100ms linear
+    }
+    .modal-cancel-btn {
+        width: 180rpx;
+        color: @generate-color;
+        border: 1px solid @generate-color;
+    }
+    .modal-sure-btn {
+        width: 300rpx;
+        background-color: @generate-color;
+        color: #fff;
+    }
+    .modal-btn-active {
+        transform: scale(0.96);
+    }
 }
 </style>

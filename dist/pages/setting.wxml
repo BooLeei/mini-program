@@ -4,7 +4,7 @@
     <view class="list-item"><text>帐号设置</text><icon/></view>
 </view>
 <view class="list-wrap">
-    <view class="list-item"><text>意见反馈</text><icon/></view>
+    <!-- <button open-type="contact" class="list-button"><text>意见反馈</text><icon></icon></button> -->
     <view class="list-item"><text>联系国王</text><icon/></view>
 </view>
 <view bindtap="quit" class="list-footer"><icon/>退出登录</view>
