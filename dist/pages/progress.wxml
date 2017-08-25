@@ -65,3 +65,5 @@
     </view>
     <navigator url="comment?type=1">测试写评论</navigator>
 </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

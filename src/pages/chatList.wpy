@@ -105,7 +105,11 @@ export default class ChatList extends wepy.page {
         topList: [],
         list: [],
         restart: true,
-        intre: {}
+        intre: {
+            noReadCount: 0,
+            companyName: '',
+            companyCount: 0
+        }
     }
 
     components = {
@@ -257,9 +261,72 @@ export default class ChatList extends wepy.page {
         this.$parent.global.chatUpdate = false
     }
 
+    initChatMsg (ret) {
+        Get('topChat').then(innerRet => {
+            this.top = innerRet
+            if (this.top.length === 0) {
+                Promise.all([
+                    this.request.Get({
+                        userId: ret,
+                        userType: 1
+                    }, '/Chat/getNoReadCollect'),
+                    this.request.Get({
+                        groupIds: "",
+                        isTop: 0,
+                        page: 0,
+                        pageSize: 0,
+                        userId: this.login.userId
+                    }, '/Chat/getChatGroupList')
+                ]).then(([{data}, {data: list}]) => {
+                    list.forEach((item) => {
+                        item.time = formatTime(item.c_t)
+                    })
+                    this.list = list
+                    Object.assign(this.intre, data)
+                    this.$apply()
+                    wepy.hideLoading()
+                    wepy.stopPullDownRefresh()
+                })
+            } else {
+                Promise.all([
+                    this.request.Get({
+                        userId: ret,
+                        userType: 1
+                    }, '/Chat/getNoReadCollect'),
+                    this.request.Get({
+                        groupIds: "",
+                        isTop: 0,
+                        page: 0,
+                        pageSize: 0,
+                        userId: this.login.userId
+                    }, '/Chat/getChatGroupList'),
+                    this.request.Get({
+                        groupIds: this.top.join(','),
+                        isTop: 1,
+                        page: 0,
+                        pageSize: 0,
+                        userId: this.login.userId
+                    }, '/Chat/getChatGroupList')
+                ]).then(([{data}, {data: normal}, {data: top}]) => {
+                    top.forEach((item) => {
+                        item.time = formatTime(item.c_t)
+                    })
+                    normal.forEach((item) => {
+                        item.time = formatTime(item.c_t)
+                    })
+                    this.list = normal
+                    this.topList = top
+                    Object.assign(this.intre, data)
+                    this.$apply()
+                    wepy.hideLoading()
+                    wepy.stopPullDownRefresh()
+                })
+            }
+        })
+    }
+
     onShow () {
         Get('userId').then(id => {
-            this.$parent.restartSocket(id)
             if (this.$parent.global.chatUpdate) {
                 this.$parent.global.chat.forEach((ret) => {
                     if (this.list.some((item) => item._id == ret._id)) {
@@ -290,10 +357,12 @@ export default class ChatList extends wepy.page {
                 this.list = this.sort(this.list)
                 this.topList = this.sort(this.topList)
                 this.$apply()
+            } else {
+                this.initChatMsg(id)
             }
             wepy.onSocketMessage(({data}) => {
+                this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
                 let {data: ret} = JSON.parse(data)
-                log(ret)
                 ret._id = ret.f < ret.t ? ret.f + '' + ret.t : ret.f + '' + ret.t
                 ret.c_t = ret.c_t * 1000
                 ret.time = formatTime(ret.c_t)
@@ -326,134 +395,27 @@ export default class ChatList extends wepy.page {
                 }
                 this.$apply()
             })
-        })
+        }).catch(() => {})
     }
 
     onLoad () {
         Get('userId').then(ret => {
+            wepy.showLoading({title: '加载中...', mask: true})
             this.login.userId = ret
             this.login.has = true
-            this.request.Get({
-                userId: ret,
-                userType: 1
-            }, '/Chat/getNoReadCollect')
-            .then(({data}) => {
-                Object.assign(this.intre, data)
-                this.$apply()
-            })
-            Get('topChat').then(innerRet => {
-                this.top = innerRet
-                if (this.top.length === 0) {
-                    this.request.Get({
-                        groupIds: "",
-                        isTop: 0,
-                        page: 0,
-                        pageSize: 0,
-                        userId: this.login.userId
-                    }, '/Chat/getChatGroupList')
-                    .then(({data}) => {
-                        data.forEach((item) => {
-                            item.time = formatTime(item.c_t)
-                        })
-                        this.list = data
-                        this.$apply()
-                    })
-                } else {
-                    Promise.all([
-                        this.request.Get({
-                            groupIds: "",
-                            isTop: 0,
-                            page: 0,
-                            pageSize: 0,
-                            userId: this.login.userId
-                        }, '/Chat/getChatGroupList'),
-                        this.request.Get({
-                            groupIds: this.top.join(','),
-                            isTop: 1,
-                            page: 0,
-                            pageSize: 0,
-                            userId: this.login.userId
-                        }, '/Chat/getChatGroupList')
-                    ]).then(([{data: normal}, {data: top}]) => {
-                        top.forEach((item) => {
-                            item.time = formatTime(item.c_t)
-                        })
-                        normal.forEach((item) => {
-                            item.time = formatTime(item.c_t)
-                        })
-                        this.list = normal
-                        this.topList = top
-                        this.$apply()
-                    })
-                }
-            })
-            this.$apply()
+            this.initChatMsg(ret)
         }).catch(err => {
             this.login.userId = ''
             this.login.has = false
         })
     }
+
     onPullDownRefresh () {
         Get('userId').then(ret => {
+            wepy.showLoading({title: '加载中...', mask: true})
             this.login.userId = ret
             this.login.has = true
-            this.request.Get({
-                userId: ret,
-                userType: 1
-            }, '/Chat/getNoReadCollect')
-            .then(({data}) => {
-                Object.assign(this.intre, data)
-                this.$apply()
-            })
-            this.$parent.restartSocket(this.login.userId)
-            Get('topChat').then(innerRet => {
-                this.top = innerRet
-                if (this.top.length === 0) {
-                    this.request.Get({
-                        groupIds: "",
-                        isTop: 0,
-                        page: 0,
-                        pageSize: 0,
-                        userId: this.login.userId
-                    }, '/Chat/getChatGroupList')
-                    .then(({data}) => {
-                        data.forEach((item) => {
-                            item.time = formatTime(item.c_t)
-                        })
-                        this.list = data
-                        this.$apply()
-                        wepy.stopPullDownRefresh()
-                    })
-                } else {
-                    Promise.all([
-                        this.request.Get({
-                            groupIds: "",
-                            isTop: 0,
-                            page: 0,
-                            pageSize: 0,
-                            userId: this.login.userId
-                        }, '/Chat/getChatGroupList'),
-                        this.request.Get({
-                            groupIds: this.top.join(','),
-                            isTop: 1,
-                            page: 0,
-                            pageSize: 0,
-                            userId: this.login.userId
-                        }, '/Chat/getChatGroupList')
-                    ]).then(([{data: normal}, {data: top}]) => {
-                        top.forEach((item) => {
-                            item.time = formatTime(item.c_t)
-                        })
-                        normal.forEach((item) => {
-                            item.time = formatTime(item.c_t)
-                        })
-                        this.list = normal
-                        this.topList = top
-                        this.$apply()
-                        wepy.stopPullDownRefresh()
-                    })
-                }
-            })
+            this.initChatMsg(ret)
         }).catch(err => {
             this.login.userId = ''
             this.login.has = false

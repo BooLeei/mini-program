@@ -1,14 +1,14 @@
 
 <view class="wrap">
     <view class="base">
-        <view class="first-line">
+        <view class="first-line-detail">
             <view>
                 <text class="pin-icon">聘</text>
                 <text>{{page.work_name}}</text>
             </view>
             <text class="salary">{{page.salary_name}}</text>
         </view>
-        <view class="second-line">
+        <view class="second-line-detail">
             <view>
                 <icon/>
                 <text>{{page.city_name}}</text>
@@ -201,7 +201,7 @@
         <view class="similar-list">
             <block wx:for="{{similarJob}}" wx:for-index="index" wx:for-item="item" wx:key="index">
                 
-    <navigator url="jobDetail?id={{item.id}}&type={{1}}" class="listItem" hover-class="item-hover">
+    <view bindtap="$jobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{9}}" data-wepy-params-b="{{item.id}}">
         <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
         <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
         <view class="right-side">
@@ -229,7 +229,7 @@
             <view class="describe">{{item.userCompany.brand_describe}}</view>
         </view>
         <icon wx:if="{{item.userCompany.is_approve_offical==1}}" class="comp-approve"/>
-    </navigator>
+    </view>
 
             </block>
         </view>

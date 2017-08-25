@@ -12,11 +12,13 @@
         </view>
     </view>
 </view>
-<loading :show.sync="loading"></loading>
+<toast></toast>
+<!-- <loading :show.sync="loading"></loading> -->
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
 import loading from '../components/loading'
 import Request from '../utils/request'
 
@@ -29,7 +31,12 @@ export default class AllRecomend extends wepy.page {
     }
 
     components = {
-        'loading': loading
+        'loading': loading,
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
     }
 
     data = {
@@ -40,12 +47,21 @@ export default class AllRecomend extends wepy.page {
 
     request = new Request()
 
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
+    
     onLoad() {
-        this.loading = true
+        // this.loading = true
+        wepy.showLoading({title: '加载中...', mask: true})
         this.request.Get({'type': 0, 'userId': wepy.getStorageSync('userId') || 0}, '/Company/getRecommendList')
             .then(({data}) => {
                 this.recomend = data
-                this.loading = false
+                // this.loading = false
+                wepy.hideLoading()
                 this.$apply()
             })
     }

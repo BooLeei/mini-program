@@ -44,10 +44,12 @@
     <button @tap="cancel" class="left" plain hover-class='btn-active'>取消</button>
     <button @tap="sure" class="right" hover-class='btn-active'>保存</button>
 </view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
 import Request from '../utils/request'
 import {log} from '../utils/log'
 
@@ -63,6 +65,10 @@ export default class ResumeExp extends wepy.page {
     temp = ''
 
     request = new Request()
+
+    components = {
+        'toast': Toast
+    }
 
     data = {
         init: true,
@@ -135,6 +141,17 @@ export default class ResumeExp extends wepy.page {
                 this.page.content = this.temp
             }
         }
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
     }
 
 

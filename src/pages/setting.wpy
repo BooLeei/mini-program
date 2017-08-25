@@ -8,10 +8,13 @@
     <view class="list-item"><text>联系国王</text><icon></icon></view>
 </view>
 <view @tap="quit" class="list-footer"><icon></icon>退出登录</view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
+import {Close} from '../utils/socket'
 import { Remove, Clear } from '../utils/storage'
 
 export default class Setting extends wepy.page {
@@ -22,9 +25,26 @@ export default class Setting extends wepy.page {
         disableScroll: false
     }
 
+    components = {
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
+
     methods = {
         quit () {
-            Remove('userId').then(() => {
+            this.$parent.clearSocket()
+            Promise.all([Remove('userId'), Remove('userImg'), Close()])
+            .then(() => {
                 wepy.reLaunch({url: 'jobs'})
             })
         }

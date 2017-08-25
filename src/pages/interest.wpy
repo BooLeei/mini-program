@@ -37,6 +37,17 @@ export default class Interest extends wepy.page {
         this.$invoke('toast', 'showToast', data)
     }
 
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
+
     userId = ''
     pages = {
         index: 1,
@@ -54,6 +65,7 @@ export default class Interest extends wepy.page {
     }
 
     onLoad (params) {
+        wepy.showLoading({title: '加载中...', mask: true})
         this.userId = params.id
         this.getInterestCompany()
         .then(({data}) => {
@@ -62,6 +74,7 @@ export default class Interest extends wepy.page {
             })
             this.list = data
             this.$apply()
+            wepy.hideLoading()
         })
     }
 
@@ -90,6 +103,7 @@ export default class Interest extends wepy.page {
     }
 
     onPullDownRefresh () {
+        wepy.showLoading({title: '加载中...', mask: true})
         this.pages.index = 1
         this.pages.hasNot = false
         this.pages.busy = false
@@ -99,8 +113,9 @@ export default class Interest extends wepy.page {
                 item.collectTime = formatTime(item.collectTime)
             })
             this.list = data
-            wepy.stopPullDownRefresh()
             this.$apply()
+            wepy.stopPullDownRefresh()
+            wepy.hideLoading()
         })
     }
 }

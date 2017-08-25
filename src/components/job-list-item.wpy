@@ -1,5 +1,5 @@
 <template>
-    <navigator url="jobDetail?id={{listItem.id}}&type={{type}}" class="listItem" hover-class="item-hover">
+    <view @tap="toJobDetail({{type}}, {{listItem.id}})" class="listItem" hover-class="item-hover">
         <image wx:if="{{listItem.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
         <image class="comp-logo" mode="aspectFill" src="{{listItem.userCompany.headerImage}}"/>
         <view class="right-side">
@@ -27,7 +27,7 @@
             <view class="describe">{{listItem.userCompany.brand_describe}}</view>
         </view>
         <icon wx:if="{{listItem.userCompany.is_approve_offical==1}}" class="comp-approve"></icon>
-    </navigator>
+    </view>
 </template>
 
 <script>
@@ -38,6 +38,20 @@ export default class JobListItem extends wepy.component {
         type: {
             type: String,
             default: '1'
+        }
+    }
+
+    methods = {
+        toJobDetail (type, id) {
+            if (type == '9') {
+                wepy.redirectTo({
+                    url: `jobDetail?id=${id}&type=1`
+                })
+            } else {
+                wepy.navigateTo({
+                    url: `jobDetail?id=${id}&type=${type}`
+                })
+            }
         }
     }
 }
@@ -105,6 +119,7 @@ export default class JobListItem extends wepy.component {
                     padding-bottom: 20rpx;
                     margin-right: 2rpx;
                     font-size: 30rpx;
+                    color: @generate-color;
                 }
             }
         }

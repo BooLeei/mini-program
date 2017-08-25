@@ -128,6 +128,7 @@ export default class Chat extends wepy.page {
                 chatId: this.msg.chatUserId,
                 groupId: this.msg._id
             }).then(ret => {
+                this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
                 let temp = {
                     c_t: new Date().getTime(),
                     f: this.userId,
@@ -162,10 +163,9 @@ export default class Chat extends wepy.page {
     }
 
     onShow () {
-        this.$parent.restartSocket(this.userId)
         wepy.onSocketMessage(({data}) => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
             let {data: ret} = JSON.parse(data)
-            log(ret)
             ret.nr = 1
             ret._id = ret.f < ret.t ? ret.f + '' + ret.t : ret.f + '' + ret.t
             ret.c_t = ret.c_t * 1000
@@ -224,8 +224,8 @@ export default class Chat extends wepy.page {
     }
 
     onLoad ({type, userId, msg}) {
+        wepy.showLoading({title: '加载中...', mask: true})
         msg = JSON.parse(msg)
-        log(msg)
         this.userId = userId
         this.type = type
         Object.assign(this.msg, msg)
@@ -241,6 +241,7 @@ export default class Chat extends wepy.page {
             this.chatList = data.reverse()
             this.viewId = 'anchor'
             this.$apply()
+            wepy.hideLoading()
         })
     }
 }

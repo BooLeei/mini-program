@@ -68,10 +68,12 @@
         <button @tap="sure" class="right" hover-class='btn-active'>确定</button>
     </block>
 </view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
 import Request from '../utils/request'
 
 export default class Comment extends wepy.page {
@@ -85,6 +87,21 @@ export default class Comment extends wepy.page {
     request = new Request()
 
     userId = ''
+
+    components = {
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
 
     data = {
         type: '1',
@@ -171,6 +188,7 @@ export default class Comment extends wepy.page {
         this.type = type
         this.page.id = id
         if (Number.parseInt(type) !== 1) {
+            wepy.showLoading({title: '加载中...', mask: true})
             this.request.Get({
                 id: id
             }, '/InviteWorkFeedback/getInfo')
@@ -183,6 +201,7 @@ export default class Comment extends wepy.page {
                 this.page = data
                 this.tagArr = this.page.tag_str.split(',')
                 this.$apply()
+                wepy.hideLoading()
             })
         }
     }

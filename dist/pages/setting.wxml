@@ -8,3 +8,5 @@
     <view class="list-item"><text>联系国王</text><icon/></view>
 </view>
 <view bindtap="quit" class="list-footer"><icon/>退出登录</view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

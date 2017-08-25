@@ -20,7 +20,7 @@
         <icon hidden="{{!(fixed&&slideDown)}}" class="down iconfont icon-llreservenavidown"></icon>
     </view>
  </view>
- <view class="list-wrap" style="margin-top:{{fixed?'88rpx':'0'}}">
+ <view class="list-wrap" style="margin-top:{{fixed?'88rpx':'0'}};min-height:{{minHeight}}px">
     <repeat for="{{companys}}" item="item">
         <comp-item :listItem="item"></comp-item>
     </repeat>
@@ -39,6 +39,7 @@
     <text data-type='8'>互联网</text>
     <text data-type='9'>其他</text>
 </view>
+<toast></toast>
 <loading :show.sync="loading"></loading>
 </template>
 
@@ -48,6 +49,7 @@ import loading from '../components/loading'
 import Request from '../utils/request'
 import SliderDelay from '../components/slider-delay'
 import CompanyItem from '../components/comp-list-item'
+import Toast from '../components/toast'
 import { log } from '../utils/log'
 
 export default class Companys extends wepy.page {
@@ -64,7 +66,8 @@ export default class Companys extends wepy.page {
         fixed: false,
         companyType: 0,
         companyTypeName: '全国公司',
-        hasNot: false
+        hasNot: true,
+        minHeight: 0
     }
 
     request = new Request()
@@ -121,18 +124,21 @@ export default class Companys extends wepy.page {
 
     watch = {
         companyType (newVal, oldVal) {
-            if (!this.fadeIn) {
-                return false
-            }
-            this.hasNot = false
-            this.index = 1
+            wepy.showLoading({title: '加载中...', mask: true})
+            this.page.index = 1
             this.getCompanyList()
             .then(({data}) => {
+                if (data.length < 8) {
+                    this.hasNot = true
+                } else {
+                    this.hasNot = false
+                }
                 this.companys = data
+                this.$apply()
                 wepy.pageScrollTo({
                     scrollTop: 283
                 })
-                this.loading = false
+                wepy.hideLoading()
             })
         }
     }
@@ -167,7 +173,12 @@ export default class Companys extends wepy.page {
     components = {
         'loading': loading,
         'slider': SliderDelay,
-        'comp-item': CompanyItem
+        'comp-item': CompanyItem,
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
     }
 
     onShareAppMessage () {
@@ -183,11 +194,24 @@ export default class Companys extends wepy.page {
         }
     }
 
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
+
     onPullDownRefresh () {
+        wepy.showLoading({title: '加载中...', mask: true})
         Promise.all([
             this.request.Get({'type': 0, 'userId': wepy.getStorageSync('userId') || 0}, '/Company/getRecommendList'),
             this.getCompanyList()
         ]).then(([{data}, {data: list}]) => {
+            if (list.length < 8) {
+                this.hasNot = true
+            } else {
+                this.hasNot = false
+            }
             this.companys = list
             this.swiper.first = []
             this.swiper.second = []
@@ -207,6 +231,7 @@ export default class Companys extends wepy.page {
             this.$invoke('slider', 'invokeData', {type: 2, arr: this.swiper.second})
             this.$invoke('slider', 'invokeData', {type: 3, arr: this.swiper.third})
             this.$apply()
+            wepy.hideLoading()
             wepy.stopPullDownRefresh()
         })
     }
@@ -242,14 +267,26 @@ export default class Companys extends wepy.page {
     }
 
     onLoad () {
-        this.loading = true
-        wx.createSelectorQuery().select('#fixed').boundingClientRect(rect => {
-            this.page.scrollTop = rect.top
-        }).exec()
+        // this.loading = true
+        wepy.showLoading({title: '加载中...', mask: true})
+        wepy.getSystemInfo({
+            success: res => {
+                wx.createSelectorQuery().select('#fixed').boundingClientRect(rect => {
+                    this.minHeight = res.windowHeight
+                    this.page.scrollTop = rect.top
+                    this.$apply()
+                }).exec()
+            }
+        })
         Promise.all([
             this.request.Get({'type': 0, 'userId': wepy.getStorageSync('userId') || 0}, '/Company/getRecommendList'),
             this.getCompanyList()
         ]).then(([{data}, {data: list}]) => {
+            if (list.length < 8) {
+                this.hasNot = true
+            } else {
+                this.hasNot = false
+            }
             this.companys = list
             for (let [index, item] of data.entries()) {
                 if (index % 3 === 0) {
@@ -265,7 +302,8 @@ export default class Companys extends wepy.page {
             this.$invoke('slider', 'invokeData', {type: 1, arr: this.swiper.first})
             this.$invoke('slider', 'invokeData', {type: 2, arr: this.swiper.second})
             this.$invoke('slider', 'invokeData', {type: 3, arr: this.swiper.third})
-            this.loading = false
+            // this.loading = false
+            wepy.hideLoading()
             this.$apply()
         })
     }
@@ -409,9 +447,9 @@ export default class Companys extends wepy.page {
 }
 .pull-loading {
     width: 100%;
-    height: 50rpx;
-    line-height: 50rpx;
-    text-align: center;
+    height: 60rpx;
+    align-items: center;
+    justify-content: center;
     background-color: #f2f2f5;
 }
 </style>

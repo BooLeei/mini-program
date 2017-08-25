@@ -65,10 +65,12 @@
     </view>
     <navigator url="comment?type=1">测试写评论</navigator>
 </view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
 import Request from '../utils/request'
 import {log} from '../utils/log'
 
@@ -97,6 +99,21 @@ export default class Progress extends wepy.page {
 
     data = {
         progress: []
+    }
+
+    components = {
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
     }
 
     methods = {
@@ -141,12 +158,13 @@ export default class Progress extends wepy.page {
     }
 
     onLoad (params) {
+        wepy.showLoading({title: '加载中...', mask: true})
         this.userId = params.id
         this.getProgress()
         .then(({data}) => {
-            log(data)
             this.progress = data
             this.$apply()
+            wepy.hideLoading()
         })
     }
 }

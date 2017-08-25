@@ -27,3 +27,5 @@
         <icon/>简版简历测试入口<icon class="list-right-arrow"/>
     </view>
 </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

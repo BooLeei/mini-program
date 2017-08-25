@@ -59,3 +59,5 @@
     <button bindtap="cancel" class="left" plain hover-class="btn-active">取消</button>
     <button bindtap="sure" class="right" hover-class="btn-active">保存</button>
 </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

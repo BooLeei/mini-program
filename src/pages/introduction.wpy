@@ -14,10 +14,12 @@
         我们深知，优秀人才对于企业发展的重要性!!!
     </text>
 </scroll-view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
 
 export default class Introduction extends wepy.page {
     config = {
@@ -33,6 +35,21 @@ export default class Introduction extends wepy.page {
                 delta: 1
             })
         }
+    }
+
+    components = {
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
     }
 
     onShareAppMessage () {

@@ -4,11 +4,13 @@
         <progress :item="item"></progress>
     </repeat>
 </view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
 import Progress from '../components/comp-progress'
+import Toast from '../components/toast'
 import Request from '../utils/request'
 
 export default class AllProgress extends wepy.page {
@@ -25,10 +27,23 @@ export default class AllProgress extends wepy.page {
     request = new Request()
 
     components = {
-        'progress': Progress
+        'progress': Progress,
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
     }
 
     onLoad (params) {
+        wepy.showLoading({title: '加载中...', mask: true})
         this.request.Get({
             'userCompanyId': params.id
         }, '/CompanyProgress/getList')
@@ -41,6 +56,7 @@ export default class AllProgress extends wepy.page {
             data[data.length - 1].last = true
             this.progress = data
             this.$apply()
+            wepy.hideLoading()
         })
     }
 }

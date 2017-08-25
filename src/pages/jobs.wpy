@@ -44,6 +44,7 @@
             <view class="pull-loading" hidden="{{hasNot}}">加载中...</view>
         </view>
     </view>
+<toast></toast>
 <loading :show.sync="loading"></loading>
 </template>
 
@@ -51,6 +52,7 @@
 import wepy from 'wepy'
 import Request from '../utils/request'
 import JobItem from '../components/job-list-item'
+import Toast from '../components/toast'
 import Loading from '../components/loading'
 import { log } from '../utils/log'
 
@@ -63,7 +65,7 @@ export default class Jobs extends wepy.page {
         loading: false,
         fixTab: false,
         autoplay: true,
-        hasNot: false,
+        hasNot: true,
         tabIndex: 0,
         cityId: '0',
         cityName: '全国',
@@ -94,13 +96,30 @@ export default class Jobs extends wepy.page {
     components = {
         'new-job-item': JobItem,
         'hot-job-item': JobItem,
-        'loading': Loading
+        'loading': Loading,
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
     }
 
     methods = {
         toggleTab (index) {
             this.tabIndex = index
-            this.hasNot = false
+            if (Number.parseInt(index) === 0) {
+                if (this.newJobList.length < 5) {
+                    this.hasNot = true
+                } else {
+                    this.hasNot = false
+                }
+            } else {
+                if (this.hotJobList.length < 5) {
+                    this.hasNot = true
+                } else {
+                    this.hasNot = false
+                }
+            }
         },
         scrollToTop () {
             if (wepy.pageScrollTo) {
@@ -125,9 +144,11 @@ export default class Jobs extends wepy.page {
     }
 
     onLoad () {
-        this.loading = true
+        // this.loading = true
+        wepy.showLoading({title: '加载中...'})
         wx.createSelectorQuery().select('#fixed').boundingClientRect(rect => {
             this.page.scrollTop = rect.top - 45
+            this.$apply()
         }).exec()
         this.cityId = this.$parent.global.choose.region_id
         this.cityName = this.$parent.global.choose.region_name
@@ -140,7 +161,13 @@ export default class Jobs extends wepy.page {
             this.bannerImg = banner.data[100]
             this.newJobList = newJob.data
             this.hotJobList = hotJob.data
-            this.loading = false
+            if (newJob.data.length < 5) {
+                this.hasNot = true
+            } else {
+                this.hasNot = false
+            }
+            // this.loading = false
+            wepy.hideLoading()
             this.$apply()
         })
         .catch(err => {
@@ -169,18 +196,32 @@ export default class Jobs extends wepy.page {
         }
     }
 
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
+
     onHide () {
         this.hasNot = false
     }
 
     onPullDownRefresh () {
+        wepy.showLoading({title: '加载中...', mask: true})
         Promise.all([this.getJobList(0), this.getJobList(1)])
         .then(ret => {
             let [newJob, hotJob] = ret
+            if (newJob.data.length < 5) {
+                this.hasNot = true
+            } else {
+                this.hasNot = false
+            }
             this.newJobList = newJob.data
             this.hotJobList = hotJob.data
-            this.$apply()
             wepy.stopPullDownRefresh()
+            wepy.hideLoading()
+            this.$apply()
         })
         .catch(err => {
             log(err)
@@ -323,9 +364,9 @@ export default class Jobs extends wepy.page {
 }
 .pull-loading {
     width: 100%;
-    height: 50rpx;
-    line-height: 50rpx;
-    text-align: center;
+    height: 60rpx;
+    align-items: center;
+    justify-content: center;
     background-color: #f2f2f5;
 }
 .navigator-hover {
