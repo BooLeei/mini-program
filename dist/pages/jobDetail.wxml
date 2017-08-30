@@ -152,7 +152,7 @@
                             <text>{{item.is_anonymity==0?item.userInfo.name:'匿名'}}</text>
                             <view class="comment-like" bindtap="commentLike" data-wepy-params-a="{{index}}" data-wepy-params-b="{{item.id}}">
                                 <view class="comment-slide-wrap">
-                                    <view class="comment-slide {{commentSlide===2 ? 'comment-slide-up' : ''}} {{commentSlide===0 ? 'comment-slide-down' : ''}}" >
+                                    <view class="comment-slide {{item.commentSlide===2 ? 'comment-slide-up' : ''}} {{item.commentSlide===0 ? 'comment-slide-down' : ''}}" >
                                         <text class="comment-like-sub">{{item.like_num - 1}}</text>
                                         <text class="comment-like-nor">{{item.like_num}}</text>
                                         <text class="comment-like-plus">{{item.like_num + 1}}</text>
@@ -184,14 +184,14 @@
                                 </view>
                             </view>
                         </view>
-                        <view class="comment-tag">
+                        <view class="comment-tag" wx:if="{{item.tagArr.length!=0}}">
                             <text wx:for="{{item.tagArr}}" wx:for-index="indexs" wx:for-item="items" wx:key="{{indexs}}">{{items}}</text>
                         </view>
                         <text class="comment-cont">{{item.content}}</text>
                     </view>
                 </view>
-                <view class="toAllComment" wx:if="{{page.inviteWorkFeedback.length>3}}">
-                    <navigator url="allComment" hover-class="navi-hover">全部评价</navigator>
+                <view class="toAllComment" wx:if="{{showAllComment}}">
+                    <text bindtap="toAllComment" hover-class="navi-hover" data-wepy-params-a="">全部评价</text>
                 </view>
             </block>
         </view>

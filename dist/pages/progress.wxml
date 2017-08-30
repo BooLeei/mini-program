@@ -56,7 +56,7 @@
         </view>
         <view class="btn-wrap">
             <button wx:if="{{item.companyStatus!=1 && item.userStatus==0}}" hover-class="btn-active">已投递</button>
-            <button bindtap="showInvitation" wx:if="{{item.companyStatus==1 && item.userStatus==0}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active" data-wepy-params-a="{{item.sendResumeId}}" data-wepy-params-b="{{indexs}}">查看面试邀请</button>
+            <button bindtap="showInvitation" wx:if="{{item.companyStatus==1 && item.userStatus==0}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active" data-wepy-params-a="{{indexs}}" data-wepy-params-b="{{item.sendResumeId}}">查看面试邀请</button>
             <button bindtap="commentInvitation" wx:if="{{item.companyStatus==1 && item.userStatus==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active" data-wepy-params-a="{{indexs}}">面试结束并进行评价</button>
             <button bindtap="commentInvitation" wx:if="{{item.userStatus==2}}" hover-class="btn-active" disabled="{{item.inviteStatus!=1}}" data-wepy-params-a="{{indexs}}">进行面试评价</button>
             <button bindtap="getComment" wx:if="{{item.userStatus==3 && item.hasFeedback==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active" data-wepy-params-a="{{item.sendResumeId}}">查看评价</button>

@@ -2,7 +2,7 @@
 <view class="wrap" @tap="cancelCollect">
     <repeat for="{{collect}}" key="index" item="item">
         <view class="item-wrap">
-            <job-item :listItem="item" type="2"></job-item>
+            <job-item :listItem="item" type="1"></job-item>
             <view class="btn-wrap">
                 <button hover-class="btn-active" data-id="{{item.id}}" data-btnindex="{{index}}">取消收藏</button>
             </view>

@@ -1,0 +1,282 @@
+<template>
+    <view class="comment">
+        <view class="comment-item" wx:for="{{page}}" wx:key="{{index}}">
+            <image src="{{item.userInfo.headerImage}}" mode="aspectFill" />
+            <view class="comment-msg">
+                <view class="comment-name">
+                    <text>{{item.is_anonymity==0?item.userInfo.name:'匿名'}}</text>
+                    <view class="comment-like" @tap="commentLike({{index}}, {{item.id}})">
+                        <view class="comment-slide-wrap">
+                            <view class="comment-slide" :class="{'comment-slide-up':item.commentSlide===2,'comment-slide-down':item.commentSlide===0}">
+                                <text class="comment-like-sub">{{item.like_num - 1}}</text>
+                                <text class="comment-like-nor">{{item.like_num}}</text>
+                                <text class="comment-like-plus">{{item.like_num + 1}}</text>
+                            </view>
+                        </view>
+                        <icon style="background-color:{{item.hasLike==1?'#40c4ff':'#aaa'}}"></icon>
+                    </view>
+                </view>
+                <text class="comment-time">{{item.create_time}}</text>
+                <view class="comment-star">
+                    <view class="comment-star-line">
+                        <view>面试官：
+                            <icon class="comment-star-full" wx:for="{{item.interviewer_num}}" wx:key="{{index}}"></icon>
+                            <icon class="comment-star-empty" wx:for="{{5 - item.interviewer_num}}" wx:key="{{index}}"></icon>
+                        </view>
+                        <view>工作环境：
+                            <icon class="comment-star-full" wx:for="{{item.env_num}}" wx:key="{{index}}"></icon>
+                            <icon class="comment-star-empty" wx:for="{{5 - item.env_num}}" wx:key="{{index}}"></icon>
+                        </view>
+                    </view>
+                    <view class="comment-star-line">
+                        <view>职位相符：
+                            <icon class="comment-star-full" wx:for="{{item.conform_num}}" wx:key="{{index}}"></icon>
+                            <icon class="comment-star-empty" wx:for="{{5 - item.conform_num}}" wx:key="{{index}}"></icon>
+                        </view>
+                        <view>薪资相符：
+                            <icon class="comment-star-full" wx:for="{{item.salary_num}}" wx:key="{{index}}"></icon>
+                            <icon class="comment-star-empty" wx:for="{{5 - item.salary_num}}" wx:key="{{index}}"></icon>
+                        </view>
+                    </view>
+                </view>
+                <view class="comment-tag" wx:if="{{item.tagArr.length!=0}}">
+                    <text wx:for="{{item.tagArr}}" wx:for-index="indexs" wx:for-item="items" wx:key="{{indexs}}">{{items}}</text>
+                </view>
+                <text class="comment-cont">{{item.content}}</text>
+            </view>
+        </view>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Request from '../utils/request'
+import {formatTime} from '../utils/formatTime'
+import {Get} from '../utils/storage'
+
+export default class AllComment extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '全部评价',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    request = new Request()
+
+    customer = {
+        userId: '',
+        workId: '',
+        hasLogin: false
+    }
+
+    data = {
+        page: []
+    }
+
+    methods = {
+        commentLike (index, id) {
+            if (this.customer.hasLogin) {
+                this.request.Post({
+                    userId: this.customer.userId,
+                    inviteWorkFeedbackId: id,
+                    status: this.page[index].hasLike == 1 ? '0' : '1'
+                }, '/InviteWorkFeedback/like')
+                .then(() => {
+                    if (this.page[index].hasLike == 1) {
+                        this.page[index].hasLike = 0
+                        this.page[index].commentSlide = this.page[index].commentSlide - 1
+                    } else {
+                        this.page[index].hasLike = 1
+                        this.page[index].commentSlide = this.page[index].commentSlide + 1
+                    }
+                    this.$apply()
+                })
+            } else {
+                wepy.navigateTo({url: 'login'})
+            }
+        }
+    }
+
+    onLoad (params) {
+        console.log(params)
+        this.customer.workId = params.workId
+        this.customer.userId = params.userId || 0
+        Get('userId').then(res => {
+            this.customer.userId = res
+            this.customer.hasLogin = true
+        }).catch(() => {
+            this.customer.hasLogin = false
+        })
+        this.request.Get({
+            inviteWorkId: this.customer.workId,
+            userId: this.customer.userId
+        }, '/inviteWorkFeedback/getListByInviteWorkId')
+        .then(({data}) => {
+            console.log(data)
+            data.forEach((item) => {
+                if (item.tag_str.length != 0) {
+                    item.tagArr = item.tag_str.split(',')
+                } else {
+                    item.tagArr = []
+                }
+                item.interviewer_num = Number.parseInt(item.interviewer_num)
+                item.env_num = Number.parseInt(item.env_num)
+                item.conform_num = Number.parseInt(item.conform_num)
+                item.salary_num = Number.parseInt(item.salary_num)
+                item.like_num = Number.parseInt(item.like_num)
+                item.create_time = formatTime(Number.parseInt(item.create_time) * 1000, 2)
+                item.commentSlide = 1
+            })
+            this.page = data
+            this.$apply()
+        })
+        .catch(err => {
+            console.log(err)
+        })
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+@import url('../utils/iconfont');
+
+.comment {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    padding: 0 40rpx;
+    .no-comment {
+        width: 100%;
+        height: 100rpx;
+        align-items: center;
+        justify-content: center;
+    }
+}
+.comment-item {
+    width: 100%;
+    padding-top: 30rpx;
+    align-items: center;
+    image {
+        width: 80rpx;
+        height: 80rpx;
+        border-radius: 12rpx;
+        border: 1px solid @bd-color;
+        margin-right: 20rpx;
+        align-self: flex-start;
+    }
+}
+.comment-msg {
+    flex: 1;
+    padding-bottom: 30rpx;
+    border-bottom: 1px solid @bd-color;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.comment-name {
+    width: 100%;
+    height: 50rpx;
+    font-size: 28rpx;
+    font-weight: bold;
+    color: @font-color2;
+    align-items: center;
+    justify-content: space-between;
+}
+.comment-like {
+    height: 50rpx;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    icon {
+        width: 40rpx;
+        height: 40rpx;
+    }
+    .comment-slide-wrap {
+        height: 50rpx;
+        overflow-y: hidden;
+        .comment-slide {
+            min-width: 30rpx;
+            height: 50rpx;
+            position: relative;
+            will-change: auto;
+            transform: translateZ(0) translateY(0);
+            transition: transform 100ms linear;
+            text {
+                position: absolute;
+                height: 50rpx;
+                line-height: 50rpx;
+                text-align: center;
+                font-weight: normal;
+                font-size: 32rpx;
+            }
+            .comment-like-sub {
+                bottom: 50rpx;
+            }
+            .comment-like-plus {
+                top: 50rpx;
+            }
+        }
+        .comment-slide-up {
+            transform: translateY(-100%);
+        }
+        .comment-slide-down {
+            transform: translateY(100%);
+        }
+    }
+}
+.comment-time {
+    width: 100%;
+    height: 30rpx;
+    line-height: 30rpx;
+    margin: 4rpx 0 6rpx;
+}
+.comment-star {
+    width: 100%;
+    align-items: center;
+    flex-wrap: wrap;
+    .comment-star-line {
+        width: 100%;
+        view {
+            width: 49%;
+            font-size: 24rpx;
+            height: 50rpx;
+            color: @font-color2;
+            align-items: center;
+        }
+        icon {
+            width: 24rpx;
+            height: 24rpx;
+            margin: 0 2rpx;
+            box-sizing: border-box;
+            border-radius: 50%;
+        }
+        .comment-star-full {
+            background-color: @generate-color;
+        }
+        .comment-star-empty {
+            border: 1px solid @generate-color;
+        }
+    }
+}
+.comment-tag {
+    width: 100%;
+    margin: 20rpx 0;
+    text {
+        height: 40rpx;
+        line-height: 36rpx;
+        padding: 0 20rpx;
+        border-radius: 20rpx;
+        border: 1px solid @generate-color;
+        box-sizing: border-box;
+        color: @generate-color;
+        font-size: 24rpx;
+        margin-right: 16rpx;
+    }
+}
+.comment-cont {
+    width: 100%;
+    margin-top: 10rpx;
+}
+
+</style>

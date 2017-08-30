@@ -57,6 +57,7 @@ export default class extends wepy.app {
             'pages/account-setting',
             'pages/account-tel',
             'pages/account-password',
+            'pages/allComment',
             'pages/interest'
         ],
         window: {

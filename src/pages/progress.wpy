@@ -56,7 +56,7 @@
         </view>
         <view class="btn-wrap">
             <button wx:if="{{item.companyStatus!=1 && item.userStatus==0}}" hover-class="btn-active">已投递</button>
-            <button @tap="showInvitation({{item.sendResumeId}}, {{indexs}})" wx:if="{{item.companyStatus==1 && item.userStatus==0}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看面试邀请</button>
+            <button @tap="showInvitation({{indexs}}, {{item.sendResumeId}})" wx:if="{{item.companyStatus==1 && item.userStatus==0}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看面试邀请</button>
             <button @tap="commentInvitation({{indexs}})" wx:if="{{item.companyStatus==1 && item.userStatus==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">面试结束并进行评价</button>
             <button @tap="commentInvitation({{indexs}})" wx:if="{{item.userStatus==2}}" hover-class="btn-active" disabled="{{item.inviteStatus!=1}}">进行面试评价</button>
             <button @tap="getComment({{item.sendResumeId}})" wx:if="{{item.userStatus==3 && item.hasFeedback==1}}" disabled="{{item.inviteStatus!=1}}" hover-class="btn-active">查看评价</button>
@@ -190,14 +190,16 @@ export default class Progress extends wepy.page {
         },
         commentInvitation (index) {
             this.listIndex = Number.parseInt(index)
+            this.$parent.global.commentUpdate = false
+            this.$parent.global.commentIndex = -1
             if (this.progress[this.listIndex].userStatus == 2) {
-                wepy.navigateTo({url: `comment?type=1`})
+                wepy.navigateTo({url: `comment?type=1&index=${index}&id=${this.progress[this.listIndex].sendResumeId}`})
             } else {
                 this.updateStatus(2)
                 .then(({data}) => {
                     this.progress[this.listIndex].userStatus = 2
                     this.$apply()
-                    wepy.navigateTo({url: `comment?type=1`})
+                    wepy.navigateTo({url: `comment?type=1&index=${index}&id=${this.progress[this.listIndex].sendResumeId}`})
                 }).catch(({data}) => {
                     if (data.err == 1) {
                         this.toast({content: '还未到面试时间，请面试后再评价'})
@@ -240,6 +242,14 @@ export default class Progress extends wepy.page {
                 this.hasNot = true
             }
             this.progress = [...this.progress, ...data]
+            this.$apply()
+        })
+    }
+
+    onShow () {
+        this.getProgress()
+        .then(({data}) => {
+            this.progress = data
             this.$apply()
         })
     }

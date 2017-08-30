@@ -86,8 +86,6 @@ export default class Comment extends wepy.page {
 
     request = new Request()
 
-    userId = ''
-
     components = {
         'toast': Toast
     }
@@ -118,11 +116,14 @@ export default class Comment extends wepy.page {
         }
     }
 
+    customer = {
+        id: '',
+        index: -1
+    }
+
     methods = {
         bindTag (e) {
-            console.log(e)
             this.tempTag = e.detail.value
-            console.log(this.tempTag)
         },
         stickTag () {
             if (this.tagArr.length >= 3) {
@@ -142,6 +143,54 @@ export default class Comment extends wepy.page {
         },
         cancel () {
             wepy.navigateBack()
+        },
+        del () {
+            wepy.showModal({
+                title: '提示',
+                content: '确定删除这条评论',
+                success: res => {
+                    if (res.confirm) {
+                        this.request.Post({
+                            id: this.customer.id
+                        }, '/InviteWorkFeedback/del')
+                        .then(res => {
+                            wepy.navigateBack()
+                        })
+                    }
+                }
+            })
+        },
+        sure () {
+            if (this.page.interviewer_num === 0) {
+                this.toast({content: '请为面试官评分'})
+                return false
+            }
+            if (this.page.conform_num === 0) {
+                this.toast({content: '请为工作相符评分'})
+                return false
+            }
+            if (this.page.env_num === 0) {
+                this.toast({content: '请为工作环境评分'})
+                return false
+            }
+            if (this.page.salary_num === 0) {
+                this.toast({content: '请为薪资相符评分'})
+                return false
+            }
+            this.request.Post({
+                sendResumeId: this.customer.id,
+                tagStr: this.tagArr.join(','),
+                interviewerNum: this.page.interviewer_num,
+                conformNum: this.page.conform_num,
+                envNum: this.page.env_num,
+                salaryNum: this.page.salary_num,
+                content: this.page.content
+            }, '/InviteWorkFeedback/add')
+            .then(res => {
+                wepy.navigateBack()
+            }).catch(err => {
+                console.log(err)
+            })
         },
         commentStar (e) {
             if (this.type != 1) {
@@ -184,9 +233,10 @@ export default class Comment extends wepy.page {
         }
     }
 
-    onLoad ({type, id}) {
+    onLoad ({type, id, index}) {
         this.type = type
-        this.page.id = id
+        this.customer.id = id
+        this.customer.index = Number.parseInt(index)
         if (Number.parseInt(type) !== 1) {
             wepy.showLoading({title: '加载中...', mask: true})
             this.request.Get({
@@ -199,7 +249,9 @@ export default class Comment extends wepy.page {
                     }
                 }
                 this.page = data
-                this.tagArr = this.page.tag_str.split(',')
+                if (this.page.tag_str.length != 0) {
+                    this.tagArr = this.page.tag_str.split(',')
+                }
                 this.$apply()
                 wepy.hideLoading()
             })

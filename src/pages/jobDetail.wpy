@@ -152,7 +152,7 @@
                             <text>{{item.is_anonymity==0?item.userInfo.name:'匿名'}}</text>
                             <view class="comment-like" @tap="commentLike({{index}}, {{item.id}})">
                                 <view class="comment-slide-wrap">
-                                    <view class="comment-slide" :class="{'comment-slide-up':commentSlide===2,'comment-slide-down':commentSlide===0}">
+                                    <view class="comment-slide" :class="{'comment-slide-up':item.commentSlide===2,'comment-slide-down':item.commentSlide===0}">
                                         <text class="comment-like-sub">{{item.like_num - 1}}</text>
                                         <text class="comment-like-nor">{{item.like_num}}</text>
                                         <text class="comment-like-plus">{{item.like_num + 1}}</text>
@@ -184,14 +184,14 @@
                                 </view>
                             </view>
                         </view>
-                        <view class="comment-tag">
+                        <view class="comment-tag" wx:if="{{item.tagArr.length!=0}}">
                             <text wx:for="{{item.tagArr}}" wx:for-index="indexs" wx:for-item="items" wx:key="{{indexs}}">{{items}}</text>
                         </view>
                         <text class="comment-cont">{{item.content}}</text>
                     </view>
                 </view>
-                <view class="toAllComment" wx:if="{{page.inviteWorkFeedback.length>3}}">
-                    <navigator url="allComment" hover-class="navi-hover">全部评价</navigator>
+                <view class="toAllComment" wx:if="{{showAllComment}}">
+                    <text @tap="toAllComment()" hover-class="navi-hover">全部评价</text>
                 </view>
             </block>
         </view>
@@ -825,7 +825,7 @@
     background-color: #fff;
     align-items: center;
     justify-content: center;
-    navigator {
+    text {
         display: flex;
         box-sizing: border-box;
         width: 180rpx;
@@ -890,10 +890,10 @@ export default class JobDetail extends wepy.page {
     data = {
         hasLogin: false,
         loading: false,
+        showAllComment: false,
         page: null,
         tagIndex: 0,
         nameIndex: -1,
-        commentSlide: 1,
         similarJob: []
     }
 
@@ -904,7 +904,7 @@ export default class JobDetail extends wepy.page {
 
     type = '1'
     id = ''
-    userId = ''
+    userId = 0
     toast (data = {}) {
         this.$invoke('toast', 'showToast', data)
     }
@@ -985,6 +985,11 @@ export default class JobDetail extends wepy.page {
                 wepy.navigateTo({url: 'login'})
             }
         },
+        toAllComment () {
+            wepy.navigateTo({
+                url: `allComment?userId=${this.userId}&workId=${this.id}`
+            })
+        },
         sendResume () {
             if (this.hasLogin) {
                 Get('finishType').then(type => {
@@ -1054,10 +1059,10 @@ export default class JobDetail extends wepy.page {
                 .then(() => {
                     if (this.page.inviteWorkFeedback[index].hasLike == 1) {
                         this.page.inviteWorkFeedback[index].hasLike = 0
-                        this.commentSlide = this.commentSlide - 1
+                        this.page.inviteWorkFeedback[index].commentSlide = this.page.inviteWorkFeedback[index].commentSlide - 1
                     } else {
                         this.page.inviteWorkFeedback[index].hasLike = 1
-                        this.commentSlide = this.commentSlide + 1
+                        this.page.inviteWorkFeedback[index].commentSlide = this.page.inviteWorkFeedback[index].commentSlide + 1
                     }
                     this.$apply()
                 })
@@ -1079,22 +1084,31 @@ export default class JobDetail extends wepy.page {
         wepy.showLoading({title: '加载中...', mask: true})
         Promise.all([
             this.request.Get({
-                workId: params.id
+                workId: this.id
             }, '/InviteWork/getLikenessList'),
             this.request.Get({
                 'userId': wepy.getStorageSync('userId') || 0,
-                'inviteWorkId': params.id
+                'inviteWorkId': this.id
             }, '/InviteWork/getInfo')
         ]).then(([{data: list}, {data}]) => {
             if (data.inviteWorkFeedback.length != 0) {
+                if (data.inviteWorkFeedback.length > 3) {
+                    this.showAllComment = true
+                    data.inviteWorkFeedback = data.inviteWorkFeedback.splice(0, 3)
+                }
                 data.inviteWorkFeedback.forEach((item) => {
-                    item.tagArr = item.tag_str.split(',')
+                    if (item.tag_str.length != 0) {
+                        item.tagArr = item.tag_str.split(',')
+                    } else {
+                        item.tagArr = []
+                    }
                     item.interviewer_num = Number.parseInt(item.interviewer_num)
                     item.env_num = Number.parseInt(item.env_num)
                     item.conform_num = Number.parseInt(item.conform_num)
                     item.salary_num = Number.parseInt(item.salary_num)
                     item.like_num = Number.parseInt(item.like_num)
                     item.create_time = formatTime(Number.parseInt(item.create_time) * 1000, 2)
+                    item.commentSlide = 1
                 })
             }
             this.page = data
@@ -1108,6 +1122,7 @@ export default class JobDetail extends wepy.page {
                 fail: err => {
                 }
             })
+            wepy.stopPullDownRefresh()
             wepy.hideLoading()
             this.$apply()
         })
@@ -1144,7 +1159,7 @@ export default class JobDetail extends wepy.page {
             this.$apply()
         }).catch(err => {
             this.hasLogin = false
-            this.userId = ''
+            this.userId = 0
             this.$apply()
         })
         Promise.all([
@@ -1157,14 +1172,23 @@ export default class JobDetail extends wepy.page {
             }, '/InviteWork/getInfo')
         ]).then(([{data: list}, {data}]) => {
             if (data.inviteWorkFeedback.length != 0) {
+                if (data.inviteWorkFeedback.length > 3) {
+                    this.showAllComment = true
+                    data.inviteWorkFeedback = data.inviteWorkFeedback.splice(0, 3)
+                }
                 data.inviteWorkFeedback.forEach((item) => {
-                    item.tagArr = item.tag_str.split(',')
+                    if (item.tag_str.length != 0) {
+                        item.tagArr = item.tag_str.split(',')
+                    } else {
+                        item.tagArr = []
+                    }
                     item.interviewer_num = Number.parseInt(item.interviewer_num)
                     item.env_num = Number.parseInt(item.env_num)
                     item.conform_num = Number.parseInt(item.conform_num)
                     item.salary_num = Number.parseInt(item.salary_num)
                     item.like_num = Number.parseInt(item.like_num)
                     item.create_time = formatTime(Number.parseInt(item.create_time) * 1000, 2)
+                    item.commentSlide = 1
                 })
             }
             this.page = data
