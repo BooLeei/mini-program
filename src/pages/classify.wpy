@@ -31,6 +31,7 @@
         </view>
     </view>
 </view>
+<toast></toast>
 <loading :show.sync="loading"></loading>
 </template>
 
@@ -168,6 +169,7 @@
 <script>
 import wepy from 'wepy'
 import Request from '../utils/request'
+import Toast from '../components/toast'
 import loading from '../components/loading'
 import { log } from '../utils/log'
 
@@ -217,23 +219,37 @@ export default class Classify extends wepy.page {
     }
 
     components = {
-        'loading': loading
+        'loading': loading,
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
     }
 
     request = new Request()
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
 
     onLoad (params, data) {
         let workList = wepy.getStorageSync('workList')
         if (workList) {
             workList = Promise.resolve({data: workList})
         } else {
-            this.loading = true
+            // this.loading = true
+            wepy.showLoading({title: '加载中...', mask: true})
             workList = this.request.Get({}, '/Work/getWorkList')
         }
         // workList = workList ? Promise.resolve(workList) : this.request.Get({}, '/Work/getWorkList')
         workList.then(({data}) => {
             this.firstLevel = data
-            this.loading = false
+            // this.loading = false
+            wepy.hideLoading()
             this.$apply()
         })
     }

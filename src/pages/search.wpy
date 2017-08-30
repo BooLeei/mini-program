@@ -40,7 +40,7 @@
             </view>
         </view>
     </view>
-    <scroll-view scroll-y style="height:{{height}}px;" class="list-scroll" bindscrolltolower="pullLoad">
+    <scroll-view scroll-y style="height:{{height}}px;" class="list-scroll" lower-threshold="150" bindscrolltolower="pullLoad">
         <block wx:if="{{type==1}}">
             <repeat for="{{listContent}}" key="{{index}}">
                 <job-item :listItem="item" type="1"></job-item>
@@ -51,6 +51,7 @@
                 <comp-item :listItem="item"></comp-item>
             </repeat>
         </block>
+        <view class="pull-loading" hidden="{{hasNot}}">加载中...</view>
     </scroll-view>
 </block>
 <!-- </view> -->
@@ -114,6 +115,7 @@
         </scroll-view>
     </view>
 </view>
+<toast></toast>
 </template>
 
 <style lang='less'>
@@ -123,7 +125,7 @@
 .list-scroll {
     position: relative;
     width: 100%;
-    top: 143px;
+    top: 130px;
     flex-direction: column;
     box-sizing: border-box;
 }
@@ -382,11 +384,19 @@
         }
     }
 }
+.pull-loading {
+    width: 100%;
+    height: 60rpx;
+    background-color: #f2f2f5;
+    align-items: center;
+    justify-content: center;
+}
 </style>
 
 <script>
 import wepy from 'wepy'
 import Request from '../utils/request'
+import Toast from '../components/toast'
 import JobItem from '../components/job-list-item'
 import CompItem from '../components/comp-list-item'
 import { log } from '../utils/log'
@@ -401,13 +411,15 @@ export default class Search extends wepy.page {
 
     components = {
         'job-item': JobItem,
-        'comp-item': CompItem
+        'comp-item': CompItem,
+        'toast': Toast
     }
 
     data = {
         keyword: '',
         height: 300,
         init: false,
+        hasNot: true,
         listContent: [],
         hotData: [
             {
@@ -694,7 +706,6 @@ export default class Search extends wepy.page {
 
     initPage () {
         this.page.index = 1
-        this.page.hasNot = false
         this.page.busy = false
     }
 
@@ -703,7 +714,7 @@ export default class Search extends wepy.page {
             if (this.page.busy) {
                 return false
             }
-            if (this.page.hasNot) {
+            if (this.hasNot) {
                 return false
             }
             this.page.index++
@@ -711,7 +722,7 @@ export default class Search extends wepy.page {
             if (Number.parseInt(this.type) === 1) {
                 this.searchJob(this.page.index).then(({data}) => {
                     if (data.length === 0) {
-                        this.page.hasNot = true
+                        this.hasNot = true
                     }
                     this.listContent = [...this.listContent, ...data]
                     this.$apply()
@@ -720,7 +731,7 @@ export default class Search extends wepy.page {
             } else {
                 this.searchCompany(this.page.index).then(({data}) => {
                     if (data.length === 0) {
-                        this.page.hasNot = true
+                        this.hasNot = true
                     }
                     this.listContent = [...this.listContent, ...data]
                     this.$apply()
@@ -740,14 +751,22 @@ export default class Search extends wepy.page {
         search () {
             if (Number.parseInt(this.type) === 1) {
                 this.searchJob().then(({data}) => {
-                    log(data)
+                    if (data.length < 8) {
+                        this.hasNot = true
+                    } else {
+                        this.hasNot = false
+                    }
                     this.listContent = data
                     this.initPage()
                     this.$apply()
                 })
             } else {
                 this.searchCompany().then(({data}) => {
-                    log(data)
+                    if (data.length < 8) {
+                        this.hasNot = true
+                    } else {
+                        this.hasNot = false
+                    }
                     this.listContent = data
                     this.initPage()
                     this.$apply()
@@ -767,7 +786,11 @@ export default class Search extends wepy.page {
                 this.salaryTypeChecked = 0
                 this.experienceTypeChecked = 0
                 this.searchCompany().then(({data}) => {
-                    log(data)
+                    if (data.length < 8) {
+                        this.hasNot = true
+                    } else {
+                        this.hasNot = false
+                    }
                     this.listContent = data
                     this.initPage()
                     this.$apply()
@@ -777,7 +800,11 @@ export default class Search extends wepy.page {
                 this.businessTypeChecked = 0
                 this.companyComtChecked = 0
                 this.searchJob().then(({data}) => {
-                    log(data)
+                    if (data.length < 8) {
+                        this.hasNot = true
+                    } else {
+                        this.hasNot = false
+                    }
                     this.listContent = data
                     this.initPage()
                     this.$apply()
@@ -801,14 +828,22 @@ export default class Search extends wepy.page {
                 this.keyword = e.target.dataset.content
                 if (Number.parseInt(this.type) === 1) {
                     this.searchJob().then(({data}) => {
-                        log(data)
+                        if (data.length < 8) {
+                            this.hasNot = true
+                        } else {
+                            this.hasNot = false
+                        }
                         this.listContent = data
                         this.initPage()
                         this.$apply()
                     })
                 } else {
                     this.searchCompany().then(({data}) => {
-                        log(data)
+                        if (data.length < 8) {
+                            this.hasNot = true
+                        } else {
+                            this.hasNot = false
+                        }
                         this.listContent = data
                         this.initPage()
                         this.$apply()
@@ -832,7 +867,11 @@ export default class Search extends wepy.page {
                 this.cityChecked = e.target.dataset.id
                 this.childType = ''
                 this.searchJob().then(({data}) => {
-                    log(data)
+                    if (data.length < 8) {
+                        this.hasNot = true
+                    } else {
+                        this.hasNot = false
+                    }
                     this.listContent = data
                     this.initPage()
                     this.$apply()
@@ -872,14 +911,22 @@ export default class Search extends wepy.page {
                 }
                 if (Number.parseInt(this.type) === 1) {
                     this.searchJob().then(({data}) => {
-                        log(data)
+                        if (data.length < 8) {
+                            this.hasNot = true
+                        } else {
+                            this.hasNot = false
+                        }
                         this.listContent = data
                         this.initPage()
                         this.$apply()
                     })
                 } else {
                     this.searchCompany().then(({data}) => {
-                        log(data)
+                        if (data.length < 8) {
+                            this.hasNot = true
+                        } else {
+                            this.hasNot = false
+                        }
                         this.listContent = data
                         this.initPage()
                         this.$apply()
@@ -889,10 +936,26 @@ export default class Search extends wepy.page {
         }
     }
 
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
+
     onLoad (params) {
         if (params.keyword) {
             this.keyword = params.keyword
             this.searchJob().then(({data}) => {
+                if (data.length < 8) {
+                    this.hasNot = true
+                } else {
+                    this.hasNot = false
+                }
                 this.listContent = data
                 this.initPage()
                 this.$apply()
@@ -900,7 +963,7 @@ export default class Search extends wepy.page {
         }
         wepy.getSystemInfo({
             success: res => {
-                this.height = res.windowHeight - 143
+                this.height = res.windowHeight - 130
                 this.$apply()
             }
         })

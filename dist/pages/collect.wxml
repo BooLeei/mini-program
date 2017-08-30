@@ -3,7 +3,7 @@
     <block wx:for="{{collect}}" wx:for-index="index" wx:for-item="item" wx:key="index">
         <view class="item-wrap">
             
-    <navigator url="jobDetail?id={{item.id}}&type={{2}}" class="listItem" hover-class="item-hover">
+    <view bindtap="$jobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{1}}" data-wepy-params-b="{{item.id}}">
         <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
         <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
         <view class="right-side">
@@ -31,7 +31,7 @@
             <view class="describe">{{item.userCompany.brand_describe}}</view>
         </view>
         <icon wx:if="{{item.userCompany.is_approve_offical==1}}" class="comp-approve"/>
-    </navigator>
+    </view>
 
             <view class="btn-wrap">
                 <button hover-class="btn-active" data-id="{{item.id}}" data-btnindex="{{index}}">取消收藏</button>
@@ -39,3 +39,5 @@
         </view>
     </block>
 </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

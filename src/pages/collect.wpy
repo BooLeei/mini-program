@@ -2,17 +2,19 @@
 <view class="wrap" @tap="cancelCollect">
     <repeat for="{{collect}}" key="index" item="item">
         <view class="item-wrap">
-            <job-item :listItem="item" type="2"></job-item>
+            <job-item :listItem="item" type="1"></job-item>
             <view class="btn-wrap">
                 <button hover-class="btn-active" data-id="{{item.id}}" data-btnindex="{{index}}">取消收藏</button>
             </view>
         </view>
     </repeat>
 </view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
 import Loading from '../components/loading'
 import Request from '../utils/request'
 import JobItem from '../components/job-list-item'
@@ -42,7 +44,19 @@ export default class Collect extends wepy.page {
     }
 
     components = {
-        'job-item': JobItem
+        'job-item': JobItem,
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
     }
 
     data = {
@@ -85,20 +99,24 @@ export default class Collect extends wepy.page {
     }
 
     onPullDownRefresh () {
+        wepy.showLoading({title: '加载中...', mask: true})
         this.getCollectJob()
         .then(({data}) => {
             this.collect = data
-            wepy.stopPullDownRefresh()
             this.$apply()
+            wepy.stopPullDownRefresh()
+            wepy.hideLoading()
         })
     }
 
     onLoad (params) {
+        wepy.showLoading({title: '加载中...', mask: true})
         this.userId = params.id
         this.getCollectJob()
         .then(({data}) => {
             this.collect = data
             this.$apply()
+            wepy.hideLoading()
         })
     }
 

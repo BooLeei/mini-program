@@ -43,10 +43,12 @@
         </view>
     </view>
 </view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
 import Request from '../utils/request'
 
 export default class Follow extends wepy.page {
@@ -59,10 +61,25 @@ export default class Follow extends wepy.page {
 
     userId = ''
 
+    components = {
+        'toast': Toast
+    }
+
     page = {
         index: 1,
         busy: false,
         hasNot: false
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
     }
 
     getFollowCompany (page = 1, pageSize = 8) {
@@ -120,20 +137,24 @@ export default class Follow extends wepy.page {
     }
 
     onPullDownRefresh () {
+        wepy.showLoading({title: '加载中...', mask: true})
         this.getFollowCompany()
         .then(({data}) => {
             this.follow = data
-            wepy.stopPullDownRefresh()
             this.$apply()
+            wepy.stopPullDownRefresh()
+            wepy.hideLoading()
         })
     }
 
     onLoad (params) {
+        wepy.showLoading({title: '加载中...', mask: true})
         this.userId = params.id
         this.getFollowCompany()
         .then(({data}) => {
             this.follow = data
             this.$apply()
+            wepy.hideLoading()
         })
     }
 

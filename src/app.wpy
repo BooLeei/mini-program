@@ -23,17 +23,17 @@ view {
 import wepy from 'wepy'
 import Request from './utils/request'
 import {Get, Set} from './utils/storage'
-import {Create, OnOpen, Init} from './utils/socket'
+import {Create, OnOpen, Init, Close} from './utils/socket'
 import { QQMAPKEY } from './utils/constants'
 
 export default class extends wepy.app {
     config = {
         pages: [
-            'pages/chatList',
-            'pages/chat',
             'pages/jobs',
             'pages/login',
             'pages/mine',
+            'pages/chatList',
+            'pages/chat',
             'pages/resume',
             'pages/companys',
             'pages/allRecomend',
@@ -53,7 +53,12 @@ export default class extends wepy.app {
             'pages/progress',
             'pages/comment',
             'pages/simpleResume',
-            'pages/setting'
+            'pages/setting',
+            'pages/account-setting',
+            'pages/account-tel',
+            'pages/account-password',
+            'pages/allComment',
+            'pages/interest'
         ],
         window: {
             backgroundTextStyle: 'light',
@@ -105,7 +110,9 @@ export default class extends wepy.app {
             'selectProv': '0',
             'region_id': '0',
             'region_name': '全国'
-        }
+        },
+        initVal: 0,
+        curVal: 0
     }
 
     Request = new Request()
@@ -136,16 +143,6 @@ export default class extends wepy.app {
                 })
             }
         })
-        Get('userId').then(ret => {
-            Create().catch(err => {
-                console.log(err)
-            })
-            OnOpen().then(innerRet => {
-                Init(ret)
-            }).catch(err => {
-                console.log(err)
-            })
-        })
         Get('topChat').catch(() => {
             Set('topChat', [])
         })
@@ -167,6 +164,53 @@ export default class extends wepy.app {
                 .then(ret => wepy.setStorageSync('region', ret))
             }, 4000)
         })
+    }
+
+    restartSocket (id) {
+        Create()
+        OnOpen().then(() => {
+            console.log('open success')
+            Init(id)
+        }).catch(() => {
+            console.log('open fali')
+        })
+    }
+
+    intervalSocket = 0
+
+    keepSocket (id) {
+        this.restartSocket(id)
+        this.intervalSocket = setInterval(() => {
+            if (this.global.curVal != this.global.initVal) {
+                this.global.initVal = this.global.curVal
+            } else {
+                this.restartSocket(id)
+                this.global.initVal = this.global.curVal
+            }
+        }, 50000)
+    }
+
+    clearSocket () {
+        clearInterval(this.intervalSocket)
+    }
+
+    onShow () {
+        Get('userId').then(id => {
+            this.keepSocket(id)
+        }).catch(() => {})
+    }
+
+    onHide () {
+        Get('userId').then(ret => {
+            this.clearSocket()
+            this.global.initVal = 0
+            this.global.curVal = 0
+            Close().then(() => {
+                console.log('close success')
+            }).catch(() => {
+                console.log('close fail')
+            })
+        }).catch(() => {})
     }
 
     getUserInfo(cb) {

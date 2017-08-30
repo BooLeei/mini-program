@@ -2,21 +2,22 @@
 <view class="wrap">
     <block wx:if="{{type<4}}">
         <repeat for="{{list}}" key="{{index}}">
-            <job-item :listItem="item" type="3"></job-item>
+            <job-item :listItem="item" type="8"></job-item>
         </repeat>
     </block>
     <block wx:if="{{type==4}}">
         <repeat for="{{list}}" key="{{index}}">
-            <job-item :listItem="item" type="3"></job-item>
+            <job-item :listItem="item" type="8"></job-item>
         </repeat>
-    </block>/
+    </block>
     <block wx:if="{{type>4}}">
         <repeat for="{{list}}" key="{{index}}">
-            <job-item :listItem="item" type="3"></job-item>
+            <job-item :listItem="item" type="8"></job-item>
         </repeat>
     </block>
 </view>
-<loading :show.sync="loading"></loading>
+<toast></toast>
+<!-- <loading :show.sync="loading"></loading> -->
 </template>
 
 <script>
@@ -24,6 +25,7 @@ import wepy from 'wepy'
 import JobItem from '../components/job-list-item'
 import Loading from '../components/loading'
 import Request from '../utils/request'
+import Toast from '../components/toast'
 import {log} from '../utils/log'
 
 export default class AllShopJobs extends wepy.page {
@@ -44,11 +46,24 @@ export default class AllShopJobs extends wepy.page {
 
     components = {
         'job-item': JobItem,
-        'loading': Loading
+        'loading': Loading,
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
     }
 
     onLoad ({id, shopId, type}) {
-        this.loading = true
+        // this.loading = true
+        wepy.showLoading({title: '加载中...', mask: true})
         this.type = Number.parseInt(type)
         this.request.Get({
             'userCompanyId': id,
@@ -56,7 +71,8 @@ export default class AllShopJobs extends wepy.page {
         }, '/ShopList/getInviteListByShopId')
         .then(({data}) => {
             this.list = data
-            this.loading = false
+            // this.loading = false
+            wepy.hideLoading()
             this.$apply()
         })
     }

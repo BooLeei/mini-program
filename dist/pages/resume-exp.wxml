@@ -23,7 +23,7 @@
     </picker>
     <view class="content"  wx:if="{{!slider}}">
         <view>工作内容</view>
-        <textarea value="{{page.content}}" bindinput="bindContent"/>
+        <textarea value="{{page.content}}" bindinput="bindContent" catchtouchmove="stopPropagation"/>
         <text>{{page.content.length}}/60</text>
     </view>
 </view>
@@ -44,3 +44,5 @@
     <button bindtap="cancel" class="left" plain hover-class="btn-active">取消</button>
     <button bindtap="sure" class="right" hover-class="btn-active">保存</button>
 </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

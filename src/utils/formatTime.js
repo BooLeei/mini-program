@@ -16,14 +16,18 @@ let formatSecond = (time, daySplit = '-', timeSplit = ':') => {
     let sec = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds()
     return `${year}${daySplit}${month}${daySplit}${day} ${hour}${timeSplit}${min}${timeSplit}${sec}`
 }
-let formatTime = (time) => {
+let formatTime = (time, type = 1) => {
     let date = new Date(time)
     let cur = new Date().setHours(0, 0, 0, 0)
     if (date.getTime() >= cur) {
         let min = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
         return `${date.getHours()}:${min}`
     } else {
-        return `${date.getMonth() + 1}月${date.getDate()}日`
+        if (Number.parseInt(type) === 1) {
+            return `${date.getMonth() + 1}月${date.getDate()}日`
+        } else {
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
+        }
     }
 }
 

@@ -46,3 +46,5 @@
         <view class="tag-item {{item.id==page.skill_id?'tag-highlight':''}}"  wx:for="{{tagList}}" wx:key="{{index}}" data-index="{{index}}">{{item.name}}</view>
     </scroll-view>
 </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

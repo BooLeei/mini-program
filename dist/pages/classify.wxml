@@ -32,6 +32,9 @@
     </view>
 </view>
 
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>
+
+
 <!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
 <view class="loading"  wx:if="{{$loading$show}}">
     <image class="loading-img" src="../image/loading.png"/>

@@ -1,14 +1,14 @@
 
 <view class="wrap">
     <view class="base">
-        <view class="first-line">
+        <view class="first-line-detail">
             <view>
                 <text class="pin-icon">聘</text>
                 <text>{{page.work_name}}</text>
             </view>
             <text class="salary">{{page.salary_name}}</text>
         </view>
-        <view class="second-line">
+        <view class="second-line-detail">
             <view>
                 <icon/>
                 <text>{{page.city_name}}</text>
@@ -23,7 +23,7 @@
             </view>
         </view>
         <text class="text-line" style="color:#707070;padding:0 40rpx;box-sizing:border-box;">职位诱惑：{{page.temptation}}</text>
-        <view style="width:100%;padding:0 40rpx;box-sizing:border-box;">
+        <view style="width:100%;padding:0 40rpx;box-sizing:border-box;border-bottom:1px solid #f2f2f5;">
             <view class="text-wrap">
                 <text class="text-line" style="color:#aaa;">职位发布时间：{{publishTime}}</text>
                 <button bindtap="collect"  wx:if="{{page.hasCollect==0}}" plain class="collect-btn has" hove-class="collect-btn-hover">收藏职位</button>
@@ -137,13 +137,109 @@
             </view>
         </view>
     </view>
-    <!-- <map class="map" longitude="{{lon}}" latitude="{{lat}}" show-location></map> -->
+    <view class="block" style="margin-bottom: 10rpx;">
+        <view class="block-title" style="border-bottom: 1px solid #f2f2f5;">
+            <icon/>
+            <text>面试评价</text>
+        </view>
+        <view class="comment">
+            <view class="no-comment" wx:if="{{page.inviteWorkFeedback.length==0}}">暂无评价</view>
+            <block wx:if="{{page.inviteWorkFeedback.length!=0}}">
+                <view class="comment-item" wx:for="{{page.inviteWorkFeedback}}" wx:key="{{index}}">
+                    <image src="{{item.userInfo.headerImage}}" mode="aspectFill"/>
+                    <view class="comment-msg">
+                        <view class="comment-name">
+                            <text>{{item.is_anonymity==0?item.userInfo.name:'匿名'}}</text>
+                            <view class="comment-like" bindtap="commentLike" data-wepy-params-a="{{index}}" data-wepy-params-b="{{item.id}}">
+                                <view class="comment-slide-wrap">
+                                    <view class="comment-slide {{item.commentSlide===2 ? 'comment-slide-up' : ''}} {{item.commentSlide===0 ? 'comment-slide-down' : ''}}" >
+                                        <text class="comment-like-sub">{{item.like_num - 1}}</text>
+                                        <text class="comment-like-nor">{{item.like_num}}</text>
+                                        <text class="comment-like-plus">{{item.like_num + 1}}</text>
+                                    </view>
+                                </view>
+                                <icon style="background-color:{{item.hasLike==1?'#40c4ff':'#aaa'}}"/>
+                            </view>
+                        </view>
+                        <text class="comment-time">{{item.create_time}}</text>
+                        <view class="comment-star">
+                            <view class="comment-star-line">
+                                <view>面试官：
+                                    <icon class="comment-star-full" wx:for="{{item.interviewer_num}}" wx:key="{{index}}"/>
+                                    <icon class="comment-star-empty" wx:for="{{5 - item.interviewer_num}}" wx:key="{{index}}"/>
+                                </view>
+                                <view>工作环境：
+                                    <icon class="comment-star-full" wx:for="{{item.env_num}}" wx:key="{{index}}"/>
+                                    <icon class="comment-star-empty" wx:for="{{5 - item.env_num}}" wx:key="{{index}}"/>
+                                </view>
+                            </view>
+                            <view class="comment-star-line">
+                                <view>职位相符：
+                                    <icon class="comment-star-full" wx:for="{{item.conform_num}}" wx:key="{{index}}"/>
+                                    <icon class="comment-star-empty" wx:for="{{5 - item.conform_num}}" wx:key="{{index}}"/>
+                                </view>
+                                <view>薪资相符：
+                                    <icon class="comment-star-full" wx:for="{{item.salary_num}}" wx:key="{{index}}"/>
+                                    <icon class="comment-star-empty" wx:for="{{5 - item.salary_num}}" wx:key="{{index}}"/>
+                                </view>
+                            </view>
+                        </view>
+                        <view class="comment-tag" wx:if="{{item.tagArr.length!=0}}">
+                            <text wx:for="{{item.tagArr}}" wx:for-index="indexs" wx:for-item="items" wx:key="{{indexs}}">{{items}}</text>
+                        </view>
+                        <text class="comment-cont">{{item.content}}</text>
+                    </view>
+                </view>
+                <view class="toAllComment" wx:if="{{showAllComment}}">
+                    <text bindtap="toAllComment" hover-class="navi-hover" data-wepy-params-a="">全部评价</text>
+                </view>
+            </block>
+        </view>
+    </view>
+    <view class="similar" wx:if="{{similarJob.length!=0}}">
+        <view class="similar-title">相似职位</view>
+        <view class="similar-list">
+            <block wx:for="{{similarJob}}" wx:for-index="index" wx:for-item="item" wx:key="index">
+                
+    <view bindtap="$jobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{9}}" data-wepy-params-b="{{item.id}}">
+        <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
+        <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
+        <view class="right-side">
+            <view class="first-line">
+                <text class="name">{{item.work_name}}</text>
+                <text class="salary">{{item.salary_name}}</text>
+            </view>
+            <view class="second-line">
+                <view>
+                    <icon class="iconfont icon-icon-test"/>
+                    <text>{{item.city_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-shijian2"/>
+                    <text>{{item.work_experience_name}}</text>
+                </view>
+                <view>
+                    <icon class="iconfont icon-xueli1"/>
+                    <text>{{item.education_name}}</text>
+                </view>
+            </view>
+            <view class="third-line">
+                <text  wx:for="{{item.tagList}}" wx:key="{{index}}">{{item.name}}</text>
+            </view>
+            <view class="describe">{{item.userCompany.brand_describe}}</view>
+        </view>
+        <icon wx:if="{{item.userCompany.is_approve_offical==1}}" class="comp-approve"/>
+    </view>
+
+            </block>
+        </view>
+    </view>
 </view>
 <view class="footer">
-    <button plain class="sendResume" hover-class="footer-btn-hover" hover-start-time="0" hover-stay-time="150">
+    <button bindtap="sendResume" plain class="sendResume" hover-class="footer-btn-hover" hover-start-time="0" hover-stay-time="150">
         <text>投递简历</text>
     </button>
-    <button class="chat" hover-class="footer-btn-hover" hover-start-time="0" hover-stay-time="150">
+    <button bindtap="toChat" class="chat" hover-class="footer-btn-hover" hover-start-time="0" hover-stay-time="150">
         <text>聊一聊</text>
     </button>
 </view>
@@ -152,3 +248,6 @@
 <view class="loading"  wx:if="{{$loading$show}}">
     <image class="loading-img" src="../image/loading.png"/>
 </view>
+
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

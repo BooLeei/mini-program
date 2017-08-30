@@ -1,0 +1,10 @@
+
+<view class="list-wrap">
+    <view class="list-item" style="padding-right: 70rpx;" bindtap="toAccountTel">
+        <text>手机号</text>
+        <text>{{phone}}</text>
+        <icon class="special-icon"/>
+    </view>
+    <view class="list-item"><text>微信绑定</text><icon/></view>
+    <view class="list-item" bindtap="toAccountPassword"><text>修改密码</text><icon/></view>
+</view>

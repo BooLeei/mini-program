@@ -6,7 +6,7 @@
 import wepy from 'wepy'
 
 export default class Toast extends wepy.component {
-    busy = false
+    busy = 0
 
     data = {
         hide: true,
@@ -15,20 +15,15 @@ export default class Toast extends wepy.component {
     }
 
     methods = {
-        showToast ({content = '还有未填项', delay = 1500, top = 300}) {
-            if (this.busy) {
-                return false
-            } else {
+        showToast ({content = '还有未填项', delay = 2000, top = 300}) {
                 this.content = content
-                this.busy = true
                 this.hide = false
                 this.$apply()
-                setTimeout(() => {
+                clearTimeout(this.busy)
+                this.busy = setTimeout(() => {
                     this.hide = true
-                    this.busy = false
                     this.$apply()
                 }, delay)
-            }
         }
     }
 }

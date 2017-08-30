@@ -91,6 +91,7 @@
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
 import Request from '../utils/request'
 
 export default class SimpleResume extends wepy.page {
@@ -301,6 +302,21 @@ export default class SimpleResume extends wepy.page {
         },
         city: [this.storage.city, this.storage.city[0].children],
         job: [this.storage.job, this.storage.job[0].list, this.storage.job[0].list[0].workList]
+    }
+
+    components = {
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
     }
 
     methods = {

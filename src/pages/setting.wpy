@@ -1,17 +1,20 @@
 <template>
 <view class="list-wrap">
     <view class="list-item"><text>黑名单</text><icon></icon></view>
-    <view class="list-item"><text>帐号设置</text><icon></icon></view>
+    <view class="list-item" @tap="toAccountSet"><text>帐号设置</text><icon></icon></view>
 </view>
 <view class="list-wrap">
-    <view class="list-item"><text>意见反馈</text><icon></icon></view>
+    <!-- <button open-type="contact" class="list-button"><text>意见反馈</text><icon></icon></button> -->
     <view class="list-item"><text>联系国王</text><icon></icon></view>
 </view>
 <view @tap="quit" class="list-footer"><icon></icon>退出登录</view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
+import {Close} from '../utils/socket'
 import { Remove, Clear } from '../utils/storage'
 
 export default class Setting extends wepy.page {
@@ -22,9 +25,29 @@ export default class Setting extends wepy.page {
         disableScroll: false
     }
 
+    components = {
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
+
     methods = {
+        toAccountSet () {
+            wepy.navigateTo({url: 'account-setting'})
+        },
         quit () {
-            Remove('userId').then(() => {
+            this.$parent.clearSocket()
+            Promise.all([Remove('userId'), Remove('userImg'), Remove('userPhone'), Close()])
+            .then(() => {
                 wepy.reLaunch({url: 'jobs'})
             })
         }
@@ -55,6 +78,31 @@ page {
     border-bottom: 1px solid @bd-color;
     justify-content: space-between;
     align-items: center;
+    color: @font-color2;
+    icon {
+        width: 20rpx;
+        height: 20rpx;
+        border-top: 2px solid @font-color;
+        border-right: 2px solid @font-color;
+        transform: rotate(45deg);
+    }
+}
+.list-button {
+    display: flex;
+    width: 100%;
+    height: 100rpx;
+    padding: 0 40rpx;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid @bd-color;
+    background-color: #fff;
+    font-size: 26rpx;
+    color: @font-color2;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    border-radius: 0;
+    position: static;
     icon {
         width: 20rpx;
         height: 20rpx;

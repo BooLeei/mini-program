@@ -115,7 +115,7 @@
         <icon hidden="{{!(fixed&&slideDown)}}" class="down iconfont icon-llreservenavidown"/>
     </view>
  </view>
- <view class="list-wrap" style="margin-top:{{fixed?'88rpx':'0'}}">
+ <view class="list-wrap" style="margin-top:{{fixed?'88rpx':'0'}};min-height:{{minHeight}}px">
     <block wx:for="{{companys}}" wx:for-index="index" wx:for-item="item" wx:key="key">
         
 <navigator url="company?id={{item.id}}" class="listItem" hover-class="item-hover">
@@ -168,6 +168,9 @@
     <text data-type="8">互联网</text>
     <text data-type="9">其他</text>
 </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>
+
 
 <!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
 <view class="loading"  wx:if="{{$loading$show}}">

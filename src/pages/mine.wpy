@@ -27,16 +27,20 @@
         <icon></icon>简版简历测试入口<icon class="list-right-arrow"></icon>
     </view>
 </view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
 import Request from '../utils/request'
-import {Get} from '../utils/storage'
+import Toast from '../components/toast'
+import {Get, Set} from '../utils/storage'
 
 export default class Mine extends wepy.page {
     config = {
-        backgroundTextStyle: 'dark',
+        navigationBarTextStyle: 'white',
+        backgroundTextStyle: 'white',
+        navigationBarBackgroundColor: '#40c4ff',
         navigationBarTitleText: '我',
         enablePullDownRefresh: false,
         disableScroll: false
@@ -50,6 +54,12 @@ export default class Mine extends wepy.page {
         nickname: ''
     }
 
+    components = {
+        'toast': Toast
+    }
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
     userId = ''
     request = new Request()
 
@@ -104,12 +114,16 @@ export default class Mine extends wepy.page {
         }
     }
 
-    onLoad () {
-        wepy.setNavigationBarColor({
-            frontColor: '#ffffff',
-            backgroundColor: '#40c4ff'
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
         })
+    }
+
+    onLoad () {
         Get('userId').then(res => {
+            wepy.showLoading({title: '加载中...', mask: true})
             this.hasLogin = true
             this.userId = res
             this.request.Get({
@@ -118,7 +132,10 @@ export default class Mine extends wepy.page {
             }, '/UserPerson/getInfo')
             .then(({data}) => {
                 Object.assign(this, data)
+                Set('userImg', data.headerImageFull)
+                Set('userPhone', data.tel)
                 this.$apply()
+                wepy.hideLoading()
             })
             this.$apply()
         }).catch(err => {

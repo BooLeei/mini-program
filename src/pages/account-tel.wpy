@@ -1,0 +1,33 @@
+<template>
+
+<toast></toast>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Toast from '../components/toast'
+import Request from '../utils/request'
+
+export default class AccountTel extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '更换手机号',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    components = {
+        'toast': Toast
+    }
+
+    request = new Request()
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+}
+</script>
+
+<style lang="less">
+</style>

@@ -31,7 +31,7 @@ var Toast = function (_wepy$component) {
             args[_key] = arguments[_key];
         }
 
-        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = Toast.__proto__ || Object.getPrototypeOf(Toast)).call.apply(_ref, [this].concat(args))), _this), _this.busy = false, _this.data = {
+        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = Toast.__proto__ || Object.getPrototypeOf(Toast)).call.apply(_ref, [this].concat(args))), _this), _this.busy = 0, _this.data = {
             hide: true,
             content: '还有未填项',
             top: 200
@@ -42,23 +42,18 @@ var Toast = function (_wepy$component) {
                 var _ref2$content = _ref2.content,
                     content = _ref2$content === undefined ? '还有未填项' : _ref2$content,
                     _ref2$delay = _ref2.delay,
-                    delay = _ref2$delay === undefined ? 1500 : _ref2$delay,
+                    delay = _ref2$delay === undefined ? 2000 : _ref2$delay,
                     _ref2$top = _ref2.top,
                     top = _ref2$top === undefined ? 300 : _ref2$top;
 
-                if (this.busy) {
-                    return false;
-                } else {
-                    this.content = content;
-                    this.busy = true;
-                    this.hide = false;
-                    this.$apply();
-                    setTimeout(function () {
-                        _this2.hide = true;
-                        _this2.busy = false;
-                        _this2.$apply();
-                    }, delay);
-                }
+                this.content = content;
+                this.hide = false;
+                this.$apply();
+                clearTimeout(this.busy);
+                this.busy = setTimeout(function () {
+                    _this2.hide = true;
+                    _this2.$apply();
+                }, delay);
             }
         }, _temp), _possibleConstructorReturn(_this, _ret);
     }
@@ -67,4 +62,4 @@ var Toast = function (_wepy$component) {
 }(_wepy2.default.component);
 
 exports.default = Toast;
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRvYXN0LmpzIl0sIm5hbWVzIjpbIlRvYXN0IiwiYnVzeSIsImRhdGEiLCJoaWRlIiwiY29udGVudCIsInRvcCIsIm1ldGhvZHMiLCJzaG93VG9hc3QiLCJkZWxheSIsIiRhcHBseSIsInNldFRpbWVvdXQiLCJjb21wb25lbnQiXSwibWFwcGluZ3MiOiI7Ozs7Ozs7QUFDQTs7Ozs7Ozs7Ozs7O0lBRXFCQSxLOzs7Ozs7Ozs7Ozs7Ozt3TEFDakJDLEksR0FBTyxLLFFBRVBDLEksR0FBTztBQUNIQyxrQkFBTSxJQURIO0FBRUhDLHFCQUFTLE9BRk47QUFHSEMsaUJBQUs7QUFIRixTLFFBTVBDLE8sR0FBVTtBQUNOQyxxQkFETSw0QkFDbUQ7QUFBQTs7QUFBQSwwQ0FBN0NILE9BQTZDO0FBQUEsb0JBQTdDQSxPQUE2QyxpQ0FBbkMsT0FBbUM7QUFBQSx3Q0FBMUJJLEtBQTBCO0FBQUEsb0JBQTFCQSxLQUEwQiwrQkFBbEIsSUFBa0I7QUFBQSxzQ0FBWkgsR0FBWTtBQUFBLG9CQUFaQSxHQUFZLDZCQUFOLEdBQU07O0FBQ3JELG9CQUFJLEtBQUtKLElBQVQsRUFBZTtBQUNYLDJCQUFPLEtBQVA7QUFDSCxpQkFGRCxNQUVPO0FBQ0gseUJBQUtHLE9BQUwsR0FBZUEsT0FBZjtBQUNBLHlCQUFLSCxJQUFMLEdBQVksSUFBWjtBQUNBLHlCQUFLRSxJQUFMLEdBQVksS0FBWjtBQUNBLHlCQUFLTSxNQUFMO0FBQ0FDLCtCQUFXLFlBQU07QUFDYiwrQkFBS1AsSUFBTCxHQUFZLElBQVo7QUFDQSwrQkFBS0YsSUFBTCxHQUFZLEtBQVo7QUFDQSwrQkFBS1EsTUFBTDtBQUNILHFCQUpELEVBSUdELEtBSkg7QUFLSDtBQUNKO0FBZkssUzs7OztFQVRxQixlQUFLRyxTOztrQkFBbkJYLEsiLCJmaWxlIjoidG9hc3QuanMiLCJzb3VyY2VzQ29udGVudCI6WyJcclxuaW1wb3J0IHdlcHkgZnJvbSAnd2VweSdcclxuXHJcbmV4cG9ydCBkZWZhdWx0IGNsYXNzIFRvYXN0IGV4dGVuZHMgd2VweS5jb21wb25lbnQge1xyXG4gICAgYnVzeSA9IGZhbHNlXHJcblxyXG4gICAgZGF0YSA9IHtcclxuICAgICAgICBoaWRlOiB0cnVlLFxyXG4gICAgICAgIGNvbnRlbnQ6ICfov5jmnInmnKrloavpobknLFxyXG4gICAgICAgIHRvcDogMjAwXHJcbiAgICB9XHJcblxyXG4gICAgbWV0aG9kcyA9IHtcclxuICAgICAgICBzaG93VG9hc3QgKHtjb250ZW50ID0gJ+i/mOacieacquWhq+mhuScsIGRlbGF5ID0gMTUwMCwgdG9wID0gMzAwfSkge1xyXG4gICAgICAgICAgICBpZiAodGhpcy5idXN5KSB7XHJcbiAgICAgICAgICAgICAgICByZXR1cm4gZmFsc2VcclxuICAgICAgICAgICAgfSBlbHNlIHtcclxuICAgICAgICAgICAgICAgIHRoaXMuY29udGVudCA9IGNvbnRlbnRcclxuICAgICAgICAgICAgICAgIHRoaXMuYnVzeSA9IHRydWVcclxuICAgICAgICAgICAgICAgIHRoaXMuaGlkZSA9IGZhbHNlXHJcbiAgICAgICAgICAgICAgICB0aGlzLiRhcHBseSgpXHJcbiAgICAgICAgICAgICAgICBzZXRUaW1lb3V0KCgpID0+IHtcclxuICAgICAgICAgICAgICAgICAgICB0aGlzLmhpZGUgPSB0cnVlXHJcbiAgICAgICAgICAgICAgICAgICAgdGhpcy5idXN5ID0gZmFsc2VcclxuICAgICAgICAgICAgICAgICAgICB0aGlzLiRhcHBseSgpXHJcbiAgICAgICAgICAgICAgICB9LCBkZWxheSlcclxuICAgICAgICAgICAgfVxyXG4gICAgICAgIH1cclxuICAgIH1cclxufVxyXG4iXX0=
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInRvYXN0LmpzIl0sIm5hbWVzIjpbIlRvYXN0IiwiYnVzeSIsImRhdGEiLCJoaWRlIiwiY29udGVudCIsInRvcCIsIm1ldGhvZHMiLCJzaG93VG9hc3QiLCJkZWxheSIsIiRhcHBseSIsImNsZWFyVGltZW91dCIsInNldFRpbWVvdXQiLCJjb21wb25lbnQiXSwibWFwcGluZ3MiOiI7Ozs7Ozs7QUFDQTs7Ozs7Ozs7Ozs7O0lBRXFCQSxLOzs7Ozs7Ozs7Ozs7Ozt3TEFDakJDLEksR0FBTyxDLFFBRVBDLEksR0FBTztBQUNIQyxrQkFBTSxJQURIO0FBRUhDLHFCQUFTLE9BRk47QUFHSEMsaUJBQUs7QUFIRixTLFFBTVBDLE8sR0FBVTtBQUNOQyxxQkFETSw0QkFDbUQ7QUFBQTs7QUFBQSwwQ0FBN0NILE9BQTZDO0FBQUEsb0JBQTdDQSxPQUE2QyxpQ0FBbkMsT0FBbUM7QUFBQSx3Q0FBMUJJLEtBQTBCO0FBQUEsb0JBQTFCQSxLQUEwQiwrQkFBbEIsSUFBa0I7QUFBQSxzQ0FBWkgsR0FBWTtBQUFBLG9CQUFaQSxHQUFZLDZCQUFOLEdBQU07O0FBQ2pELHFCQUFLRCxPQUFMLEdBQWVBLE9BQWY7QUFDQSxxQkFBS0QsSUFBTCxHQUFZLEtBQVo7QUFDQSxxQkFBS00sTUFBTDtBQUNBQyw2QkFBYSxLQUFLVCxJQUFsQjtBQUNBLHFCQUFLQSxJQUFMLEdBQVlVLFdBQVcsWUFBTTtBQUN6QiwyQkFBS1IsSUFBTCxHQUFZLElBQVo7QUFDQSwyQkFBS00sTUFBTDtBQUNILGlCQUhXLEVBR1RELEtBSFMsQ0FBWjtBQUlQO0FBVkssUzs7OztFQVRxQixlQUFLSSxTOztrQkFBbkJaLEsiLCJmaWxlIjoidG9hc3QuanMiLCJzb3VyY2VzQ29udGVudCI6WyJcclxuaW1wb3J0IHdlcHkgZnJvbSAnd2VweSdcclxuXHJcbmV4cG9ydCBkZWZhdWx0IGNsYXNzIFRvYXN0IGV4dGVuZHMgd2VweS5jb21wb25lbnQge1xyXG4gICAgYnVzeSA9IDBcclxuXHJcbiAgICBkYXRhID0ge1xyXG4gICAgICAgIGhpZGU6IHRydWUsXHJcbiAgICAgICAgY29udGVudDogJ+i/mOacieacquWhq+mhuScsXHJcbiAgICAgICAgdG9wOiAyMDBcclxuICAgIH1cclxuXHJcbiAgICBtZXRob2RzID0ge1xyXG4gICAgICAgIHNob3dUb2FzdCAoe2NvbnRlbnQgPSAn6L+Y5pyJ5pyq5aGr6aG5JywgZGVsYXkgPSAyMDAwLCB0b3AgPSAzMDB9KSB7XHJcbiAgICAgICAgICAgICAgICB0aGlzLmNvbnRlbnQgPSBjb250ZW50XHJcbiAgICAgICAgICAgICAgICB0aGlzLmhpZGUgPSBmYWxzZVxyXG4gICAgICAgICAgICAgICAgdGhpcy4kYXBwbHkoKVxyXG4gICAgICAgICAgICAgICAgY2xlYXJUaW1lb3V0KHRoaXMuYnVzeSlcclxuICAgICAgICAgICAgICAgIHRoaXMuYnVzeSA9IHNldFRpbWVvdXQoKCkgPT4ge1xyXG4gICAgICAgICAgICAgICAgICAgIHRoaXMuaGlkZSA9IHRydWVcclxuICAgICAgICAgICAgICAgICAgICB0aGlzLiRhcHBseSgpXHJcbiAgICAgICAgICAgICAgICB9LCBkZWxheSlcclxuICAgICAgICB9XHJcbiAgICB9XHJcbn1cclxuIl19

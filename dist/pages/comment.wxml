@@ -68,3 +68,5 @@
         <button bindtap="sure" class="right" hover-class="btn-active">确定</button>
     </block>
 </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

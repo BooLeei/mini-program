@@ -1,0 +1,179 @@
+<template>
+<navigator wx:for="{{list}}" wx:key="{{index}}" url="company?id={{item.userId}}" class="list-item">
+    <image src="{{item.headerImage}}" mode="aspectFill"/>
+    <view class="right">
+        <text class="name">{{item.nickname}}</text>
+        <text class="job">{{item.workNum}}个 职位在招</text>
+        <text class="msg">{{item.collectTime}} 收藏了我的简历</text>
+    </view>
+    <icon></icon>
+</navigator>
+<toast></toast>
+</template>
+
+<script>
+import wepy from 'wepy'
+import {formatTime} from '../utils/formatTime'
+import Request from '../utils/request'
+import Toast from '../components/toast'
+
+export default class Interest extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '对我感兴趣'
+    }
+
+    request = new Request()
+
+    data = {
+        list: []
+    }
+
+    components = {
+        'toast': Toast
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
+
+    userId = ''
+    pages = {
+        index: 1,
+        busy: false,
+        hasNot: false
+    }
+
+    getInterestCompany (page = 1, pageSize = 8) {
+        return this.request.Get({
+            userId: this.userId,
+            userType: 1,
+            page: page,
+            pageSize: pageSize
+        }, '/Chat/getInterestList')
+    }
+
+    onLoad (params) {
+        wepy.showLoading({title: '加载中...', mask: true})
+        this.userId = params.id
+        this.getInterestCompany()
+        .then(({data}) => {
+            data.forEach((item) => {
+                item.collectTime = formatTime(item.collectTime)
+            })
+            this.list = data
+            this.$apply()
+            wepy.hideLoading()
+        })
+    }
+
+    onReachBottom () {
+        if (this.pages.hasNot) {
+            // this.toast({content: '没有更多了'})
+            return false
+        }
+        if (this.pages.busy) {
+            // this.toast({content: '正在加载请稍后再试'})
+            return false
+        }
+        this.pages.busy = true
+        this.pages.index++
+        this.getInterestCompany(this.pages.index)
+        .then(({data}) => {
+            if (data.length < 8) {
+                this.pages.hasNot = true
+            }
+            data.forEach((item) => {
+                item.collectTime = formatTime(item.collectTime)
+            })
+            this.list = [...this.list, ...data]
+            this.$apply()
+        })
+    }
+
+    onPullDownRefresh () {
+        wepy.showLoading({title: '加载中...', mask: true})
+        this.pages.index = 1
+        this.pages.hasNot = false
+        this.pages.busy = false
+        this.getInterestCompany()
+        .then(({data}) => {
+            data.forEach((item) => {
+                item.collectTime = formatTime(item.collectTime)
+            })
+            this.list = data
+            this.$apply()
+            wepy.stopPullDownRefresh()
+            wepy.hideLoading()
+        })
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+page {
+    background-color: @bg-color;
+}
+.list-item {
+    width: 100%;
+    height: 160rpx;
+    display: flex;
+    box-sizing: border-box;
+    padding: 0 40rpx;
+    background-color: #fff;
+    border-bottom: 1px solid @bd-color;
+    position: relative;
+    image {
+        width: 120rpx;
+        height: 120rpx;
+        border-radius: 12rpx;
+        border: 1px solid @bd-color;
+    }
+    .right {
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20rpx 0 20rpx 20rpx;
+        text {
+            width: 100%;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .name {
+            font-size: 32rpx;
+            font-weight: bold;
+            color: @font-color2;
+        }
+        .msg {
+            color: #ddd;
+        }
+    }
+    icon {
+        width: 30rpx;
+        height: 30rpx;
+        border-top: 2px solid #ddd;
+        border-right: 2px solid #ddd;
+        background-color: transparent;
+        position: absolute;
+        top: 50%;
+        right: 40rpx;
+        transform: rotate(45deg) translateY(-50%);
+    }
+}
+.navigator-hover {
+    background-color: @bg-color;
+}
+</style>

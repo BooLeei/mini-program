@@ -33,7 +33,7 @@
         <view class="list-wrap" hidden="{{tabIndex!=0}}">
             <block wx:for="{{newJobList}}" wx:for-index="index" wx:for-item="item" wx:key="key">
                 
-    <navigator url="jobDetail?id={{item.id}}&type={{1}}" class="listItem" hover-class="item-hover">
+    <view bindtap="$newJobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{1}}" data-wepy-params-b="{{item.id}}">
         <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
         <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
         <view class="right-side">
@@ -61,7 +61,7 @@
             <view class="describe">{{item.userCompany.brand_describe}}</view>
         </view>
         <icon wx:if="{{item.userCompany.is_approve_offical==1}}" class="comp-approve"/>
-    </navigator>
+    </view>
 
             </block>
             <view class="pull-loading" hidden="{{hasNot}}">加载中...</view>
@@ -69,7 +69,7 @@
         <view class="list-wrap" hidden="{{tabIndex!=1}}">
             <block wx:for="{{hotJobList}}" wx:for-index="index" wx:for-item="item" wx:key="key">
                 
-    <navigator url="jobDetail?id={{item.id}}&type={{1}}" class="listItem" hover-class="item-hover">
+    <view bindtap="$hotJobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{1}}" data-wepy-params-b="{{item.id}}">
         <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
         <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
         <view class="right-side">
@@ -97,12 +97,15 @@
             <view class="describe">{{item.userCompany.brand_describe}}</view>
         </view>
         <icon wx:if="{{item.userCompany.is_approve_offical==1}}" class="comp-approve"/>
-    </navigator>
+    </view>
 
             </block>
             <view class="pull-loading" hidden="{{hasNot}}">加载中...</view>
         </view>
     </view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>
+
 
 <!-- <view class="loading" hidden="{{hidden}}" style="opacity:{{init}}" animation="{{fade}}"> -->
 <view class="loading"  wx:if="{{$loading$show}}">

@@ -14,3 +14,5 @@
         我们深知，优秀人才对于企业发展的重要性!!!
     </text>
 </scroll-view>
+
+<view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

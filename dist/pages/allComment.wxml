@@ -1,0 +1,48 @@
+
+    <view class="comment">
+        <view class="comment-item"  wx:for="{{page}}" wx:key="{{index}}">
+            <image src="{{item.userInfo.headerImage}}" mode="aspectFill"/>
+            <view class="comment-msg">
+                <view class="comment-name">
+                    <text>{{item.is_anonymity==0?item.userInfo.name:'匿名'}}</text>
+                    <view class="comment-like" bindtap="commentLike" data-wepy-params-a="{{index}}" data-wepy-params-b="{{item.id}}">
+                        <view class="comment-slide-wrap">
+                            <view class="comment-slide {{item.commentSlide===2 ? 'comment-slide-up' : ''}} {{item.commentSlide===0 ? 'comment-slide-down' : ''}}" >
+                                <text class="comment-like-sub">{{item.like_num - 1}}</text>
+                                <text class="comment-like-nor">{{item.like_num}}</text>
+                                <text class="comment-like-plus">{{item.like_num + 1}}</text>
+                            </view>
+                        </view>
+                        <icon style="background-color:{{item.hasLike==1?'#40c4ff':'#aaa'}}"/>
+                    </view>
+                </view>
+                <text class="comment-time">{{item.create_time}}</text>
+                <view class="comment-star">
+                    <view class="comment-star-line">
+                        <view>面试官：
+                            <icon class="comment-star-full" wx:for="{{item.interviewer_num}}" wx:key="{{index}}"/>
+                            <icon class="comment-star-empty" wx:for="{{5 - item.interviewer_num}}" wx:key="{{index}}"/>
+                        </view>
+                        <view>工作环境：
+                            <icon class="comment-star-full" wx:for="{{item.env_num}}" wx:key="{{index}}"/>
+                            <icon class="comment-star-empty" wx:for="{{5 - item.env_num}}" wx:key="{{index}}"/>
+                        </view>
+                    </view>
+                    <view class="comment-star-line">
+                        <view>职位相符：
+                            <icon class="comment-star-full" wx:for="{{item.conform_num}}" wx:key="{{index}}"/>
+                            <icon class="comment-star-empty" wx:for="{{5 - item.conform_num}}" wx:key="{{index}}"/>
+                        </view>
+                        <view>薪资相符：
+                            <icon class="comment-star-full" wx:for="{{item.salary_num}}" wx:key="{{index}}"/>
+                            <icon class="comment-star-empty" wx:for="{{5 - item.salary_num}}" wx:key="{{index}}"/>
+                        </view>
+                    </view>
+                </view>
+                <view class="comment-tag" wx:if="{{item.tagArr.length!=0}}">
+                    <text wx:for="{{item.tagArr}}" wx:for-index="indexs" wx:for-item="items" wx:key="{{indexs}}">{{items}}</text>
+                </view>
+                <text class="comment-cont">{{item.content}}</text>
+            </view>
+        </view>
+    </view>

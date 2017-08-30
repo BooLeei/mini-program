@@ -170,11 +170,13 @@
         <button @tap="sure" class="right" hover-class='btn-active'>保存</button>
     </view>
 </view>
-<loading :show.sync="loading"></loading>
+<toast></toast>
+<!-- <loading :show.sync="loading"></loading> -->
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
 import Loading from '../components/loading'
 import Request from '../utils/request'
 import { Preview, Choose, Upload } from '../utils/imageUtils'
@@ -390,7 +392,8 @@ export default class Resume extends wepy.page {
     }
 
     components = {
-        'loading': Loading
+        'loading': Loading,
+        'toast': Toast
     }
 
     userId = ''
@@ -604,7 +607,15 @@ export default class Resume extends wepy.page {
         }
     }
 
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
     onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
         if (this.$parent.global.tagUpdate) {
             this.page.tagList = [...this.$parent.global.tagList]
         }
@@ -617,21 +628,25 @@ export default class Resume extends wepy.page {
     }
 
     onPullDownRefresh () {
+        wepy.showLoading({title: '加载中...', mask: true})
         this.request.Get({'userId': this.userId}, '/Resume/getInfoSelf')
         .then(({data}) => {
             this.page = data
-            wepy.stopPullDownRefresh()
             this.$apply()
+            wepy.stopPullDownRefresh()
+            wepy.hideLoading()
         })
     }
 
     onLoad (params) {
-        this.loading = true
+        // this.loading = true
+        wepy.showLoading({title: '加载中...', mask: true})
         this.userId = params.id
         this.request.Get({'userId': params.id}, '/Resume/getInfoSelf')
         .then(({data}) => {
             this.page = data
-            this.loading = false
+            // this.loading = false
+            wepy.hideLoading()
             this.$apply()
         })
     }

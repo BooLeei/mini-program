@@ -35,10 +35,12 @@
          wx:key="{{index}}" data-index="{{index}}">{{item.name}}</view>
     </scroll-view>
 </view>
+<toast></toast>
 </template>
 
 <script>
 import wepy from 'wepy'
+import Toast from '../components/toast'
 import SlideBtn from '../components/slide-btn'
 import {log} from '../utils/log'
 
@@ -130,10 +132,22 @@ export default class ResumeTag extends wepy.page {
 
     components = {
         'approve': SlideBtn,
-        'certificate': SlideBtn
+        'certificate': SlideBtn,
+        'toast': Toast
     }
 
     index = -1
+
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
+
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
 
     events = {
         'approve': (...args) => {

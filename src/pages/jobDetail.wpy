@@ -1,14 +1,14 @@
 <template>
 <view class="wrap">
     <view class="base">
-        <view class="first-line">
+        <view class="first-line-detail">
             <view>
                 <text class="pin-icon">聘</text>
                 <text>{{page.work_name}}</text>
             </view>
             <text class="salary">{{page.salary_name}}</text>
         </view>
-        <view class="second-line">
+        <view class="second-line-detail">
             <view>
                 <icon></icon>
                 <text>{{page.city_name}}</text>
@@ -23,7 +23,7 @@
             </view>
         </view>
         <text class="text-line" style="color:#707070;padding:0 40rpx;box-sizing:border-box;">职位诱惑：{{page.temptation}}</text>
-        <view style="width:100%;padding:0 40rpx;box-sizing:border-box;">
+        <view style="width:100%;padding:0 40rpx;box-sizing:border-box;border-bottom:1px solid #f2f2f5;">
             <view class="text-wrap">
                 <text class="text-line" style="color:#aaa;">职位发布时间：{{publishTime}}</text>
                 <button @tap="collect" wx:if="{{page.hasCollect==0}}" plain class="collect-btn has" hove-class="collect-btn-hover">收藏职位</button>
@@ -137,17 +137,84 @@
             </view>
         </view>
     </view>
-    <!-- <map class="map" longitude="{{lon}}" latitude="{{lat}}" show-location></map> -->
+    <view class="block" style="margin-bottom: 10rpx;">
+        <view class="block-title" style="border-bottom: 1px solid #f2f2f5;">
+            <icon></icon>
+            <text>面试评价</text>
+        </view>
+        <view class="comment">
+            <view class="no-comment" wx:if="{{page.inviteWorkFeedback.length==0}}">暂无评价</view>
+            <block wx:if="{{page.inviteWorkFeedback.length!=0}}">
+                <view class="comment-item" wx:for="{{page.inviteWorkFeedback}}" wx:key="{{index}}">
+                    <image src="{{item.userInfo.headerImage}}" mode="aspectFill" />
+                    <view class="comment-msg">
+                        <view class="comment-name">
+                            <text>{{item.is_anonymity==0?item.userInfo.name:'匿名'}}</text>
+                            <view class="comment-like" @tap="commentLike({{index}}, {{item.id}})">
+                                <view class="comment-slide-wrap">
+                                    <view class="comment-slide" :class="{'comment-slide-up':item.commentSlide===2,'comment-slide-down':item.commentSlide===0}">
+                                        <text class="comment-like-sub">{{item.like_num - 1}}</text>
+                                        <text class="comment-like-nor">{{item.like_num}}</text>
+                                        <text class="comment-like-plus">{{item.like_num + 1}}</text>
+                                    </view>
+                                </view>
+                                <icon style="background-color:{{item.hasLike==1?'#40c4ff':'#aaa'}}"></icon>
+                            </view>
+                        </view>
+                        <text class="comment-time">{{item.create_time}}</text>
+                        <view class="comment-star">
+                            <view class="comment-star-line">
+                                <view>面试官：
+                                    <icon class="comment-star-full" wx:for="{{item.interviewer_num}}" wx:key="{{index}}"></icon>
+                                    <icon class="comment-star-empty" wx:for="{{5 - item.interviewer_num}}" wx:key="{{index}}"></icon>
+                                </view>
+                                <view>工作环境：
+                                    <icon class="comment-star-full" wx:for="{{item.env_num}}" wx:key="{{index}}"></icon>
+                                    <icon class="comment-star-empty" wx:for="{{5 - item.env_num}}" wx:key="{{index}}"></icon>
+                                </view>
+                            </view>
+                            <view class="comment-star-line">
+                                <view>职位相符：
+                                    <icon class="comment-star-full" wx:for="{{item.conform_num}}" wx:key="{{index}}"></icon>
+                                    <icon class="comment-star-empty" wx:for="{{5 - item.conform_num}}" wx:key="{{index}}"></icon>
+                                </view>
+                                <view>薪资相符：
+                                    <icon class="comment-star-full" wx:for="{{item.salary_num}}" wx:key="{{index}}"></icon>
+                                    <icon class="comment-star-empty" wx:for="{{5 - item.salary_num}}" wx:key="{{index}}"></icon>
+                                </view>
+                            </view>
+                        </view>
+                        <view class="comment-tag" wx:if="{{item.tagArr.length!=0}}">
+                            <text wx:for="{{item.tagArr}}" wx:for-index="indexs" wx:for-item="items" wx:key="{{indexs}}">{{items}}</text>
+                        </view>
+                        <text class="comment-cont">{{item.content}}</text>
+                    </view>
+                </view>
+                <view class="toAllComment" wx:if="{{showAllComment}}">
+                    <text @tap="toAllComment()" hover-class="navi-hover">全部评价</text>
+                </view>
+            </block>
+        </view>
+    </view>
+    <view class="similar" wx:if="{{similarJob.length!=0}}">
+        <view class="similar-title">相似职位</view>
+        <view class="similar-list">
+            <repeat for="{{similarJob}}" key="index">
+                <job-item :listItem="item" type="9"></job-item>
+            </repeat>
+        </view>
+    </view>
 </view>
 <view class="footer">
-    <button plain class="sendResume" hover-class="footer-btn-hover" hover-start-time="0" hover-stay-time="150">
+    <button @tap="sendResume" plain class="sendResume" hover-class="footer-btn-hover" hover-start-time="0" hover-stay-time="150">
         <text>投递简历</text>
     </button>
-    <button class="chat" hover-class="footer-btn-hover" hover-start-time="0" hover-stay-time="150">
+    <button @tap="toChat" class="chat" hover-class="footer-btn-hover" hover-start-time="0" hover-stay-time="150">
         <text>聊一聊</text>
     </button>
 </view>
 <loading :show.sync="loading"></loading>
+<toast></toast>
 </template>
 
 <style lang="less">
@@ -171,7 +238,7 @@
     flex-direction: column;
     justify-content: center;
 }
-.first-line {
+.first-line-detail {
     width: 100%;
     height: 70rpx;
     align-items: center;
@@ -214,7 +281,7 @@
         margin-right: 40rpx;
     }
 }
-.second-line {
+.second-line-detail {
     width: 100%;
     height: 90rpx;
     padding: 0 40rpx;
@@ -602,6 +669,9 @@
         transform: translateZ(0);
         transition: transform 200ms linear;
     }
+    .footer-btn-footer{
+        transform: scale(0.9);
+    }
     .sendResume {
         width: 220rpx;
         border: 1px solid @generate-color;
@@ -615,8 +685,181 @@
         color: #fff;
     }
 }
-.footer-btn-footer{
-    transform: scale(0.9);
+.comment {
+    width: 100%;
+    flex-direction: column;
+    .no-comment {
+        width: 100%;
+        height: 100rpx;
+        align-items: center;
+        justify-content: center;
+    }
+}
+.comment-item {
+    width: 100%;
+    padding-top: 30rpx;
+    align-items: center;
+    image {
+        width: 80rpx;
+        height: 80rpx;
+        border-radius: 12rpx;
+        border: 1px solid @bd-color;
+        margin-right: 20rpx;
+        align-self: flex-start;
+    }
+}
+.comment-msg {
+    flex: 1;
+    padding-bottom: 30rpx;
+    border-bottom: 1px solid @bd-color;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.comment-name {
+    width: 100%;
+    height: 50rpx;
+    font-size: 28rpx;
+    font-weight: bold;
+    color: @font-color2;
+    align-items: center;
+    justify-content: space-between;
+}
+.comment-like {
+    height: 50rpx;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    icon {
+        width: 40rpx;
+        height: 40rpx;
+    }
+    .comment-slide-wrap {
+        height: 50rpx;
+        overflow-y: hidden;
+        .comment-slide {
+            min-width: 30rpx;
+            height: 50rpx;
+            position: relative;
+            will-change: auto;
+            transform: translateZ(0) translateY(0);
+            transition: transform 100ms linear;
+            text {
+                position: absolute;
+                height: 50rpx;
+                line-height: 50rpx;
+                text-align: center;
+                font-weight: normal;
+                font-size: 32rpx;
+            }
+            .comment-like-sub {
+                bottom: 50rpx;
+            }
+            .comment-like-plus {
+                top: 50rpx;
+            }
+        }
+        .comment-slide-up {
+            transform: translateY(-100%);
+        }
+        .comment-slide-down {
+            transform: translateY(100%);
+        }
+    }
+}
+.comment-time {
+    width: 100%;
+    height: 30rpx;
+    line-height: 30rpx;
+    margin: 4rpx 0 6rpx;
+}
+.comment-star {
+    width: 100%;
+    align-items: center;
+    flex-wrap: wrap;
+    .comment-star-line {
+        width: 100%;
+        view {
+            width: 49%;
+            font-size: 24rpx;
+            height: 50rpx;
+            color: @font-color2;
+            align-items: center;
+        }
+        icon {
+            width: 24rpx;
+            height: 24rpx;
+            margin: 0 2rpx;
+            box-sizing: border-box;
+            border-radius: 50%;
+        }
+        .comment-star-full {
+            background-color: @generate-color;
+        }
+        .comment-star-empty {
+            border: 1px solid @generate-color;
+        }
+    }
+}
+.comment-tag {
+    width: 100%;
+    margin: 20rpx 0;
+    text {
+        height: 40rpx;
+        line-height: 36rpx;
+        padding: 0 20rpx;
+        border-radius: 20rpx;
+        border: 1px solid @generate-color;
+        box-sizing: border-box;
+        color: @generate-color;
+        font-size: 24rpx;
+        margin-right: 16rpx;
+    }
+}
+.comment-cont {
+    width: 100%;
+    margin-top: 10rpx;
+}
+.toAllComment {
+    width: 100%;
+    height: 200rpx;
+    background-color: #fff;
+    align-items: center;
+    justify-content: center;
+    text {
+        display: flex;
+        box-sizing: border-box;
+        width: 180rpx;
+        height: 60rpx;
+        border: 1px solid @generate-color;
+        border-radius: 12rpx;
+        color: @generate-color;
+        font-size: 26rpx;
+        justify-content: center;
+        align-items: center;
+    }
+    .navi-hover {
+        background-color: #fff;
+    }
+}
+.similar {
+    width: 100%;
+    background-color: @bg-color;
+    flex-direction: column;
+    margin-bottom: 10rpx;
+    .similar-title {
+        width: 100%;
+        height: 70rpx;
+        font-size: 28rpx;
+        font-weight: bold;
+        color: @font-color2;
+        align-items: center;
+        justify-content: center;
+    }
+    .similar-list {
+        width: 100%;
+        background-color: #fff;
+        flex-direction: column;
+    }
 }
 </style>
 
@@ -625,7 +868,8 @@ import wepy from 'wepy'
 import Loading from '../components/loading'
 import Request from '../utils/request'
 import Toast from '../components/toast'
-import { formatDay } from '../utils/formatTime'
+import JobItem from '../components/job-list-item'
+import { formatDay, formatTime } from '../utils/formatTime'
 import {Get} from '../utils/storage'
 import { QQMAPKEY } from '../utils/constants'
 import QQMapWX from '../utils/qqmap-wx-jssdk.min'
@@ -634,17 +878,23 @@ import { log } from '../utils/log'
 export default class JobDetail extends wepy.page {
     config = {
         backgroundTextStyle: 'dark',
-        navigationBarTitleText: '职位信息'
+        navigationBarTitleText: '职位信息',
+        onReachBottomDistance: 100
     }
 
     request = new Request()
+    toast (data = {}) {
+        this.$invoke('toast', 'showToast', data)
+    }
 
     data = {
         hasLogin: false,
         loading: false,
+        showAllComment: false,
         page: null,
         tagIndex: 0,
-        nameIndex: -1
+        nameIndex: -1,
+        similarJob: []
     }
 
     location = {
@@ -654,14 +904,15 @@ export default class JobDetail extends wepy.page {
 
     type = '1'
     id = ''
-    userId = ''
+    userId = 0
     toast (data = {}) {
         this.$invoke('toast', 'showToast', data)
     }
 
     components = {
         'loading': Loading,
-        'toast': Toast
+        'toast': Toast,
+        'job-item': JobItem
     }
 
     mapApi = new QQMapWX({
@@ -709,11 +960,80 @@ export default class JobDetail extends wepy.page {
             } else if (this.type === '2') {
                 wepy.navigateBack({delta: 1})
             } else {
-                wepy.navigateTo({url: `company?id=${this.page.userCompany.id}`})
+                wepy.redirectTo({url: `company?id=${this.page.userCompany.id}`})
+            }
+        },
+        toChat () {
+            if (this.hasLogin) {
+                Get('finishType').then(type => {
+                    if (Number.parseInt(type) === 0) {
+                        let temp = {
+                            _id: Number.parseInt(this.page.userCompany.id) < Number.parseInt(this.userId) ?
+                             this.page.userCompany.id + '' + this.userId : this.userId + '' + this.page.userCompany.id,
+                            chatUserId: this.page.userCompany.id,
+                            chatUserName: this.page.userCompany.nickname,
+                            chatUserHeaderImage: this.page.userCompany.headerImage
+                        }
+                        wepy.navigateTo({
+                            url: `chat?type=2&userId=${this.userId}&msg=${JSON.stringify(temp)}`
+                        })
+                    } else {
+                        this.toast({content: '请先完善简历'})
+                    }
+                })
+            } else {
+                wepy.navigateTo({url: 'login'})
+            }
+        },
+        toAllComment () {
+            wepy.navigateTo({
+                url: `allComment?userId=${this.userId}&workId=${this.id}`
+            })
+        },
+        sendResume () {
+            if (this.hasLogin) {
+                Get('finishType').then(type => {
+                    if (Number.parseInt(type) === 0) {
+                        this.request.Post({
+                            userCompanyId: this.page.userCompany.id,
+                            inviteWorkId: this.page.id,
+                            userId: this.userId,
+                            checkPerisher:1
+                        }, '/Resume/send').then(res => {
+                            wepy.showModal({
+                                title: '提示',
+                                content: '确定向此职位投递你的简历？',
+                                confirmColor: '#40c4ff',
+                                success: res => {
+                                    if (res.confirm) {
+                                        this.request.Post({
+                                            userCompanyId: this.page.userCompany.id,
+                                            inviteWorkId: this.page.id,
+                                            userId: this.userId
+                                        }, '/Resume/send').then(() => {
+                                            this.toast({content: '已投递'})
+                                        })
+                                    }
+                                }
+                            })
+                        }).catch(({data: res}) => {
+                            if (res.err == -3) {
+                                this.toast({content: '已被对方拉黑'})
+                            } else if (res.err == -4) {
+                                this.toast({content: '对方已被你拉黑，请先从黑名单中移出'})
+                            } else if (res.err == -5) {
+                                this.toast({content: '已投递过，30天后再来投递'})
+                            }
+                        })
+                    } else {
+                        this.toast({content: '请先完善简历'})
+                    }
+                })
+            } else {
+                wepy.navigateTo({url: 'login'})
             }
         },
         showTagIntro (e) {
-            log(e)
             if (e.target.dataset.index) {
                 if (this.tagIndex === 0) {
                     this.tagIndex = Number.parseInt(e.target.dataset.index)
@@ -729,6 +1049,27 @@ export default class JobDetail extends wepy.page {
                 this.nameIndex = Number.parseInt(index)
             }
         },
+        commentLike (index, id) {
+            if (this.hasLogin) {
+                this.request.Post({
+                    userId: this.userId,
+                    inviteWorkFeedbackId: id,
+                    status: this.page.inviteWorkFeedback[index].hasLike == 1 ? '0' : '1'
+                }, '/InviteWorkFeedback/like')
+                .then(() => {
+                    if (this.page.inviteWorkFeedback[index].hasLike == 1) {
+                        this.page.inviteWorkFeedback[index].hasLike = 0
+                        this.page.inviteWorkFeedback[index].commentSlide = this.page.inviteWorkFeedback[index].commentSlide - 1
+                    } else {
+                        this.page.inviteWorkFeedback[index].hasLike = 1
+                        this.page.inviteWorkFeedback[index].commentSlide = this.page.inviteWorkFeedback[index].commentSlide + 1
+                    }
+                    this.$apply()
+                })
+            } else {
+                wepy.navigateTo({url: 'login'})
+            }
+        },
         openMap () {
             wepy.openLocation({
                 latitude: this.location.lat,
@@ -740,14 +1081,50 @@ export default class JobDetail extends wepy.page {
     }
 
     onPullDownRefresh () {
-        this.request.Get({
-            'userId': wepy.getStorageSync('userId') || 0,
-            'inviteWorkId': this.page.id
-        }, '/InviteWork/getInfo')
-        .then(({data}) => {
+        wepy.showLoading({title: '加载中...', mask: true})
+        Promise.all([
+            this.request.Get({
+                workId: this.id
+            }, '/InviteWork/getLikenessList'),
+            this.request.Get({
+                'userId': wepy.getStorageSync('userId') || 0,
+                'inviteWorkId': this.id
+            }, '/InviteWork/getInfo')
+        ]).then(([{data: list}, {data}]) => {
+            if (data.inviteWorkFeedback.length != 0) {
+                if (data.inviteWorkFeedback.length > 3) {
+                    this.showAllComment = true
+                    data.inviteWorkFeedback = data.inviteWorkFeedback.splice(0, 3)
+                }
+                data.inviteWorkFeedback.forEach((item) => {
+                    if (item.tag_str.length != 0) {
+                        item.tagArr = item.tag_str.split(',')
+                    } else {
+                        item.tagArr = []
+                    }
+                    item.interviewer_num = Number.parseInt(item.interviewer_num)
+                    item.env_num = Number.parseInt(item.env_num)
+                    item.conform_num = Number.parseInt(item.conform_num)
+                    item.salary_num = Number.parseInt(item.salary_num)
+                    item.like_num = Number.parseInt(item.like_num)
+                    item.create_time = formatTime(Number.parseInt(item.create_time) * 1000, 2)
+                    item.commentSlide = 1
+                })
+            }
             this.page = data
-            this.$apply()
+            this.similarJob = list
+            this.mapApi.geocoder({
+                address: data.city_name + data.address,
+                success: ({result: { location }}) => {
+                    this.location.lon = location.lng
+                    this.location.lat = location.lat
+                },
+                fail: err => {
+                }
+            })
             wepy.stopPullDownRefresh()
+            wepy.hideLoading()
+            this.$apply()
         })
     }
 
@@ -764,8 +1141,16 @@ export default class JobDetail extends wepy.page {
         }
     }
 
+    onShow () {
+        wepy.onSocketMessage(res => {
+            this.$parent.global.curVal = Number.parseInt(this.$parent.global.curVal) + 1
+            this.toast({content: '您有新消息'})
+        })
+    }
+
     onLoad (params) {
-        this.loading = true
+        // this.loading = true
+        wepy.showLoading({title: '加载中...', mask: true})
         this.type = params.type
         this.id = params.id
         Get('userId').then(ret => {
@@ -774,14 +1159,40 @@ export default class JobDetail extends wepy.page {
             this.$apply()
         }).catch(err => {
             this.hasLogin = false
+            this.userId = 0
             this.$apply()
         })
-        this.request.Get({
-            'userId': wepy.getStorageSync('userId') || 0,
-            'inviteWorkId': params.id
-        }, '/InviteWork/getInfo')
-        .then(({data}) => {
+        Promise.all([
+            this.request.Get({
+                workId: params.id
+            }, '/InviteWork/getLikenessList'),
+            this.request.Get({
+                'userId': wepy.getStorageSync('userId') || 0,
+                'inviteWorkId': params.id
+            }, '/InviteWork/getInfo')
+        ]).then(([{data: list}, {data}]) => {
+            if (data.inviteWorkFeedback.length != 0) {
+                if (data.inviteWorkFeedback.length > 3) {
+                    this.showAllComment = true
+                    data.inviteWorkFeedback = data.inviteWorkFeedback.splice(0, 3)
+                }
+                data.inviteWorkFeedback.forEach((item) => {
+                    if (item.tag_str.length != 0) {
+                        item.tagArr = item.tag_str.split(',')
+                    } else {
+                        item.tagArr = []
+                    }
+                    item.interviewer_num = Number.parseInt(item.interviewer_num)
+                    item.env_num = Number.parseInt(item.env_num)
+                    item.conform_num = Number.parseInt(item.conform_num)
+                    item.salary_num = Number.parseInt(item.salary_num)
+                    item.like_num = Number.parseInt(item.like_num)
+                    item.create_time = formatTime(Number.parseInt(item.create_time) * 1000, 2)
+                    item.commentSlide = 1
+                })
+            }
             this.page = data
+            this.similarJob = list
             this.mapApi.geocoder({
                 address: data.city_name + data.address,
                 success: ({result: { location }}) => {
@@ -789,10 +1200,10 @@ export default class JobDetail extends wepy.page {
                     this.location.lat = location.lat
                 },
                 fail: err => {
-                    log(err)
                 }
             })
-            this.loading = false
+            // this.loading = false
+            wepy.hideLoading()
             this.$apply()
         })
     }

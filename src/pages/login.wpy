@@ -238,15 +238,17 @@ export default class Login extends wepy.page {
                 accessToken: ""
             }, '/User/login')
             .then(({data}) => {
-                log(data)
-                Set('userId', data.id)
-                Set('userImg', data.headerImageFull)
-                .then(() => {
+                Promise.all([
+                    Set('userId', data.id),
+                    Set('userImg', data.headerImageFull),
+                    Set('finishType', data.userInfoFinishType)
+                ]).then(() => {
                     if (data.userInfoFinishType != 0) {
                         wepy.navigateTo({
                             url: 'simpleResume?id=' + data.id
                         })
                     } else {
+                        this.$parent.keepSocket(data.id)
                         wepy.reLaunch({
                             url: 'mine?userId=' + data.id
                         })
@@ -278,16 +280,18 @@ export default class Login extends wepy.page {
                 accessToken: ''
             }, '/User/login')
             .then(({data}) => {
-                log(data)
-                Set('userId', data.id)
-                Set('userImg', data.headerImageFull)
-                .then(() => {
+                Promise.all([
+                    Set('userId', data.id),
+                    Set('userImg', data.headerImageFull),
+                    Set('finishType', data.userInfoFinishType)
+                ]).then(() => {
                     if (data.userInfoFinishType != 0) {
                         wepy.navigateTo({
                             url: 'simpleResume?id=' + data.id
                         })
                     } else {
-                        wepy.relaunch({
+                        this.$parent.keepSocket(data.id)
+                        wepy.reLaunch({
                             url: 'mine?userId=' + data.id
                         })
                     }
@@ -330,9 +334,11 @@ export default class Login extends wepy.page {
                 accessToken: ''
             }, '/User/addUser')
             .then(({data}) => {
-                log(data)
-                Set('userId', data.id)
-                .then(() => {
+                Promise.all([
+                    Set('userId', data.id),
+                    Set('finishType', 1)
+                ]).then(() => {
+                    this.$parent.keepSocket(data.id)
                     wepy.redirectTo({
                         url: 'simpleResume?id=' + data.id
                     })
