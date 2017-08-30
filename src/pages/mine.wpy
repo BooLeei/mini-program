@@ -38,7 +38,9 @@ import {Get, Set} from '../utils/storage'
 
 export default class Mine extends wepy.page {
     config = {
-        backgroundTextStyle: 'dark',
+        navigationBarTextStyle: 'white',
+        backgroundTextStyle: 'white',
+        navigationBarBackgroundColor: '#40c4ff',
         navigationBarTitleText: '我',
         enablePullDownRefresh: false,
         disableScroll: false
@@ -120,10 +122,6 @@ export default class Mine extends wepy.page {
     }
 
     onLoad () {
-        wepy.setNavigationBarColor({
-            frontColor: '#ffffff',
-            backgroundColor: '#40c4ff'
-        })
         Get('userId').then(res => {
             wepy.showLoading({title: '加载中...', mask: true})
             this.hasLogin = true
@@ -135,6 +133,7 @@ export default class Mine extends wepy.page {
             .then(({data}) => {
                 Object.assign(this, data)
                 Set('userImg', data.headerImageFull)
+                Set('userPhone', data.tel)
                 this.$apply()
                 wepy.hideLoading()
             })

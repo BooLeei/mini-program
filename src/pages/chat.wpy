@@ -18,10 +18,12 @@
     </view>
     <view id="anchor"></view>
 </scroll-view>
-<view class="chat-input">
-    <textarea value="{{sendMsg}}" disabled="{{keyboard}}" bindfocus="scrollBottom" bindinput="bindSendMsg"
-     cursor-spacing="20" fixed="true" hover-start-time="0"></textarea>
-    <button @tap="sendMsgBtn" hover-class="btn-active">发送</button>
+<view class="chat-input" style="height:{{isIOS?'auto':'60px'}}">
+    <textarea wx:if="{{!isIOS}}" value="{{sendMsg}}" disabled="{{keyboard}}" bindfocus="scrollBottom"
+    bindinput="bindSendMsg" cursor-spacing="18" fixed></textarea>
+    <textarea wx:if="{{isIOS}}" style="min-height: 35px;padding:0 6px" value="{{sendMsg}}" auto-height disabled="{{keyboard}}" bindfocus="scrollBottom"
+    bindinput="bindSendMsg" cursor-spacing="18" fixed></textarea>
+    <button style="align-self: {{isIOS?'flex-end':'center'}}" @tap="sendMsgBtn" hover-class="btn-active">发送</button>
 </view>
 <toast></toast>
 </template>
@@ -53,11 +55,13 @@ export default class Chat extends wepy.page {
         viewId: '',
         userImg: '',
         msg: {},
+        cursorSpacing: 14,
         height: 0,
         sendMsg: '',
         chatList: [],
         keyboard: false,
-        tapFocus: false
+        tapFocus: false,
+        isIOS: false
     }
 
     components = {
@@ -234,9 +238,16 @@ export default class Chat extends wepy.page {
             this.getSystemInfo(),
             Get('userImg'),
             this.getChatList()
-        ]).then(([{windowHeight: height}, img, {data}]) => {
-            log(data)
-            this.height = height
+        ]).then(([res, img, {data}]) => {
+            console.log(res)
+            if (res.system.indexOf('iOS') !== -1) {
+                this.cursorSpacing = 14
+                this.isIOS = true
+            } else {
+                this.cursorSpacing = 18
+                this.isIOS = false
+            }
+            this.height = res.windowHeight
             this.userImg = img
             this.chatList = data.reverse()
             this.viewId = 'anchor'
@@ -375,13 +386,13 @@ page {
     padding: 10px 20px;
     background-color: #fff;
     textarea {
-        flex: 1;
+        width: 490rpx;
         height: 35px;
         border: 1px solid #ddd;
         border-radius: 12rpx;
-        font-size: 30rpx;
+        font-size: 32rpx;
         line-height: 1.2;
-        padding: 6px 5px 0;
+        padding: 6px;
         box-sizing: border-box;
         overflow: hidden;
         color: #707070;
@@ -392,15 +403,14 @@ page {
         color: transparent;
     }
     button {
-        align-self: flex-end;
         width: 80px;
         height: 35px;
         line-height: 35px;
         background-color: @generate-color;
         color: #fff;
-        font-size: 30rpx;
+        margin: 0;
+        font-size: 32rpx;
         font-weight: 500;
-        margin-left: 6rpx;
         border-radius: 12rpx;
         will-change: auto;
         transform: translateZ(0);

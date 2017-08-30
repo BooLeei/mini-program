@@ -2,17 +2,17 @@
 <view class="wrap">
     <block wx:if="{{type<4}}">
         <repeat for="{{list}}" key="{{index}}">
-            <job-item :listItem="item" type="3"></job-item>
+            <job-item :listItem="item" type="8"></job-item>
         </repeat>
     </block>
     <block wx:if="{{type==4}}">
         <repeat for="{{list}}" key="{{index}}">
-            <job-item :listItem="item" type="3"></job-item>
+            <job-item :listItem="item" type="8"></job-item>
         </repeat>
-    </block>/
+    </block>
     <block wx:if="{{type>4}}">
         <repeat for="{{list}}" key="{{index}}">
-            <job-item :listItem="item" type="3"></job-item>
+            <job-item :listItem="item" type="8"></job-item>
         </repeat>
     </block>
 </view>

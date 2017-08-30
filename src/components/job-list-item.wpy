@@ -47,6 +47,10 @@ export default class JobListItem extends wepy.component {
                 wepy.redirectTo({
                     url: `jobDetail?id=${id}&type=1`
                 })
+            } else if (type == '8') {
+                wepy.redirectTo({
+                    url: `jobDetail?id=${id}&type=2`
+                })
             } else {
                 wepy.navigateTo({
                     url: `jobDetail?id=${id}&type=${type}`

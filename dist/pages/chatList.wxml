@@ -1,6 +1,6 @@
 
 <view class="chat-wrap">
-    <view class="list-item" style="margin-top: 20rpx;" bindtap="showAlert">
+    <view class="list-item" hover-class="view-hover" style="margin-top: 20rpx;" bindtap="showAlert">
         <view class="list-left">
             <image src="../image/systemHeader.png" mode="aspectFill"/>
             <!-- <text class="unread-num"></text> -->
@@ -12,7 +12,7 @@
             <view class="msg-cont">系统更新</view>
         </view>
     </view>
-    <view class="list-item" style="margin: 10rpx 0 20rpx;" bindtap="toInterest">
+    <view class="list-item" hover-class="view-hover" style="margin: 10rpx 0 20rpx;" bindtap="toInterest">
         <view class="list-left">
             <image src="../image/intrestHeader.png" mode="aspectFill"/>
             <text class="unread-num"  wx:if="{{intre.noReadCount!=0}}">{{intre.noReadCount}}</text>
@@ -26,10 +26,10 @@
         </view>
     </view>
     <view class="list-wrap top">
-        <view class="list-item" wx:for="{{topList}}" wx:key="{{index}}" bindtouchstart="slideStart" bindtouchmove="slideMove" bindtap="toChat" data-wepy-params-a="1" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">
+        <view class="list-item" hover-class="view-hover" wx:for="{{topList}}" wx:key="{{index}}" bindtouchstart="slideStart" bindtouchmove="slideMove" bindtap="toChat" data-wepy-params-a="1" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">
             <view class="slide-wrap {{slideId==item._id?'wrap-active':''}}">
                 <view class="list-left">
-                    <image src="{{item.chatUserHeaderImage}}" catchtap="toCompany" mode="aspectFill" data-wepy-params-a="{{item.chatUserId}}"/>
+                    <image src="{{item.chatUserHeaderImage}}" hover-stop-propagation="hover-stop-propagation" catchtap="toCompany" mode="aspectFill" data-wepy-params-a="{{item.chatUserId}}"/>
                     <text class="unread-num" wx:if="{{item.nr!=0}}">{{item.nr}}</text>
                 </view>
                 <view class="list-right">
@@ -39,15 +39,15 @@
                     <view class="msg-cont">{{item.c}}</view>
                 </view>
             </view>
-            <view class="slide first {{slideId==item._id?'first-active':''}}" catchtap="upTop" data-wepy-params-a="1" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">取消置顶</view>
-            <view class="slide second {{slideId==item._id?'second-active':''}}" bindtap="removeItem" data-wepy-params-a="1" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">删除</view>
+            <view class="slide first {{slideId==item._id?'first-active':''}}" hover-stop-propagation="hover-stop-propagation" catchtap="upTop" data-wepy-params-a="1" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">取消置顶</view>
+            <view class="slide second {{slideId==item._id?'second-active':''}}" hover-stop-propagation="hover-stop-propagation" bindtap="removeItem" data-wepy-params-a="1" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">删除</view>
         </view>
     </view>
     <view class="list-wrap">
-        <view class="list-item" wx:for="{{list}}" wx:key="{{index}}" bindtouchstart="slideStart" bindtouchmove="slideMove" bindtap="toChat" data-wepy-params-a="0" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">
+        <view class="list-item" hover-class="view-hover" wx:for="{{list}}" wx:key="{{index}}" bindtouchstart="slideStart" bindtouchmove="slideMove" bindtap="toChat" data-wepy-params-a="0" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">
             <view class="slide-wrap {{slideId==item._id?'wrap-active':''}}">
                 <view class="list-left">
-                    <image src="{{item.chatUserHeaderImage}}" catchtap="toCompany" mode="aspectFill" data-wepy-params-a="{{item.chatUserId}}"/>
+                    <image src="{{item.chatUserHeaderImage}}" hover-stop-propagation="hover-stop-propagation" catchtap="toCompany" mode="aspectFill" data-wepy-params-a="{{item.chatUserId}}"/>
                     <text class="unread-num" wx:if="{{item.nr!=0}}">{{item.nr}}</text>
                 </view>
                 <view class="list-right">
@@ -57,8 +57,8 @@
                     <text class="msg-cont">{{item.c}}</text>
                 </view>
             </view>
-            <view class="slide first {{slideId==item._id?'first-active':''}}" catchtap="upTop" data-wepy-params-a="0" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">置顶消息</view>
-            <view class="slide second {{slideId==item._id?'second-active':''}}" catchtap="removeItem" data-wepy-params-a="0" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">删除</view>
+            <view class="slide first {{slideId==item._id?'first-active':''}}" hover-stop-propagation="hover-stop-propagation" catchtap="upTop" data-wepy-params-a="0" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">置顶消息</view>
+            <view class="slide second {{slideId==item._id?'second-active':''}}" hover-stop-propagation="hover-stop-propagation" catchtap="removeItem" data-wepy-params-a="0" data-wepy-params-b="{{index}}" data-wepy-params-c="{{item}}">删除</view>
         </view>
     </view>
 </view>

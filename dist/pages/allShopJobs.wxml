@@ -3,7 +3,7 @@
     <block  wx:if="{{type<4}}">
         <block wx:for="{{list}}" wx:for-index="index" wx:for-item="item" wx:key="{{index}}">
             
-    <view bindtap="$jobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{3}}" data-wepy-params-b="{{item.id}}">
+    <view bindtap="$jobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{8}}" data-wepy-params-b="{{item.id}}">
         <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
         <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
         <view class="right-side">
@@ -38,7 +38,7 @@
     <block wx:if="{{type==4}}">
         <block wx:for="{{list}}" wx:for-index="index" wx:for-item="item" wx:key="{{index}}">
             
-    <view bindtap="$jobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{3}}" data-wepy-params-b="{{item.id}}">
+    <view bindtap="$jobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{8}}" data-wepy-params-b="{{item.id}}">
         <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
         <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
         <view class="right-side">
@@ -69,11 +69,11 @@
     </view>
 
         </block>
-    </block>/
+    </block>
     <block wx:if="{{type>4}}">
         <block wx:for="{{list}}" wx:for-index="index" wx:for-item="item" wx:key="{{index}}">
             
-    <view bindtap="$jobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{3}}" data-wepy-params-b="{{item.id}}">
+    <view bindtap="$jobItem$toJobDetail" class="listItem" hover-class="item-hover" data-com-index="{{index}}" data-wepy-params-a="{{8}}" data-wepy-params-b="{{item.id}}">
         <image  wx:if="{{item.userCompany.is_approve_offcial==1}}" class="job-auth" mode="aspectFill" src="../image/authentic.png"/>
         <image class="comp-logo" mode="aspectFill" src="{{item.userCompany.headerImage}}"/>
         <view class="right-side">

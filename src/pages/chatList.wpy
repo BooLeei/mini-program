@@ -1,6 +1,6 @@
 <template>
 <view class="chat-wrap">
-    <view class="list-item" style="margin-top: 20rpx;" @tap="showAlert">
+    <view class="list-item" hover-class="view-hover" style="margin-top: 20rpx;" @tap="showAlert">
         <view class="list-left">
             <image src="../image/systemHeader.png" mode="aspectFill" />
             <!-- <text class="unread-num"></text> -->
@@ -12,7 +12,7 @@
             <view class="msg-cont">系统更新</view>
         </view>
     </view>
-    <view class="list-item" style="margin: 10rpx 0 20rpx;" @tap="toInterest">
+    <view class="list-item" hover-class="view-hover" style="margin: 10rpx 0 20rpx;" @tap="toInterest">
         <view class="list-left">
             <image src="../image/intrestHeader.png" mode="aspectFill" />
             <text class="unread-num" wx:if="{{intre.noReadCount!=0}}">{{intre.noReadCount}}</text>
@@ -26,11 +26,11 @@
         </view>
     </view>
     <view class="list-wrap top">
-        <view class="list-item" wx:for="{{topList}}" wx:key="{{index}}"
+        <view class="list-item" hover-class="view-hover" wx:for="{{topList}}" wx:key="{{index}}"
         @touchstart="slideStart" @touchmove="slideMove(1, {{index}}, {{item}})" @tap="toChat(1, {{index}}, {{item}})">
             <view class="slide-wrap {{slideId==item._id?'wrap-active':''}}">
                 <view class="list-left">
-                    <image src="{{item.chatUserHeaderImage}}" @tap.stop="toCompany({{item.chatUserId}})" mode="aspectFill" />
+                    <image src="{{item.chatUserHeaderImage}}" hover-stop-propagation @tap.stop="toCompany({{item.chatUserId}})" mode="aspectFill" />
                     <text class="unread-num" wx:if="{{item.nr!=0}}">{{item.nr}}</text>
                 </view>
                 <view class="list-right">
@@ -40,16 +40,16 @@
                     <view class="msg-cont">{{item.c}}</view>
                 </view>
             </view>
-            <view class="slide first {{slideId==item._id?'first-active':''}}" @tap.stop="upTop(1, {{index}}, {{item}})">取消置顶</view>
-            <view class="slide second {{slideId==item._id?'second-active':''}}" @tap="removeItem(1, {{index}}, {{item}})">删除</view>
+            <view class="slide first {{slideId==item._id?'first-active':''}}" hover-stop-propagation @tap.stop="upTop(1, {{index}}, {{item}})">取消置顶</view>
+            <view class="slide second {{slideId==item._id?'second-active':''}}" hover-stop-propagation @tap="removeItem(1, {{index}}, {{item}})">删除</view>
         </view>
     </view>
     <view class="list-wrap">
-        <view class="list-item" wx:for="{{list}}" wx:key="{{index}}"
+        <view class="list-item" hover-class="view-hover" wx:for="{{list}}" wx:key="{{index}}"
         @touchstart="slideStart" @touchmove="slideMove(0, {{index}}, {{item}})" @tap="toChat(0, {{index}}, {{item}})">
             <view class="slide-wrap {{slideId==item._id?'wrap-active':''}}">
                 <view class="list-left">
-                    <image src="{{item.chatUserHeaderImage}}" @tap.stop="toCompany({{item.chatUserId}})" mode="aspectFill" />
+                    <image src="{{item.chatUserHeaderImage}}" hover-stop-propagation @tap.stop="toCompany({{item.chatUserId}})" mode="aspectFill" />
                     <text class="unread-num" wx:if="{{item.nr!=0}}">{{item.nr}}</text>
                 </view>
                 <view class="list-right">
@@ -59,8 +59,8 @@
                     <text class="msg-cont">{{item.c}}</text>
                 </view>
             </view>
-            <view class="slide first {{slideId==item._id?'first-active':''}}" @tap.stop="upTop(0, {{index}}, {{item}})">置顶消息</view>
-            <view class="slide second {{slideId==item._id?'second-active':''}}" @tap.stop="removeItem(0, {{index}}, {{item}})">删除</view>
+            <view class="slide first {{slideId==item._id?'first-active':''}}" hover-stop-propagation @tap.stop="upTop(0, {{index}}, {{item}})">置顶消息</view>
+            <view class="slide second {{slideId==item._id?'second-active':''}}" hover-stop-propagation @tap.stop="removeItem(0, {{index}}, {{item}})">删除</view>
         </view>
     </view>
 </view>
@@ -547,5 +547,8 @@ page {
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+}
+.view-hover {
+    background-color: #fafafa;
 }
 </style>

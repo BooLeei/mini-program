@@ -1,7 +1,7 @@
 
 <view class="list-wrap">
     <view class="list-item"><text>黑名单</text><icon/></view>
-    <view class="list-item"><text>帐号设置</text><icon/></view>
+    <view class="list-item" bindtap="toAccountSet"><text>帐号设置</text><icon/></view>
 </view>
 <view class="list-wrap">
     <!-- <button open-type="contact" class="list-button"><text>意见反馈</text><icon></icon></button> -->

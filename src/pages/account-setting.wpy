@@ -1,0 +1,88 @@
+<template>
+<view class="list-wrap">
+    <view class="list-item" style="padding-right: 70rpx;" @tap="toAccountTel">
+        <text>手机号</text>
+        <text>{{phone}}</text>
+        <icon class="special-icon"></icon>
+    </view>
+    <view class="list-item"><text>微信绑定</text><icon></icon></view>
+    <view class="list-item" @tap="toAccountPassword"><text>修改密码</text><icon></icon></view>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import {Get} from '../utils/storage'
+
+export default class AccountSetting extends wepy.page {
+    config = {
+        backgroundTextStyle: 'dark',
+        navigationBarTitleText: '账号设置',
+        enablePullDownRefresh: false,
+        disableScroll: false
+    }
+
+    data = {
+        phone: ''
+    }
+
+    methods = {
+        toAccountTel () {
+            wepy.navigateTo({url: 'account-tel'})
+        },
+        toAccountPassword () {
+            wepy.navigateTo({url: 'account-password'})
+        }
+    }
+
+    onLoad (params) {
+        Get('userPhone').then(res => {
+            this.phone = res
+            this.$apply()
+        })
+    }
+}
+</script>
+
+<style lang="less">
+@import url('../utils/global');
+
+page {
+    background-color: @bg-color;
+    display: flex;
+    flex-direction: column;
+}
+.list-wrap {
+    width: 100%;
+    flex-direction: column;
+    font-weight: 500;
+    font-size: 26rpx;
+    margin: 20rpx 0;
+    background-color: #fff;
+}
+.list-item {
+    width: 100%;
+    height: 100rpx;
+    padding: 0 40rpx;
+    border-bottom: 1px solid @bd-color;
+    justify-content: space-between;
+    align-items: center;
+    color: @font-color2;
+    position: relative;
+    icon {
+        width: 20rpx;
+        height: 20rpx;
+        border-top: 2px solid @font-color;
+        border-right: 2px solid @font-color;
+        transform: rotate(45deg);
+    }
+    .special-icon {
+        width: 20rpx;
+        height: 20rpx;
+        position: absolute;
+        top: 50%;
+        right: 40rpx;
+        transform: translateY(-50%) rotate(45deg);
+    }
+}
+</style>

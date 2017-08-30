@@ -1,7 +1,7 @@
 <template>
 <view class="list-wrap">
     <view class="list-item"><text>黑名单</text><icon></icon></view>
-    <view class="list-item"><text>帐号设置</text><icon></icon></view>
+    <view class="list-item" @tap="toAccountSet"><text>帐号设置</text><icon></icon></view>
 </view>
 <view class="list-wrap">
     <!-- <button open-type="contact" class="list-button"><text>意见反馈</text><icon></icon></button> -->
@@ -41,9 +41,12 @@ export default class Setting extends wepy.page {
     }
 
     methods = {
+        toAccountSet () {
+            wepy.navigateTo({url: 'account-setting'})
+        },
         quit () {
             this.$parent.clearSocket()
-            Promise.all([Remove('userId'), Remove('userImg'), Close()])
+            Promise.all([Remove('userId'), Remove('userImg'), Remove('userPhone'), Close()])
             .then(() => {
                 wepy.reLaunch({url: 'jobs'})
             })

@@ -54,6 +54,9 @@ export default class extends wepy.app {
             'pages/comment',
             'pages/simpleResume',
             'pages/setting',
+            'pages/account-setting',
+            'pages/account-tel',
+            'pages/account-password',
             'pages/interest'
         ],
         window: {

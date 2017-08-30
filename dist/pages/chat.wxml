@@ -18,9 +18,10 @@
     </view>
     <view id="anchor"/>
 </scroll-view>
-<view class="chat-input">
-    <textarea value="{{sendMsg}}" disabled="{{keyboard}}" bindfocus="scrollBottom" bindinput="bindSendMsg" cursor-spacing="20" fixed="true" hover-start-time="0"/>
-    <button bindtap="sendMsgBtn" hover-class="btn-active">发送</button>
+<view class="chat-input" style="height:{{isIOS?'auto':'60px'}}">
+    <textarea  wx:if="{{!isIOS}}" value="{{sendMsg}}" disabled="{{keyboard}}" bindfocus="scrollBottom" bindinput="bindSendMsg" cursor-spacing="18" fixed="fixed"/>
+    <textarea  wx:if="{{isIOS}}" style="min-height: 35px;padding:0 6px" value="{{sendMsg}}" auto-height disabled="{{keyboard}}" bindfocus="scrollBottom" bindinput="bindSendMsg" cursor-spacing="18" fixed="fixed"/>
+    <button style="align-self: {{isIOS?'flex-end':'center'}}" bindtap="sendMsgBtn" hover-class="btn-active">发送</button>
 </view>
 
 <view class="toast-wrap" hidden="{{$toast$hide}}" style="top:{{$toast$top}}px">{{$toast$content}}</view>

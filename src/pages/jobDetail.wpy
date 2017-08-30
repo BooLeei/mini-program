@@ -878,7 +878,8 @@ import { log } from '../utils/log'
 export default class JobDetail extends wepy.page {
     config = {
         backgroundTextStyle: 'dark',
-        navigationBarTitleText: '职位信息'
+        navigationBarTitleText: '职位信息',
+        onReachBottomDistance: 100
     }
 
     request = new Request()

@@ -317,8 +317,11 @@ import {log} from '../utils/log'
 
 export default class Company extends wepy.page {
     config = {
-        backgroundTextStyle: 'dark',
-        navigationBarTitleText: '公司信息'
+        navigationBarTextStyle: 'white',
+        backgroundTextStyle: 'white',
+        navigationBarBackgroundColor: '#40c4ff',
+        navigationBarTitleText: '公司信息',
+        onReachBottomDistance: 100
     }
 
     data = {
@@ -665,10 +668,6 @@ export default class Company extends wepy.page {
             }
             this.about = about
             this.loading = false
-            wepy.setNavigationBarColor({
-                frontColor: '#ffffff',
-                backgroundColor: '#40c4ff'
-            })
             this.$apply()
             this.mapApi.geocoder({
                 address: this.baseData.cityName + this.detailAddress,
